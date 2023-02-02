@@ -1,0 +1,17 @@
+# RP/M - operating system for microcontrollers
+
+A goal of this project is to develop an embedded operating system
+for modern microcontrollers, similar to CP/M or DR-DOS.
+
+Components:
+  * Console command shell.
+  * File system exFAT.
+  * Driver for SD card.
+  * Driver for filesystem in Flash memory.
+  * Dynamic loader.
+  * Loadable drivers.
+  * System call interface.
+        - Simple console input-output.
+        - File i/o.
+        - Signals: interrupt on ^C, alarm on timer.
+        - Time/date management.
