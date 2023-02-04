@@ -10,7 +10,7 @@ Components:
   * Driver for filesystem in Flash memory.
   * Dynamic loader.
   * Loadable drivers.
-  * System call interface.
+  * System call interface (stdlib).
         - Simple console input-output.
         - File i/o.
         - Signals: interrupt on ^C, alarm on timer.
