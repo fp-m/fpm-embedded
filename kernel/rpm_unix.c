@@ -2,6 +2,7 @@
 // API for RP/M, implemented with Posix.
 //
 #include <rpm/api.h>
+#include <rpm/internal.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -16,9 +17,8 @@ int rpm_getchar()
     }
     if (ch == '\3') {
         // ^C - kill the process.
-        // TODO: longjmp(restart)
         rpm_puts("^C\r\n");
-        exit(-1);
+        longjmp(rpm_saved_point, 1);
     }
     return (uint8_t) ch;
 }

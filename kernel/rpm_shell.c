@@ -6,6 +6,7 @@
 #include <rpm/internal.h>
 
 static char cmd_line[128]; // TODO: put into static RP/M memory block.
+jmp_buf rpm_saved_point; // TODO: move to the system area
 
 //
 // Interactive dialog.
@@ -16,13 +17,13 @@ void rpm_shell()
 
     // TODO: Load the autoexec.bat config file.
     //if (coldBoot > 0) {
-    //    source("autoexec.txt");
+    //    source("autoexec.cmd");
     //}
 
-    // TODO: restart on ^C.
-    //if (rpm_restart()) {
-        // TODO: initialize internal state.
-    //}
+    // Restart on ^C.
+    if (setjmp(rpm_saved_point) != 0) {
+        // TODO: Re-initialize internal state.
+    }
 
     // The main loop.
     for (;;) {

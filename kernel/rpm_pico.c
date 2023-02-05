@@ -2,6 +2,7 @@
 // API for RP/M, implemented with Pico SDK.
 //
 #include <rpm/api.h>
+#include <rpm/internal.h>
 #include <stdio.h>
 #include "pico/stdlib.h"
 //#include <stdlib.h>
@@ -11,15 +12,12 @@ int rpm_getchar()
     int ch = getchar();
     if (ch < 0) {
         // Console closed.
-        // TODO: longjmp(restart)
-        rpm_puts("\r\nHangup!\r\n");
-        return 0;
+        longjmp(rpm_saved_point, 1);
     }
     if (ch == '\3') {
         // ^C - kill the process.
-        // TODO: longjmp(restart)
         rpm_puts("^C\r\n");
-        return 0;
+        longjmp(rpm_saved_point, 1);
     }
     return (uint8_t) ch;
 }

@@ -24,16 +24,6 @@ int rpm_sscanf(const char *, const char *, ...);
 int rpm_vsscanf(const char *, const char *, va_list);
 
 //
-// Save the current execution context for restart.
-// Return false.
-//
-// Later the execution can be restored, when ^C pressed,
-// or USB console detached, or Break signal received on Uart console.
-// In this case true is returned.
-//
-bool rpm_restart(void);
-
-//
 // Wait for a keycode character.
 // Returns:
 // - ASCII keycode
