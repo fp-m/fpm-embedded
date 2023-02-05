@@ -11,7 +11,7 @@
 //
 static void insert_character()
 {
-    rpm_puts("\33[1@");
+    rpm_puts("\33[@");
 }
 
 //
@@ -20,7 +20,15 @@ static void insert_character()
 //
 static void delete_character()
 {
-    rpm_puts("\33[1P");
+    rpm_puts("\33[P");
+}
+
+//
+// Erase the line starting from current position.
+//
+static void erase_till_end_of_line()
+{
+    rpm_puts("\33[K");
 }
 
 //
@@ -61,9 +69,8 @@ int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
             }
             break;
 
-        case '\r':
-            // Return
-            // Cursor right for the remainder
+        case '\r': // Return
+            // Cursor right for the remainder.
             for (;; insert_pos++) {
                 int ch = buffer[insert_pos];
                 if (ch == 0)
@@ -72,20 +79,23 @@ int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
             }
             return key;
 
-        case '\b':
-        case 0x7F:
-            // Backspace
+        case '\b': // ^H - Backspace on Linux
+        case 0x7F: // 0177 - Backspace on Mac
             if (insert_pos > 0) {
                 unsigned len = strlen(buffer);
-                rpm_putchar('\b');
-                delete_character();
+                if (insert_pos < len) {
+                    rpm_putchar('\b');
+                    delete_character();
+                } else {
+                    rpm_puts("\b \b");
+                }
                 insert_pos--;
                 memmove(&buffer[insert_pos], &buffer[insert_pos+1], len - insert_pos);
             }
             break;
 
-        case CTRL('d'): {
-            // Delete
+        case CTRL('d'): { // ^D - Delete
+            // TODO: Delete on Linux: Esc[3~
             unsigned len = strlen(buffer);
             if (insert_pos < len) {
                 delete_character();
@@ -93,16 +103,16 @@ int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
             }
             break;
         }
-        case CTRL('b'):
-            // Cursor Left
+        case CTRL('b'): // ^B - Cursor Left
+            // TODO: arrow left: Esc[D Esc[OD
             if (insert_pos > 0) {
                 rpm_putchar('\b');
                 insert_pos--;
             }
             break;
 
-        case CTRL('f'): {
-            // Cursor Right
+        case CTRL('f'): { // ^F - Cursor Right
+            // TODO: arrow right: Esc[C Esc[OC
             unsigned len = strlen(buffer);
             if (insert_pos < len) {
                 rpm_putchar(buffer[insert_pos]);
@@ -110,24 +120,48 @@ int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
             }
             break;
         }
-        case CTRL('a'):
-            // Home
-            // TODO: Begin of line
+        case CTRL('a'): // ^A - Beginning of line
+            // TODO: Home: Esc[H EscOH
+            while (insert_pos > 0) {
+                rpm_putchar('\b');
+                insert_pos--;
+            }
             break;
 
-        case CTRL('e'):
-            // End
-            // TODO: End of line
+        case CTRL('e'): { // ^E - End of line
+            // TODO: End: Esc[F EscOF
+            unsigned len = strlen(buffer);
+            while (insert_pos < len) {
+                rpm_putchar(buffer[insert_pos]);
+                insert_pos++;
+            }
+            break;
+        }
+        case CTRL('u'): // ^U - Erase the line
+            while (insert_pos > 0) {
+                rpm_putchar('\b');
+                insert_pos--;
+            }
+            if (buffer[0] != 0) {
+                erase_till_end_of_line();
+                buffer[0] = 0;
+            }
             break;
 
-        case CTRL('p'):
-            // Cursor Up
-            // TODO: previous line from history
+        case CTRL('l'): // ^L - Refresh the line
+            rpm_puts("\r\n");
+            rpm_puts(buffer);
+            for (int i = strlen(buffer); i > insert_pos; i--) {
+                rpm_putchar('\b');
+            }
             break;
 
-        case CTRL('n'):
-            // Cursor Down
-            // TODO: next line from history
+        case CTRL('p'): // ^P - previous line from history
+            // TODO: arrow up: Esc[A EscOA
+            break;
+
+        case CTRL('n'): // ^N - next line from history
+            // TODO: arrow down: Esc[B EscOB
             break;
         }
     }

@@ -28,3 +28,7 @@ clean:
 
 unit_tests:     $(OBJ)
 		$(CC) $(LDFLAGS) $(OBJ) $(LIBS) -o $@
+
+###
+editline_test.o: editline_test.c ../include/rpm/api.h ../include/rpm/internal.h
+rpm_editline.o: ../kernel/rpm_editline.c ../include/rpm/api.h

@@ -29,7 +29,7 @@ void rpm_shell()
     for (;;) {
         // Display the prompt.
         // TODO: print current disk and directory.
-        rpm_puts("c:/> ");
+        rpm_puts("c:/ > ");
 
         // Call the line editor.
         rpm_editline(cmd_line, sizeof(cmd_line), 1);

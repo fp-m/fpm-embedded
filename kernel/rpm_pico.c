@@ -9,10 +9,17 @@
 
 int rpm_getchar()
 {
-    int ch = getchar();
-    if (ch < 0) {
-        // Console closed.
-        longjmp(rpm_saved_point, 1);
+    int ch;
+
+    for (;;) {
+        ch = getchar();
+        if (ch >= 0) {
+            break;
+        }
+        // Console closed: wait until session restored.
+        while (!stdio_usb_connected()) {
+            sleep_ms(100);
+        }
     }
     if (ch == '\3') {
         // ^C - kill the process.

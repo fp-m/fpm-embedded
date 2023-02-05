@@ -12,6 +12,6 @@ Components:
   * Loadable drivers.
   * System call interface (stdlib).
         - Simple console input-output.
-        - File i/o.
-        - Signals: interrupt on ^C, alarm on timer.
         - Time/date management.
+        - File i/o.
+        - Alarm on timer.
