@@ -1,4 +1,4 @@
 for-analysis
-build-unix/shell
-kernel/fatfs/test/build
+demo/shell_unix/shell
+demo/*/build
 *.o
