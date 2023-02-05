@@ -72,10 +72,6 @@ int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
             }
             return key;
 
-        case '\33':
-            // Escape
-            return key;
-
         case '\b':
         case 0x7F:
             // Backspace
