@@ -3,14 +3,14 @@
 // It must use only routines defined in rpm_lib.h.
 //
 #include <rpm/api.h>
-#include "shell.h"
+#include <rpm/internal.h>
 
 static char cmd_line[128]; // TODO: put into static RP/M memory block.
 
 //
 // Interactive dialog.
 //
-void shell()
+void rpm_shell()
 {
     // TODO: Mount the SD card.
 

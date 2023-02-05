@@ -4,8 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
-
-#include "shell.h"
+#include <rpm/internal.h>
 
 static struct termios saved_term;
 
@@ -45,5 +44,5 @@ int main()
     printf("Use 'exit' to quit.\r\n\r\n");
 
     // Start interactive dialog.
-    shell();
+    rpm_shell();
 }
