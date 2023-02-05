@@ -51,13 +51,12 @@ int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
                 unsigned len = strlen(buffer);
                 if (len < buffer_length - 1) {
                     if (len > insert_pos) {
-                        memmove(&buffer[insert_pos+1], &buffer[insert_pos], len - insert_pos);
                         insert_character();
                     }
                     rpm_putchar(key);
+                    memmove(&buffer[insert_pos+1], &buffer[insert_pos], len - insert_pos + 1);
                     buffer[insert_pos] = key;
                     insert_pos++;
-                    buffer[insert_pos] = 0;
                 }
             }
             break;
