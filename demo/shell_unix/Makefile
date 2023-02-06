@@ -5,6 +5,8 @@ OBJ             = main_unix.o \
                   $(TOP)/kernel/rpm_puts.o \
                   $(TOP)/kernel/rpm_wputs.o \
                   $(TOP)/kernel/rpm_strwlen.o \
+                  $(TOP)/kernel/rpm_getwch.o \
+                  $(TOP)/kernel/rpm_putwch.o \
                   $(TOP)/kernel/rpm_strlcpy.o \
                   $(TOP)/kernel/rpm_unix.o \
                   $(TOP)/kernel/rpm_editline.o

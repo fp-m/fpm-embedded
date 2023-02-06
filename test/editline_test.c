@@ -13,46 +13,24 @@ static char result[1000];       // Resulting command line, utf-8 encoded
 //
 // Get Unicode character from input buffer.
 //
-uint16_t rpm_getwch()
+char rpm_getchar()
 {
     if (!input || *input == 0) {
         fail_msg("No input");
     }
-
-    // Decode utf-8 to unicode.
-    uint8_t c1 = *input++;
-    if (c1 < 0 || ! (c1 & 0x80))
-        return c1;
-
-    uint8_t c2 = *input++;
-    if (! (c1 & 0x20))
-        return (c1 & 0x1f) << 6 | (c2 & 0x3f);
-
-    uint8_t c3 = *input++;
-    return (c1 & 0x0f) << 12 | (c2 & 0x3f) << 6 | (c3 & 0x3f);
+    return *input++;
 }
 
 //
 // Write Unicode character to output buffer.
 //
-void rpm_putwch(uint16_t ch)
+void rpm_putchar(char ch)
 {
     // Note extra space for zero byte.
     if (output_ptr >= sizeof(output) - 3) {
         fail_msg("Too much output");
     }
-
-    // Convert to UTF-8 encoding.
-    if (ch < 0x80) {
-        output[output_ptr++] = ch;
-    } else if (ch < 0x800) {
-        output[output_ptr++] = ch >> 6 | 0xc0;
-        output[output_ptr++] = (ch & 0x3f) | 0x80;
-    } else {
-        output[output_ptr++] = ch >> 12 | 0xe0;
-        output[output_ptr++] = ((ch >> 6) & 0x3f) | 0x80;
-        output[output_ptr++] = (ch & 0x3f) | 0x80;
-    }
+    output[output_ptr++] = ch;
     output[output_ptr] = 0;
 }
 
