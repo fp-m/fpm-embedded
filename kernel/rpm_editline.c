@@ -40,31 +40,32 @@ static void erase_till_end_of_line()
 // Returns:
 // - The exit key pressed (ESC or CR)
 //
-int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool clear)
+int rpm_editline(const char *prompt, uint16_t *buffer, unsigned buffer_length, bool clear)
 {
     rpm_puts(prompt);
     if (clear) {
         buffer[0] = 0;
     } else {
-        rpm_puts(buffer);
+        rpm_wputs(buffer);
     }
 
-    unsigned insert_pos = strlen(buffer);
+    unsigned insert_pos = rpm_strwlen(buffer);
     for (;;) {
-        int key = rpm_getwch();
+        // Get Unicode symbol.
+        uint16_t key = rpm_getwch();
 
         switch (key) {
         default:
             // TODO: unicode
-            if (key >= ' ' && key <= '~') {
+            if (key >= ' ') {
                 // Insert character into line.
-                unsigned len = strlen(buffer);
+                unsigned len = rpm_strwlen(buffer);
                 if (len < buffer_length - 1) {
                     if (len > insert_pos) {
                         insert_character();
                     }
                     rpm_putwch(key);
-                    memmove(&buffer[insert_pos+1], &buffer[insert_pos], len - insert_pos + 1);
+                    memmove(&buffer[insert_pos+1], &buffer[insert_pos], (len - insert_pos + 1) * sizeof(uint16_t));
                     buffer[insert_pos] = key;
                     insert_pos++;
                 }
@@ -74,7 +75,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
         case '\r': // Return
             // Cursor right for the remainder.
             for (;; insert_pos++) {
-                int ch = buffer[insert_pos];
+                uint16_t ch = buffer[insert_pos];
                 if (ch == 0)
                     break;
                 rpm_putwch(ch);
@@ -84,7 +85,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
         case '\b': // ^H - Backspace on Linux
         case 0x7F: // 0177 - Backspace on Mac
             if (insert_pos > 0) {
-                unsigned len = strlen(buffer);
+                unsigned len = rpm_strwlen(buffer);
                 if (insert_pos < len) {
                     rpm_putwch('\b');
                     delete_character();
@@ -92,16 +93,16 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
                     rpm_puts("\b \b");
                 }
                 insert_pos--;
-                memmove(&buffer[insert_pos], &buffer[insert_pos+1], len - insert_pos);
+                memmove(&buffer[insert_pos], &buffer[insert_pos+1], (len - insert_pos) * sizeof(uint16_t));
             }
             break;
 
         case CTRL('d'): { // ^D - Delete
             // TODO: Delete on Linux: Esc[3~
-            unsigned len = strlen(buffer);
+            unsigned len = rpm_strwlen(buffer);
             if (insert_pos < len) {
                 delete_character();
-                memmove(&buffer[insert_pos], &buffer[insert_pos+1], len - insert_pos);
+                memmove(&buffer[insert_pos], &buffer[insert_pos+1], (len - insert_pos) * sizeof(uint16_t));
             }
             break;
         }
@@ -115,7 +116,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
 
         case CTRL('f'): { // ^F - Cursor Right
             // TODO: arrow right: Esc[C Esc[OC
-            unsigned len = strlen(buffer);
+            unsigned len = rpm_strwlen(buffer);
             if (insert_pos < len) {
                 rpm_putwch(buffer[insert_pos]);
                 insert_pos++;
@@ -132,7 +133,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
 
         case CTRL('e'): { // ^E - End of line
             // TODO: End: Esc[F EscOF
-            unsigned len = strlen(buffer);
+            unsigned len = rpm_strwlen(buffer);
             while (insert_pos < len) {
                 rpm_putwch(buffer[insert_pos]);
                 insert_pos++;
@@ -153,8 +154,8 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
         case CTRL('l'): // ^L - Refresh the line
             rpm_puts("\r\n");
             rpm_puts(prompt);
-            rpm_puts(buffer);
-            for (int i = strlen(buffer); i > insert_pos; i--) {
+            rpm_wputs(buffer);
+            for (int i = rpm_strwlen(buffer); i > insert_pos; i--) {
                 rpm_putwch('\b');
             }
             break;

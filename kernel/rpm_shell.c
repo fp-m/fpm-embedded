@@ -42,20 +42,24 @@ void rpm_shell()
     }
 
     // The main loop.
-    char cmd_line[128];
     for (;;) {
         // Create prompt.
         char prompt[128];
         build_prompt(prompt, sizeof(prompt));
 
         // Call the line editor.
-        rpm_editline(prompt, cmd_line, sizeof(cmd_line), 1);
+        uint16_t buf_unicode[128];
+        rpm_editline(prompt, buf_unicode, sizeof(buf_unicode), 1);
         rpm_puts("\r\n");
 
-        if (strlen(cmd_line) == 0) {
+        if (buf_unicode[0] == 0) {
             // Ignore empty lines.
             continue;
         }
+
+        // Encode as utf8.
+        char cmd_line[500];
+        rpm_strlcpy_to_utf8(cmd_line, buf_unicode, sizeof(cmd_line));
 
         // TODO: add the line to the history.
 

@@ -31,6 +31,11 @@ int rpm_vsscanf(const char *, const char *, va_list);
 uint16_t rpm_getwch(void);
 
 //
+// Write the Unicode string to the console.
+//
+void rpm_wputs(const uint16_t *);
+
+//
 // The main line edit function
 // Parameters:
 // - buffer: Pointer to the line edit buffer
@@ -39,7 +44,20 @@ uint16_t rpm_getwch(void);
 // Returns:
 // - The exit key pressed (ESC or CR)
 //
-int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool clear);
+int rpm_editline(const char *prompt, uint16_t *buffer, unsigned buffer_length, bool clear);
+
+//
+// Compute the length of the Unicode string s.
+// Return the number of characters that precede the terminating NUL character.
+//
+size_t rpm_strwlen(const uint16_t *s);
+
+//
+// Size-bounded string copying.
+//
+size_t rpm_strlcpy(char *dst, const char *src, size_t nitems);
+size_t rpm_strlcpy_from_utf8(uint16_t *dst, const char *src, size_t nitems);
+size_t rpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems);
 
 //TODO: sysvar_time
 

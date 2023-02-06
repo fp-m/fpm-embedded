@@ -5,10 +5,10 @@
 #include <rpm/api.h>
 #include <rpm/internal.h>
 
-static const char *input;
-static char output[1000];
-static int output_ptr;
-static char cmd_line[128];
+static const char *input;       // Input stream for the current test, utf-8 encoded
+static char output[1000];       // Output from the current test, utf-8 encoded
+static int output_ptr;          // Current position
+static char result[1000];       // Resulting command line, utf-8 encoded
 
 //
 // Get Unicode character from input buffer.
@@ -61,138 +61,142 @@ void rpm_putwch(uint16_t ch)
 //
 static void editline_test(const char *prompt, const char *inp)
 {
+    uint16_t cmd_line[128];
     input = inp;
     output_ptr = 0;
     output[0] = 0;
     rpm_editline(prompt, cmd_line, sizeof(cmd_line), true);
+    rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
 }
 
 static void editline_append(const char *initial, const char *inp)
 {
+    uint16_t cmd_line[128];
     input = inp;
     output_ptr = 0;
     output[0] = 0;
-    strlcpy(cmd_line, initial, sizeof(cmd_line));
+    rpm_strlcpy_from_utf8(cmd_line, initial, sizeof(cmd_line));
     rpm_editline(">", cmd_line, sizeof(cmd_line), false);
+    rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
 }
 
 static void empty_input(void **unused)
 {
     editline_test(">", "\r");
     assert_string_equal(output, ">");
-    assert_string_equal(cmd_line, "");
+    assert_string_equal(result, "");
 }
 
 static void ascii_input(void **unused)
 {
     editline_test(">", "foobar\r");
     assert_string_equal(output, ">foobar");
-    assert_string_equal(cmd_line, "foobar");
+    assert_string_equal(result, "foobar");
 }
 
 static void append_input(void **unused)
 {
     editline_append("foo", "bar\r");
     assert_string_equal(output, ">foobar");
-    assert_string_equal(cmd_line, "foobar");
+    assert_string_equal(result, "foobar");
 }
 
 static void cursor_left_ctrlB(void **unused)
 {
     editline_test(">", "foobar\2\2\2\r");
     assert_string_equal(output, ">foobar\b\b\bbar");
-    assert_string_equal(cmd_line, "foobar");
+    assert_string_equal(result, "foobar");
 }
 
 static void cursor_right_ctrlF(void **unused)
 {
     editline_test(">", "foobar\2\6\2\2\6\r");
     assert_string_equal(output, ">foobar\br\b\bar");
-    assert_string_equal(cmd_line, "foobar");
+    assert_string_equal(result, "foobar");
 }
 
 static void input_in_the_middle(void **unused)
 {
     editline_test(">", "foobar\2\2\2xyz\r");
     assert_string_equal(output, ">foobar\b\b\b\33[@x\33[@y\33[@zbar");
-    assert_string_equal(cmd_line, "fooxyzbar");
+    assert_string_equal(result, "fooxyzbar");
 }
 
 static void backspace_ctrlH_at_the_end(void **unused)
 {
     editline_test(">", "foobar\b\b\b\r");
     assert_string_equal(output, ">foobar\b \b\b \b\b \b");
-    assert_string_equal(cmd_line, "foo");
+    assert_string_equal(result, "foo");
 }
 
 static void backspace_ctrlH_in_the_middle(void **unused)
 {
     editline_test(">", "foobar\2\2\2\b\b\r");
     assert_string_equal(output, ">foobar\b\b\b\b\33[P\b\33[Pbar");
-    assert_string_equal(cmd_line, "fbar");
+    assert_string_equal(result, "fbar");
 }
 
 static void backspace_0177_at_the_end(void **unused)
 {
     editline_test(">", "foobar\177\177\177\r");
     assert_string_equal(output, ">foobar\b \b\b \b\b \b");
-    assert_string_equal(cmd_line, "foo");
+    assert_string_equal(result, "foo");
 }
 
 static void backspace_0177_in_the_middle(void **unused)
 {
     editline_test(">", "foobar\2\2\2\177\177\r");
     assert_string_equal(output, ">foobar\b\b\b\b\33[P\b\33[Pbar");
-    assert_string_equal(cmd_line, "fbar");
+    assert_string_equal(result, "fbar");
 }
 
 static void delete_ctrlD_at_the_end(void **unused)
 {
     editline_test(">", "foobar\4\4\4\r");
     assert_string_equal(output, ">foobar");
-    assert_string_equal(cmd_line, "foobar");
+    assert_string_equal(result, "foobar");
 }
 
 static void delete_ctrlD_in_the_middle(void **unused)
 {
     editline_test(">", "foobar\2\2\2\4\4\r");
     assert_string_equal(output, ">foobar\b\b\b\33[P\33[Pr");
-    assert_string_equal(cmd_line, "foor");
+    assert_string_equal(result, "foor");
 }
 
 static void beginning_of_line_ctrlA(void **unused)
 {
     editline_test(">", "foobar\1\r");
     assert_string_equal(output, ">foobar\b\b\b\b\b\bfoobar");
-    assert_string_equal(cmd_line, "foobar");
+    assert_string_equal(result, "foobar");
 }
 
 static void end_of_line_ctrlE(void **unused)
 {
     editline_test(">", "foobar\1x\5y\r");
     assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[@xfoobary");
-    assert_string_equal(cmd_line, "xfoobary");
+    assert_string_equal(result, "xfoobary");
 }
 
 static void erase_the_line_ctrlU(void **unused)
 {
     editline_test(">", "foobar\2\2\2\25abc\r");
     assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[Kabc");
-    assert_string_equal(cmd_line, "abc");
+    assert_string_equal(result, "abc");
 }
 
 static void refresh_the_line_ctrlL(void **unused)
 {
     editline_test(">", "foobar\2\14x\r");
     assert_string_equal(output, ">foobar\b\r\n>foobar\b\33[@xr");
-    assert_string_equal(cmd_line, "foobaxr");
+    assert_string_equal(result, "foobaxr");
 }
 
 static void unicode_input(void **unused)
 {
     editline_test(">", "Γεi\bιά\r");
     assert_string_equal(output, ">Γεi\b \bιά");
-    assert_string_equal(cmd_line, "Γειά");
+    assert_string_equal(result, "Γειά");
 }
 
 //
