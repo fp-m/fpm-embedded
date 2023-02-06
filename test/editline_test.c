@@ -108,9 +108,23 @@ static void cursor_left_ctrlB(void **unused)
     assert_string_equal(result, "foobar");
 }
 
+static void cursor_left_arrow(void **unused)
+{
+    editline_test(">", "foobar\33[D\33[D\33OD\r");
+    assert_string_equal(output, ">foobar\b\b\bbar");
+    assert_string_equal(result, "foobar");
+}
+
 static void cursor_right_ctrlF(void **unused)
 {
     editline_test(">", "foobar\2\6\2\2\6\r");
+    assert_string_equal(output, ">foobar\br\b\bar");
+    assert_string_equal(result, "foobar");
+}
+
+static void cursor_right_arrow(void **unused)
+{
+    editline_test(">", "foobar\2\33[C\2\2\33OC\r");
     assert_string_equal(output, ">foobar\br\b\bar");
     assert_string_equal(result, "foobar");
 }
@@ -157,9 +171,23 @@ static void delete_ctrlD_at_the_end(void **unused)
     assert_string_equal(result, "foobar");
 }
 
+static void delete_linux_at_the_end(void **unused)
+{
+    editline_test(">", "foobar\33[3~\33[3~\33[3~\r");
+    assert_string_equal(output, ">foobar");
+    assert_string_equal(result, "foobar");
+}
+
 static void delete_ctrlD_in_the_middle(void **unused)
 {
     editline_test(">", "foobar\2\2\2\4\4\r");
+    assert_string_equal(output, ">foobar\b\b\b\33[P\33[Pr");
+    assert_string_equal(result, "foor");
+}
+
+static void delete_linux_in_the_middle(void **unused)
+{
+    editline_test(">", "foobar\2\2\2\33[3~\33[3~\r");
     assert_string_equal(output, ">foobar\b\b\b\33[P\33[Pr");
     assert_string_equal(result, "foor");
 }
@@ -171,9 +199,37 @@ static void beginning_of_line_ctrlA(void **unused)
     assert_string_equal(result, "foobar");
 }
 
+static void beginning_of_line_home1(void **unused)
+{
+    editline_test(">", "foobar\33[H\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\bfoobar");
+    assert_string_equal(result, "foobar");
+}
+
+static void beginning_of_line_home2(void **unused)
+{
+    editline_test(">", "foobar\33OH\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\bfoobar");
+    assert_string_equal(result, "foobar");
+}
+
 static void end_of_line_ctrlE(void **unused)
 {
     editline_test(">", "foobar\1x\5y\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[@xfoobary");
+    assert_string_equal(result, "xfoobary");
+}
+
+static void end_of_line_home1(void **unused)
+{
+    editline_test(">", "foobar\1x\33[Fy\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[@xfoobary");
+    assert_string_equal(result, "xfoobary");
+}
+
+static void end_of_line_home2(void **unused)
+{
+    editline_test(">", "foobar\1x\33OFy\r");
     assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[@xfoobary");
     assert_string_equal(result, "xfoobary");
 }
@@ -199,6 +255,14 @@ static void unicode_input(void **unused)
     assert_string_equal(result, "Γειά");
 }
 
+static void arrow_up_down(void **unused)
+{
+    // History is not supported yet.
+    editline_test(">", "foobar\33[A\33[B\33OA\33OB\r");
+    assert_string_equal(output, ">foobar");
+    assert_string_equal(result, "foobar");
+}
+
 //
 // Run all tests.
 //
@@ -209,20 +273,28 @@ int main()
         cmocka_unit_test(ascii_input),
         cmocka_unit_test(append_input),
         cmocka_unit_test(cursor_left_ctrlB),
+        cmocka_unit_test(cursor_left_arrow),
         cmocka_unit_test(cursor_right_ctrlF),
+        cmocka_unit_test(cursor_right_arrow),
         cmocka_unit_test(input_in_the_middle),
         cmocka_unit_test(backspace_ctrlH_at_the_end),
         cmocka_unit_test(backspace_ctrlH_in_the_middle),
         cmocka_unit_test(backspace_0177_at_the_end),
         cmocka_unit_test(backspace_0177_in_the_middle),
         cmocka_unit_test(delete_ctrlD_at_the_end),
+        cmocka_unit_test(delete_linux_at_the_end),
         cmocka_unit_test(delete_ctrlD_in_the_middle),
+        cmocka_unit_test(delete_linux_in_the_middle),
         cmocka_unit_test(beginning_of_line_ctrlA),
+        cmocka_unit_test(beginning_of_line_home1),
+        cmocka_unit_test(beginning_of_line_home2),
         cmocka_unit_test(end_of_line_ctrlE),
+        cmocka_unit_test(end_of_line_home1),
+        cmocka_unit_test(end_of_line_home2),
         cmocka_unit_test(erase_the_line_ctrlU),
         cmocka_unit_test(refresh_the_line_ctrlL),
         cmocka_unit_test(unicode_input),
-        //cmocka_unit_test(),
+        cmocka_unit_test(arrow_up_down),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
