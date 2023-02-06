@@ -10,7 +10,7 @@
 //
 // Output to the console (USB or Uart).
 //
-void rpm_putchar(int x);
+void rpm_putwch(uint16_t);
 void rpm_puts(const char *);
 
 int rpm_printf(const char *, ...);
@@ -26,10 +26,9 @@ int rpm_vsscanf(const char *, const char *, va_list);
 //
 // Wait for a keycode character.
 // Returns:
-// - ASCII keycode
-// TODO: return Unicode symbol.
+// - Unicode symbol, 16 bits
 //
-int rpm_getchar(void);
+uint16_t rpm_getwch(void);
 
 //
 // The main line edit function

@@ -51,10 +51,11 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
 
     unsigned insert_pos = strlen(buffer);
     for (;;) {
-        int key = rpm_getchar();
+        int key = rpm_getwch();
 
         switch (key) {
         default:
+            // TODO: unicode
             if (key >= ' ' && key <= '~') {
                 // Insert character into line.
                 unsigned len = strlen(buffer);
@@ -62,7 +63,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
                     if (len > insert_pos) {
                         insert_character();
                     }
-                    rpm_putchar(key);
+                    rpm_putwch(key);
                     memmove(&buffer[insert_pos+1], &buffer[insert_pos], len - insert_pos + 1);
                     buffer[insert_pos] = key;
                     insert_pos++;
@@ -76,7 +77,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
                 int ch = buffer[insert_pos];
                 if (ch == 0)
                     break;
-                rpm_putchar(ch);
+                rpm_putwch(ch);
             }
             return key;
 
@@ -85,7 +86,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
             if (insert_pos > 0) {
                 unsigned len = strlen(buffer);
                 if (insert_pos < len) {
-                    rpm_putchar('\b');
+                    rpm_putwch('\b');
                     delete_character();
                 } else {
                     rpm_puts("\b \b");
@@ -107,7 +108,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
         case CTRL('b'): // ^B - Cursor Left
             // TODO: arrow left: Esc[D Esc[OD
             if (insert_pos > 0) {
-                rpm_putchar('\b');
+                rpm_putwch('\b');
                 insert_pos--;
             }
             break;
@@ -116,7 +117,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
             // TODO: arrow right: Esc[C Esc[OC
             unsigned len = strlen(buffer);
             if (insert_pos < len) {
-                rpm_putchar(buffer[insert_pos]);
+                rpm_putwch(buffer[insert_pos]);
                 insert_pos++;
             }
             break;
@@ -124,7 +125,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
         case CTRL('a'): // ^A - Beginning of line
             // TODO: Home: Esc[H EscOH
             while (insert_pos > 0) {
-                rpm_putchar('\b');
+                rpm_putwch('\b');
                 insert_pos--;
             }
             break;
@@ -133,14 +134,14 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
             // TODO: End: Esc[F EscOF
             unsigned len = strlen(buffer);
             while (insert_pos < len) {
-                rpm_putchar(buffer[insert_pos]);
+                rpm_putwch(buffer[insert_pos]);
                 insert_pos++;
             }
             break;
         }
         case CTRL('u'): // ^U - Erase the line
             while (insert_pos > 0) {
-                rpm_putchar('\b');
+                rpm_putwch('\b');
                 insert_pos--;
             }
             if (buffer[0] != 0) {
@@ -154,7 +155,7 @@ int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool 
             rpm_puts(prompt);
             rpm_puts(buffer);
             for (int i = strlen(buffer); i > insert_pos; i--) {
-                rpm_putchar('\b');
+                rpm_putwch('\b');
             }
             break;
 

@@ -19,6 +19,7 @@ add_executable(${PROJECT_NAME}
     ../../kernel/rpm_pico.c
     ../../kernel/rpm_shell.c
     ../../kernel/rpm_editline.c
+    ../../kernel/rpm_puts.c
 )
 
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC

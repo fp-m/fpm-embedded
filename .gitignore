@@ -1,4 +1,5 @@
 for-analysis
 demo/shell_unix/shell
 demo/*/build
+test/unit_tests
 *.o

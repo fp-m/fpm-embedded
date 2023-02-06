@@ -7,37 +7,73 @@
 #include "pico/stdlib.h"
 //#include <stdlib.h>
 
-int rpm_getchar()
+uint16_t rpm_getwch()
 {
-    int ch;
+    uint16_t result;
 
     for (;;) {
-        ch = getchar();
-        if (ch >= 0) {
-            break;
-        }
-        // Console closed: wait until session restored.
+        // Make sure console is connected.
         while (!stdio_usb_connected()) {
             sleep_ms(100);
         }
+
+        // Read one byte.
+        int c1 = getchar();
+        if (c1 < 0) {
+            continue;
+        }
+
+        // Decode utf-8 to unicode.
+        if (! (c1 & 0x80)) {
+            result = c1;
+        } else {
+            // Read second byte.
+            int c2 = getchar();
+            if (c2 < 0) {
+                continue;
+            }
+            if (! (c1 & 0x20)) {
+                result = (c1 & 0x1f) << 6 | (c2 & 0x3f);
+            } else {
+                // Read third byte.
+                int c3 = getchar();
+                if (c3 < 0) {
+                    continue;
+                }
+                result = (c1 & 0x0f) << 12 | (c2 & 0x3f) << 6 | (c3 & 0x3f);
+            }
+        }
+        break;
     }
-    if (ch == '\3') {
-        // ^C - kill the process.
+
+    // ^C - kill the process.
+    if (result == '\3') {
         rpm_puts("^C\r\n");
         longjmp(rpm_saved_point, 1);
     }
-    return (uint8_t) ch;
+    return result;
 }
 
-void rpm_putchar(int ch)
+//
+// Write Unicode character to the console.
+//
+// Convert to UTF-8 encoding:
+// 00000000.0xxxxxxx -> 0xxxxxxx
+// 00000xxx.xxyyyyyy -> 110xxxxx, 10yyyyyy
+// xxxxyyyy.yyzzzzzz -> 1110xxxx, 10yyyyyy, 10zzzzzz
+//
+void rpm_putwch(uint16_t ch)
 {
-    putchar(ch);
-    fflush(stdout);
-}
-
-void rpm_puts(const char *str)
-{
-    fputs(str, stdout);
+    if (ch < 0x80) {
+        putchar(ch);
+    } else if (ch < 0x800) {
+        putchar(ch >> 6 | 0xc0);
+        putchar((ch & 0x3f) | 0x80);
+    } else {
+        putchar(ch >> 12 | 0xe0);
+        putchar(((ch >> 6) & 0x3f) | 0x80);
+        putchar((ch & 0x3f) | 0x80);
+    }
     fflush(stdout);
 }
 

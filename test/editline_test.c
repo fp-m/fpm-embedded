@@ -11,37 +11,49 @@ static int output_ptr;
 static char cmd_line[128];
 
 //
-// Get character from input buffer.
+// Get Unicode character from input buffer.
 //
-int rpm_getchar()
+uint16_t rpm_getwch()
 {
     if (!input || *input == 0) {
         fail_msg("No input");
     }
-    return (uint8_t) *input++;
+
+    // Decode utf-8 to unicode.
+    uint8_t c1 = *input++;
+    if (c1 < 0 || ! (c1 & 0x80))
+        return c1;
+
+    uint8_t c2 = *input++;
+    if (! (c1 & 0x20))
+        return (c1 & 0x1f) << 6 | (c2 & 0x3f);
+
+    uint8_t c3 = *input++;
+    return (c1 & 0x0f) << 12 | (c2 & 0x3f) << 6 | (c3 & 0x3f);
 }
 
 //
-// Write character to output buffer.
+// Write Unicode character to output buffer.
 //
-void rpm_putchar(int ch)
+void rpm_putwch(uint16_t ch)
 {
     // Note extra space for zero byte.
-    if (output_ptr >= sizeof(output) - 1) {
+    if (output_ptr >= sizeof(output) - 3) {
         fail_msg("Too much output");
     }
-    output[output_ptr++] = ch;
-    output[output_ptr] = 0;
-}
 
-void rpm_puts(const char *str)
-{
-    for (;;) {
-        int ch = *str++;
-        if (ch == 0)
-            break;
-        rpm_putchar(ch);
+    // Convert to UTF-8 encoding.
+    if (ch < 0x80) {
+        output[output_ptr++] = ch;
+    } else if (ch < 0x800) {
+        output[output_ptr++] = ch >> 6 | 0xc0;
+        output[output_ptr++] = (ch & 0x3f) | 0x80;
+    } else {
+        output[output_ptr++] = ch >> 12 | 0xe0;
+        output[output_ptr++] = ((ch >> 6) & 0x3f) | 0x80;
+        output[output_ptr++] = (ch & 0x3f) | 0x80;
     }
+    output[output_ptr] = 0;
 }
 
 //
@@ -71,7 +83,7 @@ static void empty_input(void **unused)
     assert_string_equal(cmd_line, "");
 }
 
-static void simple_input(void **unused)
+static void ascii_input(void **unused)
 {
     editline_test(">", "foobar\r");
     assert_string_equal(output, ">foobar");
@@ -176,6 +188,13 @@ static void refresh_the_line_ctrlL(void **unused)
     assert_string_equal(cmd_line, "foobaxr");
 }
 
+static void unicode_input(void **unused)
+{
+    editline_test(">", "Γεi\bιά\r");
+    assert_string_equal(output, ">Γεi\b \bιά");
+    assert_string_equal(cmd_line, "Γειά");
+}
+
 //
 // Run all tests.
 //
@@ -183,7 +202,7 @@ int main()
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(empty_input),
-        cmocka_unit_test(simple_input),
+        cmocka_unit_test(ascii_input),
         cmocka_unit_test(append_input),
         cmocka_unit_test(cursor_left_ctrlB),
         cmocka_unit_test(cursor_right_ctrlF),
@@ -198,6 +217,7 @@ int main()
         cmocka_unit_test(end_of_line_ctrlE),
         cmocka_unit_test(erase_the_line_ctrlU),
         cmocka_unit_test(refresh_the_line_ctrlL),
+        cmocka_unit_test(unicode_input),
         //cmocka_unit_test(),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);

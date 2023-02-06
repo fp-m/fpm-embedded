@@ -3,7 +3,8 @@ CFLAGS          = -g -O -Wall -I$(TOP)/include
 LDFLAGS         = -g
 LIBS            = -lcmocka
 OBJ             = editline_test.o \
-                  $(TOP)/kernel/rpm_editline.o
+                  $(TOP)/kernel/rpm_editline.o \
+                  $(TOP)/kernel/rpm_puts.o
 
 ifneq ($(wildcard /usr/local/include),)
 CFLAGS		+= -I/usr/local/include
