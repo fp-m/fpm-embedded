@@ -40,8 +40,9 @@ static void erase_till_end_of_line()
 // Returns:
 // - The exit key pressed (ESC or CR)
 //
-int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
+int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool clear)
 {
+    rpm_puts(prompt);
     if (clear) {
         buffer[0] = 0;
     } else {
@@ -150,6 +151,7 @@ int rpm_editline(char *buffer, unsigned buffer_length, bool clear)
 
         case CTRL('l'): // ^L - Refresh the line
             rpm_puts("\r\n");
+            rpm_puts(prompt);
             rpm_puts(buffer);
             for (int i = strlen(buffer); i > insert_pos; i--) {
                 rpm_putchar('\b');

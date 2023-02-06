@@ -40,7 +40,7 @@ int rpm_getchar(void);
 // Returns:
 // - The exit key pressed (ESC or CR)
 //
-int rpm_editline(char *buffer, unsigned buffer_length, bool clear);
+int rpm_editline(const char *prompt, char *buffer, unsigned buffer_length, bool clear);
 
 //TODO: sysvar_time
 
