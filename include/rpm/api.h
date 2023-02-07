@@ -10,7 +10,18 @@
 //
 // Size of command line in Unicode characters.
 //
-#define RPM_CMDLINE_SIZE 128
+#define RPM_CMDLINE_SIZE        128
+
+//
+// Unicode symbols.
+//
+#define RPM_LEFTWARDS_ARROW     0x2190  // ←
+#define RPM_UPWARDS_ARROW       0x2191  // ↑
+#define RPM_RIGHTWARDS_ARROW    0x2192  // →
+#define RPM_DOWNWARDS_ARROW     0x2193  // ↓
+#define RPM_LEFTWARDS_TO_BAR    0x21E4  // ⇤
+#define RPM_RIGHTWARDS_TO_BAR   0x21E5  // ⇥
+#define RPM_DELETE_KEY          0x2421  // ␡
 
 //
 // Last command line.
@@ -33,6 +44,12 @@ int rpm_vsnprintf(char *, size_t, const char *, va_list);
 
 int rpm_sscanf(const char *, const char *, ...);
 int rpm_vsscanf(const char *, const char *, va_list);
+
+//
+// Get a Unicode character from console.
+// Decode escape sequences.
+//
+uint16_t rpm_getkey(void);
 
 //
 // Wait for a keycode character.

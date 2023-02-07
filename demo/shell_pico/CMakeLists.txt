@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
     ../../kernel/rpm_strwlen.c
     ../../kernel/rpm_strlcpy.c
     ../../kernel/rpm_getwch.c
+    ../../kernel/rpm_getkey.c
     ../../kernel/rpm_putwch.c
 )
 

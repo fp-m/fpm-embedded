@@ -8,6 +8,7 @@ OBJ             = editline_test.o \
                   $(TOP)/kernel/rpm_wputs.o \
                   $(TOP)/kernel/rpm_strwlen.o \
                   $(TOP)/kernel/rpm_getwch.o \
+                  $(TOP)/kernel/rpm_getkey.o \
                   $(TOP)/kernel/rpm_putwch.o \
                   $(TOP)/kernel/rpm_strlcpy.o
 
