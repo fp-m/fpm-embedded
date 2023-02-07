@@ -118,6 +118,38 @@ size_t rpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems)
 //
 // Copy src to string dst of size nitems.  At most nitems-1 characters
 // will be copied.  Always NUL terminates (unless nitems == 0).
+// Returns strwlen(src); if retval >= nitems, truncation occurred.
+//
+size_t rpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems)
+{
+    uint16_t *d = dst;
+    const uint16_t *s = src;
+    size_t n = nitems;
+
+    // Copy as many bytes as will fit.
+    if (n != 0) {
+        while (--n != 0) {
+            if ((*d++ = *s++) == '\0') {
+                break;
+            }
+        }
+    }
+
+    // Not enough room in dst, add NUL and traverse rest of src.
+    if (n == 0) {
+        if (nitems != 0) {
+            *d = '\0'; // NUL-terminate dst
+        }
+        while (*s++)
+            ;
+    }
+
+    return (s - src - 1); // count does not include NUL
+}
+
+//
+// Copy src to string dst of size nitems.  At most nitems-1 characters
+// will be copied.  Always NUL terminates (unless nitems == 0).
 // Returns strlen(src); if retval >= nitems, truncation occurred.
 //
 size_t rpm_strlcpy(char *dst, const char *src, size_t nitems)

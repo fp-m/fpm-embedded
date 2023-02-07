@@ -39,22 +39,34 @@ void rpm_putchar(char ch)
 //
 static void editline_test(const char *prompt, const char *inp)
 {
-    uint16_t cmd_line[128];
+    uint16_t cmd_line[RPM_CMDLINE_SIZE];
     input = inp;
     output_ptr = 0;
     output[0] = 0;
-    rpm_editline(prompt, cmd_line, sizeof(cmd_line), true);
+    rpm_editline(cmd_line, sizeof(cmd_line), true, prompt, NULL);
     rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
 }
 
 static void editline_append(const char *initial, const char *inp)
 {
-    uint16_t cmd_line[128];
+    uint16_t cmd_line[RPM_CMDLINE_SIZE];
     input = inp;
     output_ptr = 0;
     output[0] = 0;
     rpm_strlcpy_from_utf8(cmd_line, initial, sizeof(cmd_line));
-    rpm_editline(">", cmd_line, sizeof(cmd_line), false);
+    rpm_editline(cmd_line, sizeof(cmd_line), false, ">", NULL);
+    rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
+}
+
+static void editline_history(const char *prev_line, const char *inp)
+{
+    uint16_t cmd_line[RPM_CMDLINE_SIZE];
+    uint16_t history[RPM_CMDLINE_SIZE];
+    input = inp;
+    output_ptr = 0;
+    output[0] = 0;
+    rpm_strlcpy_from_utf8(history, prev_line, sizeof(history)/sizeof(uint16_t));
+    rpm_editline(cmd_line, sizeof(cmd_line), true, ">", history);
     rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
 }
 
@@ -233,11 +245,45 @@ static void unicode_input(void **unused)
     assert_string_equal(result, "Γειά");
 }
 
-static void arrow_up_down(void **unused)
+static void arrow_up1(void **unused)
 {
-    // History is not supported yet.
-    editline_test(">", "foobar\33[A\33[B\33OA\33OB\r");
-    assert_string_equal(output, ">foobar");
+    editline_history("there", "foobar\33[A\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[Kthere");
+    assert_string_equal(result, "there");
+}
+
+static void arrow_up2(void **unused)
+{
+    editline_history("there", "foobar\33OA2\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[Kthere2");
+    assert_string_equal(result, "there2");
+}
+
+static void arrow_down1(void **unused)
+{
+    editline_history("there", "foobar\33[A\33[B\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[Kthere\b\b\b\b\b\33[Kfoobar");
+    assert_string_equal(result, "foobar");
+}
+
+static void arrow_down2(void **unused)
+{
+    editline_history("there", "foobar\33OA\33OB2\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[Kthere\b\b\b\b\b\33[Kfoobar2");
+    assert_string_equal(result, "foobar2");
+}
+
+static void prev_line_ctrlP(void **unused)
+{
+    editline_history("there", "foobar\20\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[Kthere");
+    assert_string_equal(result, "there");
+}
+
+static void next_line_ctrlN(void **unused)
+{
+    editline_history("there", "foobar\20\16\r");
+    assert_string_equal(output, ">foobar\b\b\b\b\b\b\33[Kthere\b\b\b\b\b\33[Kfoobar");
     assert_string_equal(result, "foobar");
 }
 
@@ -272,7 +318,12 @@ int main()
         cmocka_unit_test(erase_the_line_ctrlU),
         cmocka_unit_test(refresh_the_line_ctrlL),
         cmocka_unit_test(unicode_input),
-        cmocka_unit_test(arrow_up_down),
+        cmocka_unit_test(arrow_up1),
+        cmocka_unit_test(arrow_up2),
+        cmocka_unit_test(arrow_down1),
+        cmocka_unit_test(arrow_down2),
+        cmocka_unit_test(prev_line_ctrlP),
+        cmocka_unit_test(next_line_ctrlN),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

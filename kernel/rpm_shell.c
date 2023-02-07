@@ -7,6 +7,8 @@
 
 jmp_buf rpm_saved_point; // TODO: move to the system area
 
+uint16_t rpm_history[RPM_CMDLINE_SIZE]; // TODO: move to the system area
+
 //
 // Build the prompt string.
 // TODO: print current disk and directory.
@@ -36,6 +38,9 @@ void rpm_shell()
     //    source("autoexec.cmd");
     //}
 
+    // Clear history.
+    rpm_history[0] = 0;
+
     // Restart on ^C.
     if (setjmp(rpm_saved_point) != 0) {
         // TODO: Re-initialize internal state.
@@ -44,12 +49,12 @@ void rpm_shell()
     // The main loop.
     for (;;) {
         // Create prompt.
-        char prompt[128];
+        char prompt[RPM_CMDLINE_SIZE];
         build_prompt(prompt, sizeof(prompt));
 
         // Call the line editor.
-        uint16_t buf_unicode[128];
-        rpm_editline(prompt, buf_unicode, sizeof(buf_unicode), 1);
+        uint16_t buf_unicode[RPM_CMDLINE_SIZE];
+        rpm_editline(buf_unicode, sizeof(buf_unicode), 1, prompt, rpm_history);
         rpm_puts("\r\n");
 
         if (buf_unicode[0] == 0) {
@@ -57,11 +62,12 @@ void rpm_shell()
             continue;
         }
 
+        // Add the line to the history.
+        rpm_strlcpy_unicode(rpm_history, buf_unicode, sizeof(rpm_history)/sizeof(uint16_t));
+
         // Encode as utf8.
         char cmd_line[500];
         rpm_strlcpy_to_utf8(cmd_line, buf_unicode, sizeof(cmd_line));
-
-        // TODO: add the line to the history.
 
         if (strcmp(cmd_line, "exit") == 0) {
             return;

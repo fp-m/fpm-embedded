@@ -43,6 +43,21 @@ static void erase_till_end_of_line()
 }
 
 //
+// "Unprint" the current line.
+//
+static void erase_line(uint16_t *buffer, unsigned *insert_pos)
+{
+    while (*insert_pos > 0) {
+        rpm_putwch('\b');
+        (*insert_pos)--;
+    }
+    if (buffer[0] != 0) {
+        erase_till_end_of_line();
+        buffer[0] = 0;
+    }
+}
+
+//
 // Decode escape sequence.
 //
 static uint16_t decode_escape_sequence()
@@ -104,11 +119,16 @@ static uint16_t decode_escape_sequence()
 // - buffer: Pointer to the line edit buffer
 // - buffer_length: Size of the buffer in bytes
 // - clear: Set to 0 to not clear, 1 to clear on entry
+// - prompt: Print before input
+// - history: Pointer to the line edit buffer
 // Returns:
 // - The exit key pressed (ESC or CR)
 //
-int rpm_editline(const char *prompt, uint16_t *buffer, unsigned buffer_length, bool clear)
+int rpm_editline(uint16_t *buffer, unsigned buffer_length, bool clear, const char *prompt, uint16_t *prev_line)
 {
+    uint16_t next_line[RPM_CMDLINE_SIZE];
+    bool on_prev_line = false;
+
     rpm_puts(prompt);
     if (clear) {
         buffer[0] = 0;
@@ -215,14 +235,7 @@ int rpm_editline(const char *prompt, uint16_t *buffer, unsigned buffer_length, b
             break;
         }
         case CTRL('u'): // ^U - Erase the line
-            while (insert_pos > 0) {
-                rpm_putwch('\b');
-                insert_pos--;
-            }
-            if (buffer[0] != 0) {
-                erase_till_end_of_line();
-                buffer[0] = 0;
-            }
+            erase_line(buffer, &insert_pos);
             break;
 
         case CTRL('l'): // ^L - Refresh the line
@@ -236,10 +249,32 @@ int rpm_editline(const char *prompt, uint16_t *buffer, unsigned buffer_length, b
 
         case CTRL('p'):     // ^P - previous line from history
         case UPWARDS_ARROW: // Arrow up
+            if (!on_prev_line && prev_line != 0) {
+                // Save current line.
+                rpm_strlcpy_unicode(next_line, buffer, sizeof(next_line)/sizeof(uint16_t));
+                erase_line(buffer, &insert_pos);
+
+                // Restore previous line.
+                rpm_strlcpy_unicode(buffer, prev_line, sizeof(next_line)/sizeof(uint16_t));
+                rpm_wputs(buffer);
+                insert_pos = rpm_strwlen(buffer);
+                on_prev_line = true;
+            }
             break;
 
         case CTRL('n'):       // ^N - next line from history
         case DOWNWARDS_ARROW: // Arrow down
+            if (on_prev_line) {
+                // Save current line.
+                rpm_strlcpy_unicode(prev_line, buffer, sizeof(next_line)/sizeof(uint16_t));
+                erase_line(buffer, &insert_pos);
+
+                // Restore next line.
+                rpm_strlcpy_unicode(buffer, next_line, sizeof(next_line)/sizeof(uint16_t));
+                rpm_wputs(buffer);
+                insert_pos = rpm_strwlen(buffer);
+                on_prev_line = false;
+            }
             break;
         }
     }

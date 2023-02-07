@@ -8,6 +8,16 @@
 #include <string.h>
 
 //
+// Size of command line in Unicode characters.
+//
+#define RPM_CMDLINE_SIZE 128
+
+//
+// Last command line.
+//
+extern uint16_t rpm_history[RPM_CMDLINE_SIZE];
+
+//
 // Output to the console (USB or Uart).
 //
 void rpm_putwch(uint16_t);
@@ -52,7 +62,8 @@ void rpm_wputs(const uint16_t *);
 // Returns:
 // - The exit key pressed (ESC or CR)
 //
-int rpm_editline(const char *prompt, uint16_t *buffer, unsigned buffer_length, bool clear);
+int rpm_editline(uint16_t *buffer, unsigned buffer_length, bool clear,
+                 const char *prompt, uint16_t *history);
 
 //
 // Compute the length of the Unicode string s.
@@ -66,6 +77,7 @@ size_t rpm_strwlen(const uint16_t *s);
 size_t rpm_strlcpy(char *dst, const char *src, size_t nitems);
 size_t rpm_strlcpy_from_utf8(uint16_t *dst, const char *src, size_t nitems);
 size_t rpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems);
+size_t rpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 
 //TODO: sysvar_time
 
