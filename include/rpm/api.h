@@ -84,9 +84,11 @@ int rpm_editline(uint16_t *buffer, unsigned buffer_length, bool clear,
 
 //
 // Parse a command line and split it into tokens (in place).
-// Return an argument vector.
+// Return NULL on success.
+// Fill an argument vector.
+// On error, return a message.
 //
-void rpm_tokenize(char *argv[], int *argc, char *cmd_line);
+const char *rpm_tokenize(char *argv[], int *argc, char *cmd_line);
 
 //
 // Compute the length of the Unicode string s.

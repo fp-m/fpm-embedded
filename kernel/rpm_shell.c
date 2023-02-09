@@ -64,7 +64,15 @@ void rpm_shell()
         // Split into argument vector.
         char *argv[RPM_CMDLINE_SIZE / 3];
         int argc;
-        rpm_tokenize(argv, &argc, cmd_line);
+        const char *error = rpm_tokenize(argv, &argc, cmd_line);
+        if (error) {
+            rpm_puts(error);
+            rpm_puts("\r\n");
+
+            // Save wrong line to the history.
+            rpm_strlcpy_unicode(rpm_history, buf_unicode, sizeof(rpm_history)/sizeof(uint16_t));
+            continue;
+        }
 
         // Ignore empty commands.
         if (argv[0][0] == 0) {
