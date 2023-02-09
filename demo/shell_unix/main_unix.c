@@ -41,7 +41,7 @@ int main()
     init();
 
     printf("Start shell on Unix\r\n");
-    printf("Use 'exit' to quit.\r\n\r\n");
+    printf("Use '?' for help or 'exit' to quit.\r\n\r\n");
 
     // Start interactive dialog.
     rpm_shell();

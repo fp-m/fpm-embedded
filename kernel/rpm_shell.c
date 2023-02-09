@@ -31,6 +31,8 @@ static void cmd_help(int argc, char *argv[])
     rpm_puts("VER             Show the version of RP/M software\r\n");
     rpm_puts("EXIT            Close down the command interpreter\r\n");
     rpm_puts("\r\n");
+    rpm_puts("Enter COMMAND -h for further information on any of the above commands.\r\n");
+    rpm_puts("\r\n");
 }
 
 //
@@ -38,15 +40,8 @@ static void cmd_help(int argc, char *argv[])
 //
 static void cmd_clear(int argc, char *argv[])
 {
+    //TODO: getopt
     rpm_puts("\33[H\33[J");
-}
-
-//
-// Show or change the system date
-//
-static void cmd_date(int argc, char *argv[])
-{
-    rpm_puts("Not implemented yet\r\n");
 }
 
 //
@@ -54,23 +49,13 @@ static void cmd_date(int argc, char *argv[])
 //
 static void cmd_echo(int argc, char *argv[])
 {
-    rpm_puts("Not implemented yet\r\n");
-}
-
-//
-// Restart the RP/M kernel
-//
-static void cmd_reboot(int argc, char *argv[])
-{
-    rpm_puts("Not implemented yet\r\n");
-}
-
-//
-// Set or show the current system time
-//
-static void cmd_time(int argc, char *argv[])
-{
-    rpm_puts("Not implemented yet\r\n");
+    //TODO: getopt
+    for (int i=1; i<argc; i++) {
+        if (i > 1)
+            rpm_putchar(' ');
+        rpm_puts(argv[i]);
+    }
+    rpm_puts("\r\n");
 }
 
 //
@@ -78,6 +63,44 @@ static void cmd_time(int argc, char *argv[])
 //
 static void cmd_ver(int argc, char *argv[])
 {
+    //TODO: getopt
+    rpm_puts("\r\n");
+    rpm_puts("RP/M version 0.0\r\n");
+    rpm_puts("\r\n");
+    //TODO: DOSBox-X version 2022.12.26 (SDL2)
+    //TODO: DOSBox-X Git commit 1234567, built on Dec 26, 2022 6:27:42pm
+}
+
+//
+// Show or change the system date
+//
+static void cmd_date(int argc, char *argv[])
+{
+    //TODO: getopt
+    rpm_puts("Not implemented yet\r\n");
+    //TODO:
+    // Current Date is 2/9/2023
+    // Enter new date:
+}
+
+//
+// Set or show the current system time
+//
+static void cmd_time(int argc, char *argv[])
+{
+    //TODO: getopt
+    rpm_puts("Not implemented yet\r\n");
+    //TODO:
+    // Current Time is 12:31:12 AM
+    // Enter new time:
+}
+
+//
+// Restart the RP/M kernel
+//
+static void cmd_reboot(int argc, char *argv[])
+{
+    //TODO: getopt
     rpm_puts("Not implemented yet\r\n");
 }
 
@@ -91,7 +114,7 @@ static void run_command(int argc, char *argv[])
         char *name;
         void (*func)(int argc, char *argv[]);
     } command_table_t;
-    static command_table_t cmd_tab[] = {
+    static const command_table_t cmd_tab[] = {
         { "?",      cmd_help },
         { "clear",  cmd_clear },
         { "cls",    cmd_clear },
@@ -116,7 +139,7 @@ static void run_command(int argc, char *argv[])
     }
 
     // Find internal command.
-    for (command_table_t *p = cmd_tab; p->name; p++) {
+    for (const command_table_t *p = cmd_tab; p->name; p++) {
         // Note: command name is case insensitive.
         if (strcasecmp(p->name, argv[0]) == 0) {
             p->func(argc, argv);
@@ -205,6 +228,10 @@ void rpm_shell()
         rpm_strlcpy_unicode(rpm_history, buf_unicode, sizeof(rpm_history)/sizeof(uint16_t));
 
         if (strcmp(argv[0], "exit") == 0) {
+            if (argc > 1) {
+                rpm_puts("Usage: exit\r\n\r\n");
+                continue;
+            }
             return;
         }
 

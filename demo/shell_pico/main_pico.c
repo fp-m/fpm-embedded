@@ -12,7 +12,7 @@ int main()
 
     for (;;) {
         printf("Start shell on Pico\r\n");
-        printf("Use 'exit' to quit.\r\n\r\n");
+        printf("Use '?' for help.\r\n\r\n");
 
         // Start interactive dialog.
         rpm_shell();
