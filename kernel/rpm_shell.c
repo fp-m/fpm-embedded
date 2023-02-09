@@ -75,7 +75,7 @@ void rpm_shell()
         }
 
         // Ignore empty commands.
-        if (argv[0][0] == 0) {
+        if (argc == 0) {
             continue;
         }
 

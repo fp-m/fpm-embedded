@@ -4,11 +4,14 @@
 #include <cmocka.h>
 #include <rpm/api.h>
 
-static void tokenize_test(char *input, int expect_argc, const char *expect_argv[], const char *expect_error)
+static void tokenize_test(const char *input, int expect_argc, const char *expect_argv[], const char *expect_error)
 {
+    char buffer[100];
     char *argv[32] = { "some", "garbage" };
     int argc = 12345;
-    const char *error = rpm_tokenize(argv, &argc, input);
+
+    strlcpy(buffer, input, sizeof(buffer));
+    const char *error = rpm_tokenize(argv, &argc, buffer);
 
     if (expect_error) {
         // Error is expected.
@@ -27,12 +30,64 @@ static void tokenize_test(char *input, int expect_argc, const char *expect_argv[
 }
 
 //
-// "" -> ""
+// "" -> nothing
 //
 static void empty_input(void **unused)
 {
-    const char *expect_argv[] = { "" };
-    tokenize_test("", 1, expect_argv, 0);
+    tokenize_test("", 0, 0, 0);
+}
+
+//
+// "   " -> nothing
+//
+static void spaces_only(void **unused)
+{
+    tokenize_test("   ", 0, 0, 0);
+}
+
+//
+// "foo" -> "foo"
+//
+static void one_word(void **unused)
+{
+    const char *expect_argv[] = { "foo" };
+    tokenize_test("foo", 1, expect_argv, 0);
+}
+
+//
+// "  foo" -> "foo"
+//
+static void spaces_at_beginning(void **unused)
+{
+    const char *expect_argv[] = { "foo" };
+    tokenize_test("  foo", 1, expect_argv, 0);
+}
+
+//
+// "foo   " -> "foo"
+//
+static void spaces_at_end(void **unused)
+{
+    const char *expect_argv[] = { "foo" };
+    tokenize_test("foo   ", 1, expect_argv, 0);
+}
+
+//
+// "abra ca dabra" -> "abra", "ca", "dabra"
+//
+static void three_words(void **unused)
+{
+    const char *expect_argv[] = { "abra", "ca", "dabra" };
+    tokenize_test("abra ca dabra", 3, expect_argv, 0);
+}
+
+//
+// "abra  ca   dabra" -> "abra", "ca", "dabra"
+//
+static void extra_spaces(void **unused)
+{
+    const char *expect_argv[] = { "abra", "ca", "dabra" };
+    tokenize_test("abra  ca   dabra", 3, expect_argv, 0);
 }
 
 //
@@ -41,7 +96,7 @@ static void empty_input(void **unused)
 static void incomplete_backslash(void **unused)
 {
     const char *expect_argv[] = { "" };
-    tokenize_test("", 1, expect_argv, "Incomplete backslash");
+    tokenize_test("\\", 1, expect_argv, "Incomplete backslash");
 }
 
 //
@@ -51,6 +106,12 @@ int main()
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(empty_input),
+        cmocka_unit_test(spaces_only),
+        cmocka_unit_test(one_word),
+        cmocka_unit_test(spaces_at_beginning),
+        cmocka_unit_test(spaces_at_end),
+        cmocka_unit_test(three_words),
+        cmocka_unit_test(extra_spaces),
         cmocka_unit_test(incomplete_backslash),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);

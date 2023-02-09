@@ -1,5 +1,5 @@
 TOP             = ..
-CFLAGS          = -g -O -Wall -I$(TOP)/include
+CFLAGS          = -g -O0 -Wall -I$(TOP)/include
 LDFLAGS         = -g
 LIBS            = -lcmocka
 TESTS           = editline_test tokenize_test
