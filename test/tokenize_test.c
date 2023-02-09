@@ -95,8 +95,34 @@ static void extra_spaces(void **unused)
 //
 static void incomplete_backslash(void **unused)
 {
-    const char *expect_argv[] = { "" };
-    tokenize_test("\\", 1, expect_argv, "Incomplete backslash");
+    tokenize_test("\\", 0, 0, "Incomplete backslash");
+}
+
+//
+// "foo\bar" -> "foobar"
+//
+static void backslash_char(void **unused)
+{
+    const char *expect_argv[] = { "foobar" };
+    tokenize_test("foo\\bar", 1, expect_argv, 0);
+}
+
+//
+// " \  \ b" -> " ", " b"
+//
+static void backslash_space_after_space(void **unused)
+{
+    const char *expect_argv[] = { " ", " b", };
+    tokenize_test(" \\  \\ b", 2, expect_argv, 0);
+}
+
+//
+// "foo\ bar\ b" -> "foo bar b"
+//
+static void backslash_space_after_char(void **unused)
+{
+    const char *expect_argv[] = { "foo bar b", };
+    tokenize_test("foo\\ bar\\ b", 1, expect_argv, 0);
 }
 
 //
@@ -113,6 +139,9 @@ int main()
         cmocka_unit_test(three_words),
         cmocka_unit_test(extra_spaces),
         cmocka_unit_test(incomplete_backslash),
+        cmocka_unit_test(backslash_char),
+        cmocka_unit_test(backslash_space_after_space),
+        cmocka_unit_test(backslash_space_after_char),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
