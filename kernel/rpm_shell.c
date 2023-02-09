@@ -57,24 +57,33 @@ void rpm_shell()
         rpm_editline(buf_unicode, sizeof(buf_unicode), 1, prompt, rpm_history);
         rpm_puts("\r\n");
 
-        if (buf_unicode[0] == 0) {
-            // Ignore empty lines.
+        // Encode as utf8.
+        char cmd_line[3 * RPM_CMDLINE_SIZE];
+        rpm_strlcpy_to_utf8(cmd_line, buf_unicode, sizeof(cmd_line));
+
+        // Split into argument vector.
+        char *argv[RPM_CMDLINE_SIZE / 3];
+        int argc;
+        rpm_tokenize(argv, &argc, cmd_line);
+
+        // Ignore empty commands.
+        if (argv[0][0] == 0) {
             continue;
         }
 
         // Add the line to the history.
         rpm_strlcpy_unicode(rpm_history, buf_unicode, sizeof(rpm_history)/sizeof(uint16_t));
 
-        // Encode as utf8.
-        char cmd_line[500];
-        rpm_strlcpy_to_utf8(cmd_line, buf_unicode, sizeof(cmd_line));
-
-        if (strcmp(cmd_line, "exit") == 0) {
+        if (strcmp(argv[0], "exit") == 0) {
             return;
         }
 
         // TODO: Execute the command.
-        rpm_puts(cmd_line);
+        for (int i=0; i<argc; i++) {
+            if (i > 0)
+                rpm_putchar(' ');
+            rpm_puts(argv[i]);
+        }
         rpm_puts("\r\n");
     }
 }

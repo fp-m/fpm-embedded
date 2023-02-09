@@ -10,6 +10,7 @@ OBJ             = main_unix.o \
                   $(TOP)/kernel/rpm_putwch.o \
                   $(TOP)/kernel/rpm_strlcpy.o \
                   $(TOP)/kernel/rpm_unix.o \
+                  $(TOP)/kernel/rpm_tokenize.o \
                   $(TOP)/kernel/rpm_editline.o
 
 all:            shell
