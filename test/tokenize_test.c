@@ -126,6 +126,70 @@ static void backslash_space_after_char(void **unused)
 }
 
 //
+// "foo'bar" -> error 'Unterminated apostrophe'
+//
+static void unterminated_apostrophe(void **unused)
+{
+    tokenize_test("foo'bar", 0, 0, "Unterminated apostrophe");
+}
+
+//
+// 'foo"bar' -> error 'Unterminated quote'
+//
+static void unterminated_quote(void **unused)
+{
+    tokenize_test("foo\"bar", 0, 0, "Unterminated quote");
+}
+
+//
+// "foo b'a'r" -> "foo", "bar"
+//
+static void valid_apostrophe(void **unused)
+{
+    const char *expect_argv[] = { "foo", "bar", };
+    tokenize_test("'foo' b'a'r", 2, expect_argv, 0);
+}
+
+//
+// '"foo" b"a"r' -> "foo", "bar"
+//
+static void valid_quote(void **unused)
+{
+    const char *expect_argv[] = { "foo", "bar", };
+    tokenize_test("\"foo\" b\"a\"r", 2, expect_argv, 0);
+}
+
+//
+// '"fo'o" b"'a'"r' -> "fo'o", "b'a'r"
+//
+static void apostrophe_inside_quotes(void **unused)
+{
+    const char *expect_argv[] = { "fo'o", "b'a'r", };
+    tokenize_test("\"fo'o\" b\"'a'\"r", 2, expect_argv, 0);
+}
+
+//
+// "'fo"o' b'"a"'r' -> "fo"o", "b"a"r"
+//
+static void quote_inside_apostrophes(void **unused)
+{
+    const char *expect_argv[] = { "fo\"o", "b\"a\"r", };
+    tokenize_test("'fo\"o' b'\"a\"'r", 2, expect_argv, 0);
+}
+
+static void masked_apostrophe(void **unused)
+{
+    const char *expect_argv[] = { "fo'o", "bar'", };
+    tokenize_test("fo\\'o bar\\'", 2, expect_argv, 0);
+}
+
+static void masked_quote(void **unused)
+{
+    const char *expect_argv[] = { "fo\"o", "bar\"", };
+    tokenize_test("fo\\\"o bar\\\"", 2, expect_argv, 0);
+}
+
+//
 // Run all tests.
 //
 int main()
@@ -142,6 +206,14 @@ int main()
         cmocka_unit_test(backslash_char),
         cmocka_unit_test(backslash_space_after_space),
         cmocka_unit_test(backslash_space_after_char),
+        cmocka_unit_test(unterminated_apostrophe),
+        cmocka_unit_test(unterminated_quote),
+        cmocka_unit_test(valid_apostrophe),
+        cmocka_unit_test(valid_quote),
+        cmocka_unit_test(apostrophe_inside_quotes),
+        cmocka_unit_test(quote_inside_apostrophes),
+        cmocka_unit_test(masked_apostrophe),
+        cmocka_unit_test(masked_quote),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
