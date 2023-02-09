@@ -87,6 +87,7 @@ void rpm_shell()
         }
 
         // TODO: Execute the command.
+        rpm_printf("[%d] ", argc);
         for (int i=0; i<argc; i++) {
             if (i > 0)
                 rpm_putchar(' ');
