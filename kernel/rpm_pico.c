@@ -101,3 +101,10 @@ int rpm_vsscanf(const char *str, const char *format, va_list args)
 {
     return vsscanf(str, format, args);
 }
+
+void rpm_print_version()
+{
+    rpm_puts("RP/M version "RPM_VERSION", built on "__DATE__" at "__TIME__"\r\n");
+    rpm_puts("Pico SDK version "PICO_SDK_VERSION_STRING"\r\n");
+    rpm_printf("RP2040 chip revision B%d, ROM version %d\r\n", rp2040_chip_version(), rp2040_rom_version());
+}

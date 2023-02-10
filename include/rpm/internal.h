@@ -1,5 +1,7 @@
 #include <setjmp.h>
 
+#define RPM_VERSION "0.0"
+
 //
 // Interactive shell.
 //

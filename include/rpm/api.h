@@ -104,6 +104,11 @@ size_t rpm_strlcpy_from_utf8(uint16_t *dst, const char *src, size_t nitems);
 size_t rpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems);
 size_t rpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 
+//
+// Print RP/M version.
+//
+void rpm_print_version();
+
 //TODO: sysvar_time
 
 #if 0 // TODO

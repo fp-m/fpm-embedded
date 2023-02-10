@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/utsname.h>
 
 //
 // Read byte from the console.
@@ -87,4 +88,14 @@ int rpm_sscanf(const char *str, const char *format, ...)
 int rpm_vsscanf(const char *str, const char *format, va_list args)
 {
     return vsscanf(str, format, args);
+}
+
+void rpm_print_version()
+{
+    rpm_puts("RP/M version "RPM_VERSION", built on "__DATE__" at "__TIME__"\r\n");
+
+    struct utsname u;
+    if (uname(&u) == 0) {
+        rpm_printf("Unix %s %s version %s\r\n", u.sysname, u.machine, u.release);
+    }
 }
