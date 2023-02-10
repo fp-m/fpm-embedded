@@ -11,7 +11,14 @@ OBJ             = main_unix.o \
                   $(TOP)/kernel/rpm_strlcpy.o \
                   $(TOP)/kernel/rpm_unix.o \
                   $(TOP)/kernel/rpm_tokenize.o \
-                  $(TOP)/kernel/rpm_editline.o
+                  $(TOP)/kernel/rpm_editline.o \
+                  $(TOP)/kernel/cmd/cmd_clear.o \
+                  $(TOP)/kernel/cmd/cmd_date.o \
+                  $(TOP)/kernel/cmd/cmd_echo.o \
+                  $(TOP)/kernel/cmd/cmd_help.o \
+                  $(TOP)/kernel/cmd/cmd_reboot.o \
+                  $(TOP)/kernel/cmd/cmd_time.o \
+                  $(TOP)/kernel/cmd/cmd_ver.o
 
 all:            shell
 

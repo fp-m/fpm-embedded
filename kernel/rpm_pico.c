@@ -5,6 +5,7 @@
 #include <rpm/internal.h>
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "pico/stdio_usb.h"
 
 //
 // Wait for console input.

@@ -16,18 +16,8 @@ pico_sdk_init()
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
     main_pico.c
-    ../../kernel/rpm_pico.c
-    ../../kernel/rpm_shell.c
-    ../../kernel/rpm_editline.c
-    ../../kernel/rpm_tokenize.c
-    ../../kernel/rpm_puts.c
-    ../../kernel/rpm_wputs.c
-    ../../kernel/rpm_strwlen.c
-    ../../kernel/rpm_strlcpy.c
-    ../../kernel/rpm_getwch.c
-    ../../kernel/rpm_getkey.c
-    ../../kernel/rpm_putwch.c
 )
+add_subdirectory(../../kernel kernel EXCLUDE_FROM_ALL)
 
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
     ../../include
@@ -38,6 +28,8 @@ pico_add_extra_outputs(${PROJECT_NAME})
 
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME}
+    rpm_kernel
+    rpm_pico
     pico_stdlib
 )
 

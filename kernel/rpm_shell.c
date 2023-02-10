@@ -17,94 +17,6 @@ uint16_t rpm_history[RPM_CMDLINE_SIZE];
 static const bool debug_trace = false;
 
 //
-// Show all built-in commands.
-//
-static void cmd_help(int argc, char *argv[])
-{
-    rpm_puts("RP/M built-in commands are:\r\n");
-    rpm_puts("CLEAR or CLS    Clear the console screen\r\n");
-    rpm_puts("DATE            Show or change the system date\r\n");
-    rpm_puts("ECHO            Copy text directly to the console output\r\n");
-    rpm_puts("HELP or ?       Show all built-in commands\r\n");
-    rpm_puts("REBOOT          Restart the RP/M kernel\r\n");
-    rpm_puts("TIME            Set or show the current system time\r\n");
-    rpm_puts("VER             Show the version of RP/M software\r\n");
-    rpm_puts("EXIT            Close down the command interpreter\r\n");
-    rpm_puts("\r\n");
-    rpm_puts("Enter COMMAND -h for further information on any of the above commands.\r\n");
-    rpm_puts("\r\n");
-}
-
-//
-// Clear the console screen
-//
-static void cmd_clear(int argc, char *argv[])
-{
-    //TODO: getopt
-    rpm_puts("\33[H\33[J");
-}
-
-//
-// Copy text directly to the console output
-//
-static void cmd_echo(int argc, char *argv[])
-{
-    //TODO: getopt
-    for (int i=1; i<argc; i++) {
-        if (i > 1)
-            rpm_putchar(' ');
-        rpm_puts(argv[i]);
-    }
-    rpm_puts("\r\n");
-}
-
-//
-// Show the version of RP/M software
-//
-static void cmd_ver(int argc, char *argv[])
-{
-    //TODO: getopt
-    rpm_puts("\r\n");
-    rpm_print_version();
-    rpm_puts("\r\n");
-    //TODO: DOSBox-X version 2022.12.26 (SDL2)
-    //TODO: DOSBox-X Git commit 1234567, built on Dec 26, 2022 6:27:42pm
-}
-
-//
-// Show or change the system date
-//
-static void cmd_date(int argc, char *argv[])
-{
-    //TODO: getopt
-    rpm_puts("Not implemented yet\r\n");
-    //TODO:
-    // Current Date is 2/9/2023
-    // Enter new date:
-}
-
-//
-// Set or show the current system time
-//
-static void cmd_time(int argc, char *argv[])
-{
-    //TODO: getopt
-    rpm_puts("Not implemented yet\r\n");
-    //TODO:
-    // Current Time is 12:31:12 AM
-    // Enter new time:
-}
-
-//
-// Restart the RP/M kernel
-//
-static void cmd_reboot(int argc, char *argv[])
-{
-    //TODO: getopt
-    rpm_puts("Not implemented yet\r\n");
-}
-
-//
 // Run internal or external command with given arguments.
 //
 static void run_command(int argc, char *argv[])
@@ -115,15 +27,15 @@ static void run_command(int argc, char *argv[])
         void (*func)(int argc, char *argv[]);
     } command_table_t;
     static const command_table_t cmd_tab[] = {
-        { "?",      cmd_help },
-        { "clear",  cmd_clear },
-        { "cls",    cmd_clear },
-        { "date",   cmd_date },
-        { "echo",   cmd_echo },
-        { "help",   cmd_help },
-        { "reboot", cmd_reboot },
-        { "time",   cmd_time },
-        { "ver",    cmd_ver },
+        { "?",      rpm_cmd_help },
+        { "clear",  rpm_cmd_clear },
+        { "cls",    rpm_cmd_clear },
+        { "date",   rpm_cmd_date },
+        { "echo",   rpm_cmd_echo },
+        { "help",   rpm_cmd_help },
+        { "reboot", rpm_cmd_reboot },
+        { "time",   rpm_cmd_time },
+        { "ver",    rpm_cmd_ver },
         { 0,        0 },
     };
 
