@@ -10,13 +10,13 @@ static struct termios saved_term;
 
 static void restore()
 {
-    printf("Restore terminal\r\n");
+    //printf("Restore terminal\r\n");
     tcsetattr(0, TCSADRAIN, &saved_term);
 }
 
 static void init()
 {
-    printf("Initialize terminal\n");
+    //printf("Initialize terminal\n");
     if (tcgetattr(0, &saved_term) < 0) {
         printf("No terminal on stdin\n");
         exit(1);
@@ -40,7 +40,7 @@ int main()
     // Switch stdin to the raw mode (no line buffering and editing).
     init();
 
-    printf("Start shell on Unix\r\n");
+    printf("Start RP/M on Unix\r\n");
     printf("Use '?' for help or 'exit' to quit.\r\n\r\n");
 
     // Start interactive dialog.

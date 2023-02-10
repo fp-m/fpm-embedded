@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.12)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 # Set name of project (as PROJECT_NAME) and C/C++ standards
-project(test_sd_card C CXX ASM)
+project(fatfs_demo_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 

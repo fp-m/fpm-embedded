@@ -1,6 +1,6 @@
 for-analysis
-demo/shell_unix/shell
 demo/*/build
+demo/shell_unix/rpm_shell_unix
 test/*_test
 *.o
 *.c-

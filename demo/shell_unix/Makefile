@@ -1,3 +1,4 @@
+PROG            = rpm_shell_unix
 TOP             = ../..
 CFLAGS          = -g -Wall -I$(TOP)/include
 OBJ             = main_unix.o \
@@ -20,10 +21,10 @@ OBJ             = main_unix.o \
                   $(TOP)/kernel/cmd/cmd_time.o \
                   $(TOP)/kernel/cmd/cmd_ver.o
 
-all:            shell
+all:            $(PROG)
 
 clean:
-		rm -f *.o $(TOP)/kernel/*.o shell
+		rm -f $(PROG) *.o $(TOP)/kernel/*.o
 
-shell:          $(OBJ)
+$(PROG):        $(OBJ)
 		$(CC) $(LDFLAGS) $(OBJ) $(LIBS) -o $@
