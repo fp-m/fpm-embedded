@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/utsname.h>
+#include <sys/time.h>
 
 //
 // Read byte from the console.
@@ -98,4 +99,37 @@ void rpm_print_version()
     if (uname(&u) == 0) {
         rpm_printf("Unix %s %s version %s\r\n", u.sysname, u.machine, u.release);
     }
+}
+
+//
+// Get date.
+//
+void rpm_get_date(int *year, int *month, int *day, int *dotw)
+{
+    struct timeval tv;
+    gettimeofday(&tv, 0);
+
+    time_t now = tv.tv_sec;
+    struct tm *info = localtime(&now);
+
+    *year = 1900 + info->tm_year;
+    *month = info->tm_mon;
+    *day = info->tm_mday;
+    *dotw = info->tm_wday;
+}
+
+//
+// Get local time.
+//
+void rpm_get_time(int *hour, int *min, int *sec)
+{
+    struct timeval tv;
+    gettimeofday(&tv, 0);
+
+    time_t now = tv.tv_sec;
+    struct tm *info = localtime(&now);
+
+    *hour = info->tm_hour;
+    *min = info->tm_min;
+    *sec = info->tm_sec;
 }

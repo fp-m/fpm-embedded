@@ -54,4 +54,5 @@ target_include_directories(rpm_pico BEFORE PUBLIC
 target_link_libraries(rpm_pico
     rpm_kernel
     pico_stdlib
+    hardware_rtc
 )

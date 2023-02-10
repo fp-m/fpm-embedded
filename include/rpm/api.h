@@ -109,6 +109,12 @@ size_t rpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 //
 void rpm_print_version();
 
+//
+// Get date and time.
+//
+void rpm_get_date(int *year, int *month, int *day, int *dotw);
+void rpm_get_time(int *hour, int *min, int *sec);
+
 //TODO: sysvar_time
 
 #if 0 // TODO

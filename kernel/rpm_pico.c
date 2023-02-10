@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/stdio_usb.h"
+#include "hardware/rtc.h"
 
 //
 // Wait for console input.
@@ -108,4 +109,31 @@ void rpm_print_version()
     rpm_puts("RP/M version "RPM_VERSION", built on "__DATE__" at "__TIME__"\r\n");
     rpm_puts("Pico SDK version "PICO_SDK_VERSION_STRING"\r\n");
     rpm_printf("RP2040 chip revision B%d, ROM version %d\r\n", rp2040_chip_version(), rp2040_rom_version());
+}
+
+//
+// Get date.
+//
+void rpm_get_date(int *year, int *month, int *day, int *dotw)
+{
+    datetime_t now;
+    rtc_get_datetime(&now);
+
+    *year = now.year;
+    *month = now.month;
+    *day = now.day;
+    *dotw = now.dotw;
+}
+
+//
+// Get local time.
+//
+void rpm_get_time(int *hour, int *min, int *sec)
+{
+    datetime_t now;
+    rtc_get_datetime(&now);
+
+    *hour = now.hour;
+    *min = now.min;
+    *sec = now.sec;
 }

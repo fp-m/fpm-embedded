@@ -31,6 +31,7 @@ target_link_libraries(${PROJECT_NAME}
     rpm_kernel
     rpm_pico
     pico_stdlib
+    hardware_rtc
 )
 
 # Enable usb output, disable uart output
