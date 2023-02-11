@@ -18,7 +18,7 @@ void rpm_cmd_time(int argc, char *argv[])
         hour -= 12;
     }
 
-    rpm_printf("Current Time is %02d:%02d:%02d %cM\r\n", hour, min, sec, am_pm);
+    rpm_printf("Current Time: %02d:%02d:%02d %cM\r\n", hour, min, sec, am_pm);
     rpm_puts("Type 'time hh/mm/ss' to change.\r\n");
     rpm_puts("\r\n");
 }

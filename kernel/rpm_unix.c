@@ -114,7 +114,7 @@ void rpm_get_date(int *year, int *month, int *day, int *dotw)
     struct tm *info = localtime(&now);
 
     *year = 1900 + info->tm_year;
-    *month = info->tm_mon;
+    *month = 1 + info->tm_mon;
     *day = info->tm_mday;
     *dotw = info->tm_wday;
 }
