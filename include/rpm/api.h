@@ -115,6 +115,11 @@ void rpm_print_version();
 void rpm_get_date(int *year, int *month, int *day, int *dotw);
 void rpm_get_time(int *hour, int *min, int *sec);
 
+//
+// Reboot the processor.
+//
+void rpm_reboot(void);
+
 //TODO: sysvar_time
 
 #if 0 // TODO

@@ -21,6 +21,10 @@ OBJ             = main_unix.o \
                   $(TOP)/kernel/cmd/cmd_time.o \
                   $(TOP)/kernel/cmd/cmd_ver.o
 
+GIT_REVCOUNT    := $(shell cd $(TOP); git rev-list HEAD --count)
+GIT_COMMIT      := $(shell cd $(TOP); git log -1 --format=%h)
+CFLAGS          += -DGIT_REVCOUNT=\"$(GIT_REVCOUNT)\" -DGIT_COMMIT=\"$(GIT_COMMIT)\"
+
 all:            $(PROG)
 
 clean:

@@ -93,7 +93,8 @@ int rpm_vsscanf(const char *str, const char *format, va_list args)
 
 void rpm_print_version()
 {
-    rpm_puts("RP/M version "RPM_VERSION", built on "__DATE__" at "__TIME__"\r\n");
+    rpm_puts("RP/M version "RPM_VERSION"."GIT_REVCOUNT"\r\n");
+    rpm_puts("Git commit "GIT_COMMIT", built on "__DATE__" at "__TIME__"\r\n");
 
     struct utsname u;
     if (uname(&u) == 0) {
@@ -132,4 +133,12 @@ void rpm_get_time(int *hour, int *min, int *sec)
     *hour = info->tm_hour;
     *min = info->tm_min;
     *sec = info->tm_sec;
+}
+
+//
+// Reboot the processor.
+//
+void rpm_reboot()
+{
+    rpm_puts("Cannot reboot Unix, sorry.\r\n\r\n");
 }

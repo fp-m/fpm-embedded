@@ -7,5 +7,6 @@
 void rpm_cmd_reboot(int argc, char *argv[])
 {
     //TODO: getopt
-    rpm_puts("Not implemented yet\r\n");
+    rpm_puts("Reboot....\r\n\r\n");
+    rpm_reboot();
 }

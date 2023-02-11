@@ -14,6 +14,22 @@ pico_sdk_init()
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
+# Get the revision count
+execute_process(
+    COMMAND git rev-list HEAD --count
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE GIT_REVCOUNT
+)
+
+# Get the latest abbreviated commit hash of the working branch
+execute_process(
+    COMMAND git log -1 --format=%h
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE GIT_COMMIT
+)
+
 add_library(rpm_kernel STATIC
     rpm_editline.c
     rpm_getkey.c
@@ -55,4 +71,8 @@ target_link_libraries(rpm_pico
     rpm_kernel
     pico_stdlib
     hardware_rtc
+)
+
+set_source_files_properties(rpm_pico.c rpm_unix.c
+    PROPERTIES COMPILE_FLAGS "-DGIT_REVCOUNT=\\\"${GIT_REVCOUNT}\\\" -DGIT_COMMIT=\\\"${GIT_COMMIT}\\\""
 )
