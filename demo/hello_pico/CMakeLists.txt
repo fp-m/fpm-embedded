@@ -13,16 +13,23 @@ add_compile_options(-Wall -Werror)
 # Creates a pico-sdk subdirectory in our project for the libraries
 pico_sdk_init()
 
-add_executable(hello_usb
+add_executable(${PROJECT_NAME}
     hello_usb.c
 )
 
 # pull in common dependencies
-target_link_libraries(hello_usb pico_stdlib)
+target_link_libraries(${PROJECT_NAME} pico_stdlib)
 
 # enable usb output, disable uart output
-pico_enable_stdio_usb(hello_usb 1)
-pico_enable_stdio_uart(hello_usb 0)
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # create map/bin/hex/uf2 file etc.
-pico_add_extra_outputs(hello_usb)
+pico_add_extra_outputs(${PROJECT_NAME})
+
+# 'make upload' to program the binary
+add_custom_target(upload
+    picotool load -f -x ${PROJECT_NAME}.uf2
+    COMMENT "picotool load -f -x ${PROJECT_NAME}.uf2"
+    DEPENDS ${PROJECT_NAME}
+)

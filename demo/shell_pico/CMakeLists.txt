@@ -37,3 +37,10 @@ target_link_libraries(${PROJECT_NAME}
 # Enable usb output, disable uart output
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
+
+# 'make upload' to program the binary
+add_custom_target(upload
+    picotool load -f -x ${PROJECT_NAME}.uf2
+    COMMENT "picotool load -f -x ${PROJECT_NAME}.uf2"
+    DEPENDS ${PROJECT_NAME}
+)

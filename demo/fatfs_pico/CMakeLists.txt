@@ -18,6 +18,10 @@ add_executable(${PROJECT_NAME}
     thing_plus.hw_config.c
 )
 
+# Enable usb output, disable uart output
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
+
 # Build FatFs library
 add_library(FatFs_SPI STATIC
     ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/ff15/source/ffsystem.c
@@ -71,6 +75,9 @@ target_link_libraries(${PROJECT_NAME}
     pico_stdlib
 )
 
-# Enable usb output, disable uart output
-pico_enable_stdio_usb(${PROJECT_NAME} 1)
-pico_enable_stdio_uart(${PROJECT_NAME} 0)
+# 'make upload' to program the binary
+add_custom_target(upload
+    picotool load -f -x ${PROJECT_NAME}.uf2
+    COMMENT "picotool load -f -x ${PROJECT_NAME}.uf2"
+    DEPENDS ${PROJECT_NAME}
+)

@@ -15,6 +15,9 @@ int main() {
 
     // Initialize chosen serial port
     stdio_init_all();
+    while (!stdio_usb_connected()) {
+        sleep_ms(100);
+    }
 
     // Wait for user to press 'enter' to continue
     printf("\r\nSD card test. Press 'enter' to start.\r\n");
