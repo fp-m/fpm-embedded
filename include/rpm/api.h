@@ -141,9 +141,9 @@ struct rpm_option {
 };
 struct rpm_opt {
     int opt;        // Current option
-    int ind;        // Index of next argv
-    char *arg;      // Current argument
     int long_index; // Index of long option
+    char *arg;      // Current argument
+    int ind;        // Index of next argv
     int silent;     // Suppress error messages
     int where;      // Offset inside current argument
 };

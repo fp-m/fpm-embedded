@@ -13,6 +13,7 @@ OBJ             = main_unix.o \
                   $(TOP)/kernel/rpm_unix.o \
                   $(TOP)/kernel/rpm_tokenize.o \
                   $(TOP)/kernel/rpm_editline.o \
+                  $(TOP)/kernel/rpm_getopt.o \
                   $(TOP)/kernel/cmd/cmd_clear.o \
                   $(TOP)/kernel/cmd/cmd_date.o \
                   $(TOP)/kernel/cmd/cmd_echo.o \

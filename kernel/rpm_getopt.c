@@ -135,7 +135,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                         rpm_puts(longopts[longopt_match].name);
                         rpm_puts("' or `--");
                         rpm_puts(longopts[optindex].name);
-                        rpm_puts("')\n");
+                        rpm_puts("')\r\n");
                     }
                     return (opt->opt = '?');
                 }
@@ -151,7 +151,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                 rpm_puts(argv[0]);
                 rpm_puts(": unknown option `");
                 rpm_puts(argv[opt->ind]);
-                rpm_puts("`\n");
+                rpm_puts("`\r\n");
             }
             opt->ind++;
             return (opt->opt = '?');
@@ -167,7 +167,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                 rpm_puts(argv[0]);
                 rpm_puts(": unknown option `-");
                 rpm_putchar(argv[opt->ind][opt->where]);
-                rpm_puts("`\n");
+                rpm_puts("`\r\n");
             }
             opt->where++;
             if (argv[opt->ind][opt->where] == '\0') {
@@ -221,7 +221,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                     rpm_putchar(*cp);
                     opt->opt = *cp;
                 }
-                rpm_puts("`\n");
+                rpm_puts("`\r\n");
             }
             opt->ind++;
             return initial_colon ? ':' : '\?';

@@ -6,7 +6,28 @@
 
 void rpm_cmd_help(int argc, char *argv[])
 {
-    //TODO: getopt
+    static const struct rpm_option long_opts[] = {
+        { "help", RPM_NO_ARG, NULL, 'h' },
+        {},
+    };
+    struct rpm_opt opt = {};
+
+int result;
+    while ((result = rpm_getopt(argc, argv, "h", long_opts, &opt)) >= 0) {
+rpm_printf("result = %d\r\n", result);
+        switch (opt.opt) {
+        case 'h':
+            rpm_puts("Usage: help\r\n");
+            return;
+        case 1:
+            rpm_printf("help: unexpected argument `%s`\r\n", opt.arg);
+            return;
+        case '?':
+            return;
+        }
+    }
+
+    // TODO: getopt
     rpm_puts("RP/M built-in commands are:\r\n");
     rpm_puts("CLEAR or CLS    Clear the console screen\r\n");
     rpm_puts("DATE            Show or change the system date\r\n");
