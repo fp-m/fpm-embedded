@@ -139,12 +139,16 @@ struct rpm_option {
     int val;            // Determines the value to return if flag is NULL.
 
 };
+struct rpm_opt {
+    int opt;        // Current option
+    int ind;        // Index of next argv
+    char *arg;      // Current argument
+    int long_index; // Index of long option
+    int silent;     // Suppress error messages
+    int where;      // Offset inside current argument
+};
 int rpm_getopt(int argc, char *const *argv, const char *optstring,
-               const struct rpm_option *longopts, int *longindex);
-extern char *rpm_optarg;
-extern int rpm_optind;
-extern int rpm_optopt;
-extern int rpm_opterr;
+               const struct rpm_option *longopts, struct rpm_opt *opt);
 
 //TODO: sysvar_time
 

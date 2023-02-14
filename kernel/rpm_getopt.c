@@ -4,27 +4,29 @@
 // See description at the end of file.
 //
 // Copyright (C) 1997 Gregory Pietsch
+// Copyright (C) 2023 Serge Vakulenko
 //
-// This file and the accompanying getopt.h header file are hereby placed in the
-// public domain without restrictions.  Just give the author credit, don't
-// claim you wrote it or prevent anyone else from using it.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 //
 #include <rpm/api.h>
 #include <stdlib.h>
 #include <string.h>
-
-//
-// Globally-defined variables.
-//
-char *rpm_optarg = 0;
-int rpm_optind = 0;
-int rpm_opterr = 1;
-int rpm_optopt = '?';
-
-//
-// Static variables.
-//
-static int rpm_optwhere = 0;
 
 //
 // Is this argv-element an option or the end of the option list?
@@ -35,7 +37,7 @@ static int is_option(char *argv_element)
 }
 
 int rpm_getopt(int argc, char *const argv[], const char *shortopts,
-               const struct rpm_option *longopts, int *longind)
+               const struct rpm_option *longopts, struct rpm_opt *opt)
 {
     int optindex = 0;
     size_t match_chars = 0;
@@ -47,20 +49,20 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     int initial_colon = 0;
 
     // First, deal with silly parameters and easy stuff.
-    if (argc == 0 || argv == 0 || (shortopts == 0 && longopts == 0) || rpm_optind > argc) {
+    if (argc == 0 || argv == 0 || (shortopts == 0 && longopts == 0) || opt->ind > argc) {
         return -1;
     }
-    if (argv[rpm_optind] != 0 && strcmp(argv[rpm_optind], "--") == 0) {
-        rpm_optind++;
-        rpm_optopt = 0;
-        rpm_optarg = NULL;
+    if (argv[opt->ind] != 0 && strcmp(argv[opt->ind], "--") == 0) {
+        opt->ind++;
+        opt->opt = 0;
+        opt->arg = NULL;
         return -1;
     }
 
     // If this is our first time through.
-    if (rpm_optind == 0) {
-        rpm_optind = 1;
-        rpm_optwhere = 1;
+    if (opt->ind == 0) {
+        opt->ind = 1;
+        opt->where = 1;
     }
 
     // Note that leading ‘-’ or ‘+’ in the optstring is ignored.
@@ -77,16 +79,16 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     //
     // Find our next option, if we're at the beginning of one.
     //
-    if (rpm_optwhere == 1) {
-        if (!is_option(argv[rpm_optind])) {
-            rpm_optarg = argv[rpm_optind++];
-            return (rpm_optopt = 1);
+    if (opt->where == 1) {
+        if (!is_option(argv[opt->ind])) {
+            opt->arg = argv[opt->ind++];
+            return (opt->opt = 1);
         }
     }
     // End of option list?
-    if (argv[rpm_optind] == 0) {
-        rpm_optopt = 0;
-        rpm_optarg = NULL;
+    if (argv[opt->ind] == 0) {
+        opt->opt = 0;
+        opt->arg = NULL;
         return -1;
     }
 
@@ -94,27 +96,27 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 
     // First, is it a long option?
     if (longopts != 0 &&
-        (memcmp(argv[rpm_optind], "--", 2) == 0) &&
-        rpm_optwhere == 1) {
+        (memcmp(argv[opt->ind], "--", 2) == 0) &&
+        opt->where == 1) {
 
         // Handle long options.
-        if (memcmp(argv[rpm_optind], "--", 2) == 0) {
-            rpm_optwhere = 2;
+        if (memcmp(argv[opt->ind], "--", 2) == 0) {
+            opt->where = 2;
         }
 
         longopt_match = -1;
-        possible_arg = strchr(argv[rpm_optind] + rpm_optwhere, '=');
+        possible_arg = strchr(argv[opt->ind] + opt->where, '=');
         if (possible_arg == 0) {
             // No =, so next argv might be arg.
-            match_chars = strlen(argv[rpm_optind]);
-            possible_arg = argv[rpm_optind] + match_chars;
-            match_chars = match_chars - rpm_optwhere;
+            match_chars = strlen(argv[opt->ind]);
+            possible_arg = argv[opt->ind] + match_chars;
+            match_chars = match_chars - opt->where;
         } else {
-            match_chars = (possible_arg - argv[rpm_optind]) - rpm_optwhere;
+            match_chars = (possible_arg - argv[opt->ind]) - opt->where;
         }
 
         for (optindex = 0; longopts[optindex].name != 0; ++optindex) {
-            if (memcmp(argv[rpm_optind] + rpm_optwhere, longopts[optindex].name, match_chars) ==
+            if (memcmp(argv[opt->ind] + opt->where, longopts[optindex].name, match_chars) ==
                 0) {
                 // Do we have an exact match?
                 if (match_chars == strlen(longopts[optindex].name)) {
@@ -125,17 +127,17 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                 // Do any characters match?
                 if (longopt_match >= 0) {
                     // We have ambiguous options.
-                    if (rpm_opterr) {
+                    if (!opt->silent) {
                         rpm_puts(argv[0]);
                         rpm_puts(": option `");
-                        rpm_puts(argv[rpm_optind]);
+                        rpm_puts(argv[opt->ind]);
                         rpm_puts("' is ambiguous (could be `--");
                         rpm_puts(longopts[longopt_match].name);
                         rpm_puts("' or `--");
                         rpm_puts(longopts[optindex].name);
                         rpm_puts("')\n");
                     }
-                    return (rpm_optopt = '?');
+                    return (opt->opt = '?');
                 }
 
                 longopt_match = optindex;
@@ -145,34 +147,34 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
             has_arg = longopts[longopt_match].has_arg;
         } else {
             // Couldn't find long option.
-            if (rpm_opterr) {
+            if (!opt->silent) {
                 rpm_puts(argv[0]);
                 rpm_puts(": unknown option `");
-                rpm_puts(argv[rpm_optind]);
+                rpm_puts(argv[opt->ind]);
                 rpm_puts("`\n");
             }
-            rpm_optind++;
-            return (rpm_optopt = '?');
+            opt->ind++;
+            return (opt->opt = '?');
         }
     }
 
     // If we didn't find a long option, is it a short option?
     if (longopt_match < 0 && shortopts != 0) {
-        cp = strchr(shortopts, argv[rpm_optind][rpm_optwhere]);
+        cp = strchr(shortopts, argv[opt->ind][opt->where]);
         if (cp == 0) {
             // Couldn't find option in shortopts.
-            if (rpm_opterr) {
+            if (!opt->silent) {
                 rpm_puts(argv[0]);
                 rpm_puts(": unknown option `-");
-                rpm_putchar(argv[rpm_optind][rpm_optwhere]);
+                rpm_putchar(argv[opt->ind][opt->where]);
                 rpm_puts("`\n");
             }
-            rpm_optwhere++;
-            if (argv[rpm_optind][rpm_optwhere] == '\0') {
-                rpm_optind++;
-                rpm_optwhere = 1;
+            opt->where++;
+            if (argv[opt->ind][opt->where] == '\0') {
+                opt->ind++;
+                opt->where = 1;
             }
-            return (rpm_optopt = '?');
+            return (opt->opt = '?');
         }
 
         if (cp[1] == ':') {
@@ -185,19 +187,19 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
             has_arg = RPM_NO_ARG;
         }
 
-        possible_arg = argv[rpm_optind] + rpm_optwhere + 1;
-        rpm_optopt = *cp;
+        possible_arg = argv[opt->ind] + opt->where + 1;
+        opt->opt = *cp;
     }
 
-    // Get argument and reset rpm_optwhere.
+    // Get argument and reset opt->where.
     arg_next = 0;
     switch (has_arg) {
     case RPM_OPTIONAL_ARG:
         if (*possible_arg == '=') {
             possible_arg++;
         }
-        rpm_optarg = (*possible_arg != '\0') ? possible_arg : 0;
-        rpm_optwhere = 1;
+        opt->arg = (*possible_arg != '\0') ? possible_arg : 0;
+        opt->where = 1;
         break;
 
     case RPM_REQUIRED_ARG:
@@ -205,54 +207,52 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
             possible_arg++;
         }
         if (*possible_arg != '\0') {
-            rpm_optarg = possible_arg;
-            rpm_optwhere = 1;
-        } else if (rpm_optind + 1 >= argc) {
-            if (rpm_opterr) {
+            opt->arg = possible_arg;
+            opt->where = 1;
+        } else if (opt->ind + 1 >= argc) {
+            if (!opt->silent) {
                 rpm_puts(argv[0]);
                 rpm_puts(": argument required for option `-");
                 if (longopt_match >= 0) {
                     rpm_putchar('-');
                     rpm_puts(longopts[longopt_match].name);
-                    rpm_optopt = initial_colon ? ':' : '\?';
+                    opt->opt = initial_colon ? ':' : '\?';
                 } else {
                     rpm_putchar(*cp);
-                    rpm_optopt = *cp;
+                    opt->opt = *cp;
                 }
                 rpm_puts("`\n");
             }
-            rpm_optind++;
+            opt->ind++;
             return initial_colon ? ':' : '\?';
         } else {
-            rpm_optarg = argv[rpm_optind + 1];
+            opt->arg = argv[opt->ind + 1];
             arg_next = 1;
-            rpm_optwhere = 1;
+            opt->where = 1;
         }
         break;
 
     default: // shouldn't happen
     case RPM_NO_ARG:
         if (longopt_match < 0) {
-            rpm_optwhere++;
-            if (argv[rpm_optind][rpm_optwhere] == '\0')
-                rpm_optwhere = 1;
+            opt->where++;
+            if (argv[opt->ind][opt->where] == '\0')
+                opt->where = 1;
         } else {
-            rpm_optwhere = 1;
+            opt->where = 1;
         }
-        rpm_optarg = 0;
+        opt->arg = 0;
         break;
     }
 
-    // do we have to modify rpm_optind?
-    if (rpm_optwhere == 1) {
-        rpm_optind = rpm_optind + 1 + arg_next;
+    // do we have to modify opt->ind?
+    if (opt->where == 1) {
+        opt->ind = opt->ind + 1 + arg_next;
     }
 
     // Finally return.
     if (longopt_match >= 0) {
-        if (longind != 0) {
-            *longind = longopt_match;
-        }
+        opt->long_index = longopt_match;
 
         if (longopts[longopt_match].flag != 0) {
             *(longopts[longopt_match].flag) = longopts[longopt_match].val;
@@ -261,7 +261,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
             return longopts[longopt_match].val;
         }
     } else {
-        return rpm_optopt;
+        return opt->opt;
     }
 }
 
@@ -290,8 +290,8 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 // element of an array of type struct rpm_option.  The last element of the array
 // has to be filled with NULL for the name field.
 //
-// The longind pointer points to the index of the current long option relative
-// to longopts if it is non-NULL.
+// The long_index field shows the index of the current long option relative
+// to longopts.
 //
 // The rpm_getopt() function returns the option character if the option was found
 // successfully, `:' if there was a missing parameter for one of the options,
