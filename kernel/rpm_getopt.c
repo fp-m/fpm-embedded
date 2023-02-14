@@ -47,12 +47,13 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     int initial_colon = 0;
 
     // First, deal with silly parameters and easy stuff.
-    if (argc == 0 || argv == 0 || (shortopts == 0 && longopts == 0) || rpm_optind >= argc ||
-        argv[rpm_optind] == 0) {
+    if (argc == 0 || argv == 0 || (shortopts == 0 && longopts == 0) || rpm_optind > argc) {
         return -1;
     }
-    if (strcmp(argv[rpm_optind], "--") == 0) {
+    if (argv[rpm_optind] != 0 && strcmp(argv[rpm_optind], "--") == 0) {
         rpm_optind++;
+        rpm_optopt = 0;
+        rpm_optarg = NULL;
         return -1;
     }
 
@@ -83,8 +84,11 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
         }
     }
     // End of option list?
-    if (argv[rpm_optind] == 0)
+    if (argv[rpm_optind] == 0) {
+        rpm_optopt = 0;
+        rpm_optarg = NULL;
         return -1;
+    }
 
     // We've got an option, so parse it.
 
@@ -139,6 +143,16 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
         }
         if (longopt_match >= 0) {
             has_arg = longopts[longopt_match].has_arg;
+        } else {
+            // Couldn't find long option.
+            if (rpm_opterr) {
+                rpm_puts(argv[0]);
+                rpm_puts(": unknown option `");
+                rpm_puts(argv[rpm_optind]);
+                rpm_puts("`\n");
+            }
+            rpm_optind++;
+            return (rpm_optopt = '?');
         }
     }
 
@@ -149,9 +163,9 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
             // Couldn't find option in shortopts.
             if (rpm_opterr) {
                 rpm_puts(argv[0]);
-                rpm_puts(": invalid option -- `-");
+                rpm_puts(": unknown option `-");
                 rpm_putchar(argv[rpm_optind][rpm_optwhere]);
-                rpm_puts("'\n");
+                rpm_puts("`\n");
             }
             rpm_optwhere++;
             if (argv[rpm_optind][rpm_optwhere] == '\0') {
@@ -179,15 +193,17 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     arg_next = 0;
     switch (has_arg) {
     case RPM_OPTIONAL_ARG:
-        if (*possible_arg == '=')
+        if (*possible_arg == '=') {
             possible_arg++;
+        }
         rpm_optarg = (*possible_arg != '\0') ? possible_arg : 0;
         rpm_optwhere = 1;
         break;
 
     case RPM_REQUIRED_ARG:
-        if (*possible_arg == '=')
+        if (*possible_arg == '=') {
             possible_arg++;
+        }
         if (*possible_arg != '\0') {
             rpm_optarg = possible_arg;
             rpm_optwhere = 1;
@@ -203,7 +219,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                     rpm_putchar(*cp);
                     rpm_optopt = *cp;
                 }
-                rpm_puts("'\n");
+                rpm_puts("`\n");
             }
             rpm_optind++;
             return initial_colon ? ':' : '\?';
@@ -264,11 +280,11 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 // The rpm_getopt() function also accepts long options started
 // by two dashes `--'. If these take values, it is either in the form
 //
-// --arg=value
+//      --arg=value
 //
 //  or
 //
-// --arg value
+//      --arg value
 //
 // It takes the additional arguments longopts which is a pointer to the first
 // element of an array of type struct rpm_option.  The last element of the array
