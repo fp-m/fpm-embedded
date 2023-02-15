@@ -6,19 +6,58 @@
 
 void rpm_cmd_time(int argc, char *argv[])
 {
-    //TODO: getopt
+    static const struct rpm_option long_opts[] = {
+        { "help", RPM_NO_ARG, NULL, 'h' },
+        {},
+    };
+    struct rpm_opt opt = {};
+    bool terse = false;
+
+    while (rpm_getopt(argc, argv, "ht", long_opts, &opt) >= 0) {
+        switch (opt.ret) {
+        case 1:
+            //TODO: set the time: opt.arg is hh/mm/ss
+            rpm_puts("Not implemented yet.\r\n"
+                     "\n");
+            return;
+
+        case '?':
+            // Unknown option: message already printed.
+            rpm_puts("\r\n");
+            return;
+
+        case 't':
+            terse = true;
+            continue;
+
+        case 'h':
+            rpm_puts("Usage:\r\n"
+                     "    time [-t]\r\n"
+                     "    time hh/mm/ss\r\n"
+                     "\n"
+                     "    -t            Display simple time\r\n"
+                     "    hh/mm/ss      New time to set\r\n"
+                     "\n");
+            return;
+        }
+    }
+
+    // Display current time.
     int hour, min, sec;
     rpm_get_time(&hour, &min, &sec);
 
-    // Convert 24-hour clock time to 12-hour clock.
-    char am_pm = (hour <= 11) ? 'A' : 'P';
-    if (hour == 0) {
-        hour += 12;
-    } else if (hour > 12) {
-        hour -= 12;
+    if (terse) {
+        rpm_printf("%02d:%02d:%02d\r\n", hour, min, sec);
+    } else {
+        // Convert 24-hour clock time to 12-hour clock.
+        char am_pm = (hour <= 11) ? 'A' : 'P';
+        if (hour == 0) {
+            hour += 12;
+        } else if (hour > 12) {
+            hour -= 12;
+        }
+        rpm_printf("Current Time: %02d:%02d:%02d %cM\r\n", hour, min, sec, am_pm);
+        rpm_puts("Type 'time hh/mm/ss' to change.\r\n");
     }
-
-    rpm_printf("Current Time: %02d:%02d:%02d %cM\r\n", hour, min, sec, am_pm);
-    rpm_puts("Type 'time hh/mm/ss' to change.\r\n");
     rpm_puts("\r\n");
 }

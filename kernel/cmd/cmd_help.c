@@ -27,7 +27,6 @@ void rpm_cmd_help(int argc, char *argv[])
         }
     }
 
-    // TODO: getopt
     rpm_puts("RP/M built-in commands are:\r\n");
     rpm_puts("CLEAR or CLS    Clear the console screen\r\n");
     rpm_puts("DATE            Show or change the system date\r\n");

@@ -6,11 +6,43 @@
 
 void rpm_cmd_echo(int argc, char *argv[])
 {
-    //TODO: getopt
-    for (int i=1; i<argc; i++) {
-        if (i > 1)
-            rpm_putchar(' ');
-        rpm_puts(argv[i]);
+    static const struct rpm_option long_opts[] = {
+        { "help", RPM_NO_ARG, NULL, 'h' },
+        {},
+    };
+    struct rpm_opt opt = {};
+    bool no_newline = false;
+    int count = 0;
+
+    while (rpm_getopt(argc, argv, "hn", long_opts, &opt) >= 0) {
+        switch (opt.ret) {
+        case 1:
+            // Display arguments.
+            if (count > 0)
+                rpm_putchar(' ');
+            rpm_puts(opt.arg);
+            count++;
+            continue;
+
+        case '?':
+            // Unknown option: message already printed.
+            continue;
+
+        case 'n':
+            no_newline = true;
+            continue;
+
+        case 'h':
+            rpm_puts("Usage:\r\n"
+                     "    echo [-n] [string ...]\r\n"
+                     "\n"
+                     "    -n            Do not output the trailing newline\r\n"
+                     "\n");
+            return;
+        }
     }
-    rpm_puts("\r\n");
+
+    if (!no_newline) {
+        rpm_puts("\r\n");
+    }
 }

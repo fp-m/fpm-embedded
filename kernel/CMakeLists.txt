@@ -40,6 +40,7 @@ add_library(rpm_kernel STATIC
     rpm_strlcpy.c
     rpm_strwlen.c
     rpm_tokenize.c
+    rpm_getopt.c
     rpm_wputs.c
 
     cmd/cmd_clear.c
