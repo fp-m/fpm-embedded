@@ -42,6 +42,7 @@ add_library(rpm_kernel STATIC
     rpm_tokenize.c
     rpm_getopt.c
     rpm_wputs.c
+    rpm_get_dotw.c
 
     cmd/cmd_clear.c
     cmd/cmd_date.c

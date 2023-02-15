@@ -110,10 +110,17 @@ size_t rpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 void rpm_print_version();
 
 //
-// Get date and time.
+// Get/set date and time.
 //
 void rpm_get_date(int *year, int *month, int *day, int *dotw);
 void rpm_get_time(int *hour, int *min, int *sec);
+void rpm_set_date(int year, int month, int day);
+void rpm_set_time(int hour, int min, int sec);
+
+//
+// Compute day of the week.
+//
+int rpm_get_dotw(int year, int month, int day);
 
 //
 // Reboot the processor.

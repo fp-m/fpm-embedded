@@ -62,7 +62,7 @@ static void option_h_missing(void **unused)
     assert_int_equal(result, '?');
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.opt, '?');
-    assert_string_equal(output, "prog: unknown option `-h`\r\n");
+    assert_string_equal(output, "prog: Unknown option `-h`\r\n");
 }
 
 //
@@ -534,7 +534,7 @@ static void simple_option_and_arg_without_spaces(void **unused)
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, '?');
-    assert_string_equal(output, "prog: unknown option `-x`\r\n");
+    assert_string_equal(output, "prog: Unknown option `-x`\r\n");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'b');
@@ -741,7 +741,7 @@ static void many_long_options(void **unused)
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, '?');
-    assert_string_equal(output, "prog: unknown option `--long4`\r\n");
+    assert_string_equal(output, "prog: Unknown option `--long4`\r\n");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
@@ -873,7 +873,7 @@ static void mandatory_arg(void **unused)
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, '?');
-    assert_string_equal(output, "prog: unknown option `--long3`\r\n");
+    assert_string_equal(output, "prog: Unknown option `--long3`\r\n");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
@@ -916,7 +916,7 @@ static void long_option_no_arg(void **unused)
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, '?');
-    assert_string_equal(output, "prog: unknown option `--long3`\r\n");
+    assert_string_equal(output, "prog: Unknown option `--long3`\r\n");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
@@ -1280,7 +1280,7 @@ static void short_test6(void **unused)
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'H');
-    assert_string_equal(output, "prog: argument required for option `-H`\r\n");
+    assert_string_equal(output, "prog: Argument required for option `-H`\r\n");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
@@ -1306,7 +1306,7 @@ static void short_test7(void **unused)
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'H');
-    assert_string_equal(output, "prog: argument required for option `-H`\r\n");
+    assert_string_equal(output, "prog: Argument required for option `-H`\r\n");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
@@ -1332,7 +1332,7 @@ static void short_test8(void **unused)
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, '?');
-    assert_string_equal(output, "prog: unknown option `-x`\r\n");
+    assert_string_equal(output, "prog: Unknown option `-x`\r\n");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);

@@ -2,7 +2,7 @@ TOP             = ..
 CFLAGS          = -g -O0 -Wall -I$(TOP)/include
 LDFLAGS         = -g
 LIBS            = -lcmocka
-TESTS           = editline_test tokenize_test getopt_test
+TESTS           = editline_test tokenize_test getopt_test dotw_test
 EDITLINE_OBJ    = editline_test.o \
                   $(TOP)/kernel/rpm_editline.o \
                   $(TOP)/kernel/rpm_puts.o \
@@ -16,6 +16,8 @@ TOKENIZE_OBJ      = tokenize_test.o \
                   $(TOP)/kernel/rpm_tokenize.o
 GETOPT_OBJ        = getopt_test.o \
                   $(TOP)/kernel/rpm_getopt.o
+DOTW_OBJ          = dotw_test.o \
+                  $(TOP)/kernel/rpm_get_dotw.o
 
 ifneq ($(wildcard /usr/local/include),)
 CFLAGS		+= -I/usr/local/include
@@ -35,6 +37,8 @@ all:		$(TESTS)
 test:           $(TESTS)
 		./editline_test
 		./tokenize_test
+		./getopt_test
+		./dotw_test
 
 clean:
 		rm -f *_test *.o $(TOP)/kernel/*.o
@@ -47,6 +51,9 @@ tokenize_test:  $(TOKENIZE_OBJ)
 
 getopt_test:    $(GETOPT_OBJ)
 		$(CC) $(LDFLAGS) $(GETOPT_OBJ) $(LIBS) -o $@
+
+dotw_test:      $(DOTW_OBJ)
+		$(CC) $(LDFLAGS) $(DOTW_OBJ) $(LIBS) -o $@
 
 ###
 editline_test.o: editline_test.c ../include/rpm/api.h ../include/rpm/internal.h

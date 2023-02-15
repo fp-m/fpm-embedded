@@ -4,6 +4,23 @@
 #include <rpm/api.h>
 #include <rpm/internal.h>
 
+static void set_date(const char *str)
+{
+    int mm = 0, dd = 0, yyyy = 0;
+    if (rpm_sscanf(str, "%d/%d/%d", &mm, &dd, &yyyy) != 3 ||
+        mm < 1 || mm > 12 ||
+        dd < 1 || dd > 31 ||
+        yyyy < 2000 || yyyy > 9999) {
+        rpm_puts("The specified date is not correct.\r\n"
+                 "\n");
+        return;
+    }
+
+    // Set date.
+    rpm_set_date(yyyy, mm, dd);
+    rpm_puts("\r\n");
+}
+
 void rpm_cmd_date(int argc, char *argv[])
 {
     static const struct rpm_option long_opts[] = {
@@ -16,9 +33,7 @@ void rpm_cmd_date(int argc, char *argv[])
     while (rpm_getopt(argc, argv, "ht", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
-            //TODO: set the date: opt.arg is MM/DD/YYYY
-            rpm_puts("Not implemented yet.\r\n"
-                     "\n");
+            set_date(opt.arg);
             return;
 
         case '?':

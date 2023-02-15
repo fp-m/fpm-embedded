@@ -136,6 +136,22 @@ void rpm_get_time(int *hour, int *min, int *sec)
 }
 
 //
+// Set date.
+//
+void rpm_set_date(int year, int month, int day)
+{
+    // Ignore.
+}
+
+//
+// Set time.
+//
+void rpm_set_time(int hour, int min, int sec)
+{
+    // Ignore.
+}
+
+//
 // Reboot the processor.
 //
 void rpm_reboot()

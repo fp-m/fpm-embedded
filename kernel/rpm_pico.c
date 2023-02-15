@@ -141,6 +141,39 @@ void rpm_get_time(int *hour, int *min, int *sec)
 }
 
 //
+// Set date.
+//
+void rpm_set_date(int year, int month, int day)
+{
+    datetime_t now;
+    rtc_get_datetime(&now);
+
+    now.year = year;
+    now.month = month;
+    now.day = day;
+    now.dotw = rpm_get_dotw(year, month, day);
+
+    rtc_set_datetime(&now);
+    sleep_us(64);
+}
+
+//
+// Set time.
+//
+void rpm_set_time(int hour, int min, int sec)
+{
+    datetime_t now;
+    rtc_get_datetime(&now);
+
+    now.hour = hour;
+    now.min = min;
+    now.sec = sec;
+
+    rtc_set_datetime(&now);
+    sleep_us(64);
+}
+
+//
 // Reboot the processor.
 //
 void rpm_reboot()
