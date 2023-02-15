@@ -28,14 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-//
-// Is this argv-element an option or the end of the option list?
-//
-static int is_option(char *argv_element)
-{
-    return ((argv_element == 0) || (argv_element[0] == '-'));
-}
-
 int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                const struct rpm_option *longopts, struct rpm_opt *opt)
 {
@@ -79,12 +71,15 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     //
     // Find our next option, if we're at the beginning of one.
     //
+again:
     if (opt->where == 1) {
-        if (!is_option(argv[opt->ind])) {
+        if (argv[opt->ind] != 0 && argv[opt->ind][0] != '-') {
+            // Regular argument.
             opt->arg = argv[opt->ind++];
             return (opt->opt = 1);
         }
     }
+
     // End of option list?
     if (argv[opt->ind] == 0) {
         opt->opt = 0;
@@ -160,6 +155,13 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 
     // If we didn't find a long option, is it a short option?
     if (longopt_match < 0 && shortopts != 0) {
+        if (argv[opt->ind][opt->where] == '\0') {
+            // Lonely dash.
+            opt->ind++;
+            opt->where = 1;
+            goto again;
+        }
+
         cp = strchr(shortopts, argv[opt->ind][opt->where]);
         if (cp == 0) {
             // Couldn't find option in shortopts.
