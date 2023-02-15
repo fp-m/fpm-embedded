@@ -127,7 +127,7 @@ again:
                     // We have ambiguous options.
                     if (!opt->silent) {
                         rpm_puts(argv[0]);
-                        rpm_puts(": option `");
+                        rpm_puts(": Option `");
                         rpm_puts(argv[opt->ind]);
                         rpm_puts("' is ambiguous (could be `--");
                         rpm_puts(longopts[longopt_match].name);
@@ -147,7 +147,7 @@ again:
             // Couldn't find long option.
             if (!opt->silent) {
                 rpm_puts(argv[0]);
-                rpm_puts(": unknown option `");
+                rpm_puts(": Unknown option `");
                 rpm_puts(argv[opt->ind]);
                 rpm_puts("`\r\n");
             }
@@ -170,7 +170,7 @@ again:
             // Couldn't find option in shortopts.
             if (!opt->silent) {
                 rpm_puts(argv[0]);
-                rpm_puts(": unknown option `-");
+                rpm_puts(": Unknown option `-");
                 rpm_putchar(argv[opt->ind][opt->where]);
                 rpm_puts("`\r\n");
             }
@@ -217,7 +217,7 @@ again:
         } else if (opt->ind + 1 >= argc) {
             if (!opt->silent) {
                 rpm_puts(argv[0]);
-                rpm_puts(": argument required for option `-");
+                rpm_puts(": Argument required for option `-");
                 if (longopt_match >= 0) {
                     rpm_putchar('-');
                     rpm_puts(longopts[longopt_match].name);
