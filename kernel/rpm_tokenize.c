@@ -34,6 +34,7 @@ const char *rpm_tokenize(char *argv[], int *argc, char *cmd_line)
             }
             // Append extra NUL.
             *dest = '\0';
+            argv[*argc] = 0;
             return 0;
 
         case ' ':

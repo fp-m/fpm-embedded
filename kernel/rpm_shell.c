@@ -63,7 +63,7 @@ static void run_command(int argc, char *argv[])
 
     // No such command.
     rpm_puts(argv[0]);
-    rpm_puts(": command not found\r\n");
+    rpm_puts(": command not found\r\n\n");
 }
 
 //

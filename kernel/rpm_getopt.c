@@ -41,14 +41,17 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     int initial_colon = 0;
 
     // First, deal with silly parameters and easy stuff.
-    if (argc == 0 || argv == 0 || (shortopts == 0 && longopts == 0) || opt->ind > argc) {
+    if (!opt) {
         return -1;
+    }
+    if (argc == 0 || argv == 0 || (shortopts == 0 && longopts == 0) || opt->ind > argc) {
+        return (opt->ret = -1);
     }
     if (argv[opt->ind] != 0 && strcmp(argv[opt->ind], "--") == 0) {
         opt->ind++;
         opt->opt = 0;
         opt->arg = NULL;
-        return -1;
+        return (opt->ret = -1);
     }
 
     // If this is our first time through.
@@ -76,7 +79,7 @@ again:
         if (argv[opt->ind] != 0 && argv[opt->ind][0] != '-') {
             // Regular argument.
             opt->arg = argv[opt->ind++];
-            return (opt->opt = 1);
+            return (opt->ret = opt->opt = 1);
         }
     }
 
@@ -84,7 +87,7 @@ again:
     if (argv[opt->ind] == 0) {
         opt->opt = 0;
         opt->arg = NULL;
-        return -1;
+        return (opt->ret = -1);
     }
 
     // We've got an option, so parse it.
@@ -132,7 +135,7 @@ again:
                         rpm_puts(longopts[optindex].name);
                         rpm_puts("')\r\n");
                     }
-                    return (opt->opt = '?');
+                    return (opt->ret = opt->opt = '?');
                 }
 
                 longopt_match = optindex;
@@ -149,7 +152,7 @@ again:
                 rpm_puts("`\r\n");
             }
             opt->ind++;
-            return (opt->opt = '?');
+            return (opt->ret = opt->opt = '?');
         }
     }
 
@@ -176,7 +179,7 @@ again:
                 opt->ind++;
                 opt->where = 1;
             }
-            return (opt->opt = '?');
+            return (opt->ret = opt->opt = '?');
         }
 
         if (cp[1] == ':') {
@@ -226,7 +229,7 @@ again:
                 rpm_puts("`\r\n");
             }
             opt->ind++;
-            return initial_colon ? ':' : '\?';
+            return (opt->ret = initial_colon ? ':' : '\?');
         } else {
             opt->arg = argv[opt->ind + 1];
             arg_next = 1;
@@ -258,12 +261,12 @@ again:
 
         if (longopts[longopt_match].flag != 0) {
             *(longopts[longopt_match].flag) = longopts[longopt_match].val;
-            return 0;
+            return (opt->ret = 0);
         } else {
-            return longopts[longopt_match].val;
+            return (opt->ret = longopts[longopt_match].val);
         }
     } else {
-        return opt->opt;
+        return (opt->ret = opt->opt);
     }
 }
 

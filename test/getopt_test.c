@@ -42,6 +42,7 @@ static void option_h_valid(void **unused)
 
     int result = rpm_getopt(2, argv, "h", NULL, &opt);
     assert_int_equal(result, 'h');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'h');
     assert_ptr_equal(opt.arg, NULL);
@@ -59,6 +60,7 @@ static void option_h_missing(void **unused)
 
     int result = rpm_getopt(2, argv, "a", NULL, &opt);
     assert_int_equal(result, '?');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.opt, '?');
     assert_string_equal(output, "prog: unknown option `-h`\r\n");
 }
@@ -74,6 +76,7 @@ static void option_i_1(void **unused)
 
     int result = rpm_getopt(3, argv, "i:", NULL, &opt);
     assert_int_equal(result, 'i');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.opt, 'i');
     assert_string_equal(opt.arg, "1");
     assert_string_equal(output, "");
@@ -90,6 +93,7 @@ static void no_args(void **unused)
 
     int result = rpm_getopt(1, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -107,24 +111,28 @@ static void three_args(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "x");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "y");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "z");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -142,12 +150,14 @@ static void simple_option(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -165,30 +175,35 @@ static void simple_option_with_args(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "x");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "y");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "z");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -206,48 +221,56 @@ static void many_simple_options(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'd');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 'd');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'e');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'e');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'j');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 'j');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "x");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "y");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "z");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -265,48 +288,56 @@ static void option_mix_without_args(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'b');
     assert_string_equal(opt.arg, "bval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'c');
     assert_string_equal(opt.arg, "cval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'd');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'd');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'e');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'e');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'f');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 'f');
     assert_string_equal(opt.arg, "fval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'j');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 7);
     assert_int_equal(opt.opt, 'j');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 7);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -324,60 +355,70 @@ static void option_mix_with_args(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'b');
     assert_string_equal(opt.arg, "bval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'c');
     assert_string_equal(opt.arg, "cval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'd');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'd');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'e');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'e');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'f');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 'f');
     assert_string_equal(opt.arg, "fval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'j');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 7);
     assert_int_equal(opt.opt, 'j');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 8);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "x");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 9);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "y");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 9);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -395,66 +436,77 @@ static void option_mix_shuffled_args(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'b');
     assert_string_equal(opt.arg, "bval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "x");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 'c');
     assert_string_equal(opt.arg, "cval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'd');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 'd');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'e');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 'e');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'f');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 7);
     assert_int_equal(opt.opt, 'f');
     assert_string_equal(opt.arg, "fval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 8);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "y");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'j');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 9);
     assert_int_equal(opt.opt, 'j');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 10);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "z");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 10);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -472,30 +524,35 @@ static void simple_option_and_arg_without_spaces(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, '?');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, '?');
     assert_string_equal(output, "prog: unknown option `-x`\r\n");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 'b');
     assert_string_equal(opt.arg, "bval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "y");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -513,18 +570,21 @@ static void separator_valid(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 'b');
     assert_string_equal(opt.arg, "bval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -542,30 +602,35 @@ static void separator_as_option_value(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 'b');
     assert_string_equal(opt.arg, "bval");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 'f');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 'f');
     assert_string_equal(opt.arg, "--");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "x");
 
     result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -583,6 +648,7 @@ static void orphan_dash(void **unused)
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -604,6 +670,7 @@ static void long_option(void **unused)
 
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 42);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
@@ -611,6 +678,8 @@ static void long_option(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
@@ -635,6 +704,8 @@ static void many_long_options(void **unused)
 
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 10);
+    assert_int_equal(opt.ret, result);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
@@ -642,6 +713,7 @@ static void many_long_options(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 11);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 1);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 0);
@@ -649,6 +721,7 @@ static void many_long_options(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 10);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 0);
@@ -656,6 +729,7 @@ static void many_long_options(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 10);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 0);
@@ -663,6 +737,7 @@ static void many_long_options(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, '?');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, '?');
@@ -670,6 +745,7 @@ static void many_long_options(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 0);
@@ -693,6 +769,7 @@ static void long_options_with_args(void **unused)
 
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 11);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 0);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
@@ -700,6 +777,7 @@ static void long_options_with_args(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 22);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 1);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 0);
@@ -707,6 +785,7 @@ static void long_options_with_args(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 1);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 1);
@@ -714,6 +793,7 @@ static void long_options_with_args(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 1);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 1);
@@ -721,6 +801,7 @@ static void long_options_with_args(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 1);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 1);
@@ -728,6 +809,7 @@ static void long_options_with_args(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.long_index, 1);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 0);
@@ -751,6 +833,7 @@ static void flag_ptr(void **unused)
 
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 0);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -758,6 +841,7 @@ static void flag_ptr(void **unused)
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -779,18 +863,21 @@ static void mandatory_arg(void **unused)
 
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 11);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 0);
     assert_string_equal(opt.arg, "arg");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, '?');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, '?');
     assert_string_equal(output, "prog: unknown option `--long3`\r\n");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -812,24 +899,28 @@ static void long_option_no_arg(void **unused)
 
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 11);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "arg");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, '?');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, '?');
     assert_string_equal(output, "prog: unknown option `--long3`\r\n");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -852,18 +943,21 @@ static void long_option_equals_arg(void **unused)
 
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 11);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_string_equal(opt.arg, "arg1");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 22);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL); // arg2 is ignored
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -885,18 +979,21 @@ static void optional_args(void **unused)
     struct rpm_opt opt = {};
     int result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 11);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, 22);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 0);
     assert_string_equal(opt.arg, "arg");
 
     result = rpm_getopt(argc, argv, "", long_opts, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -915,60 +1012,70 @@ static void short_test1(void **unused)
 
     int result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, '#');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, '#');
     assert_string_equal(opt.arg, "6");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'H');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 'H');
     assert_string_equal(opt.arg, "1");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'H');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 7);
     assert_int_equal(opt.opt, 'H');
     assert_string_equal(opt.arg, "2");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'k');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 8);
     assert_int_equal(opt.opt, 'k');
     assert_string_equal(opt.arg, "a");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'l');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 9);
     assert_int_equal(opt.opt, 'l');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'l');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 10);
     assert_int_equal(opt.opt, 'l');
     assert_string_equal(opt.arg, "v");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'x');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 12);
     assert_int_equal(opt.opt, 'x');
     assert_string_equal(opt.arg, "path=./foo");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 13);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "bar");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 13);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -987,30 +1094,35 @@ static void short_test2(void **unused)
 
     int result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, '#');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, '#');
     assert_string_equal(opt.arg, "pound");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'b');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 'c');
     assert_string_equal(opt.arg, "filename");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -1029,48 +1141,56 @@ static void short_test3(void **unused)
 
     int result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, '#');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, '#');
     assert_string_equal(opt.arg, "bx");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'b');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 5);
     assert_int_equal(opt.opt, 'c');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 'c');
     assert_string_equal(opt.arg, "foo");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'd');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 7);
     assert_int_equal(opt.opt, 'd');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 8);
     assert_int_equal(opt.opt, 1);
     assert_string_equal(opt.arg, "bar");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 8);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -1089,48 +1209,56 @@ static void short_test5(void **unused)
 
     int result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 1);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'b');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'b');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'a');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 3);
     assert_int_equal(opt.opt, 'a');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 4);
     assert_int_equal(opt.opt, 'c');
     assert_string_equal(opt.arg, "x");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'c');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 6);
     assert_int_equal(opt.opt, 'c');
     assert_string_equal(opt.arg, "y");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'd');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 7);
     assert_int_equal(opt.opt, 'd');
     assert_ptr_equal(opt.arg, NULL);
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, 'd');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 8);
     assert_int_equal(opt.opt, 'd');
     assert_string_equal(opt.arg, "a");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 8);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -1149,12 +1277,14 @@ static void short_test6(void **unused)
 
     int result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, '?');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'H');
     assert_string_equal(output, "prog: argument required for option `-H`\r\n");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -1173,12 +1303,14 @@ static void short_test7(void **unused)
 
     int result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, ':');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 'H');
     assert_string_equal(output, "prog: argument required for option `-H`\r\n");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);
@@ -1197,12 +1329,14 @@ static void short_test8(void **unused)
 
     int result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, '?');
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, '?');
     assert_string_equal(output, "prog: unknown option `-x`\r\n");
 
     result = rpm_getopt(argc, argv, short_opts, NULL, &opt);
     assert_int_equal(result, -1);
+    assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
     assert_int_equal(opt.opt, 0);
     assert_ptr_equal(opt.arg, NULL);

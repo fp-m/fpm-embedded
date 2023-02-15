@@ -12,17 +12,17 @@ void rpm_cmd_help(int argc, char *argv[])
     };
     struct rpm_opt opt = {};
 
-int result;
-    while ((result = rpm_getopt(argc, argv, "h", long_opts, &opt)) >= 0) {
-rpm_printf("result = %d\r\n", result);
-        switch (opt.opt) {
-        case 'h':
-            rpm_puts("Usage: help\r\n");
-            return;
+    while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
+        switch (opt.ret) {
         case 1:
-            rpm_printf("help: unexpected argument `%s`\r\n", opt.arg);
+            rpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
             return;
         case '?':
+            // Unknown option: message already printed.
+            rpm_puts("\r\n");
+            return;
+        case 'h':
+            rpm_puts("Usage: help\r\n\n");
             return;
         }
     }
