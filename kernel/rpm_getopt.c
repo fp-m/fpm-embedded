@@ -74,10 +74,10 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     //
     // Find our next option, if we're at the beginning of one.
     //
-again:
-    if (opt->where == 1) {
-        if (argv[opt->ind] != 0 && argv[opt->ind][0] != '-') {
+    if (opt->where == 1 && argv[opt->ind] != 0) {
+        if (argv[opt->ind][0] != '-' || argv[opt->ind][1] == '\0') {
             // Regular argument.
+            // Treat single dash as argument.
             opt->arg = argv[opt->ind++];
             return (opt->ret = opt->opt = 1);
         }
@@ -158,13 +158,6 @@ again:
 
     // If we didn't find a long option, is it a short option?
     if (longopt_match < 0 && shortopts != 0) {
-        if (argv[opt->ind][opt->where] == '\0') {
-            // Lonely dash.
-            opt->ind++;
-            opt->where = 1;
-            goto again;
-        }
-
         cp = strchr(shortopts, argv[opt->ind][opt->where]);
         if (cp == 0) {
             // Couldn't find option in shortopts.

@@ -647,6 +647,13 @@ static void orphan_dash(void **unused)
     struct rpm_opt opt = {};
 
     int result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
+    assert_int_equal(result, 1);
+    assert_int_equal(opt.ret, result);
+    assert_int_equal(opt.ind, 2);
+    assert_int_equal(opt.opt, 1);
+    assert_string_equal(opt.arg, "-");
+
+    result = rpm_getopt(argc, argv, "ab:c:def:j", NULL, &opt);
     assert_int_equal(result, -1);
     assert_int_equal(opt.ret, result);
     assert_int_equal(opt.ind, 2);
