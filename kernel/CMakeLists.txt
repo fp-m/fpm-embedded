@@ -73,6 +73,7 @@ target_link_libraries(rpm_pico
     rpm_kernel
     pico_stdlib
     hardware_rtc
+    hardware_flash
 )
 
 set_source_files_properties(rpm_pico.c rpm_unix.c
