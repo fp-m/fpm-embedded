@@ -18,7 +18,7 @@
 /
 /----------------------------------------------------------------------------*/
 
-#include "ff.h" /* Declarations of FatFs API */
+#include "fatfs.h" /* Declarations of FatFs API */
 
 #include <string.h>
 
@@ -31,7 +31,7 @@
 ---------------------------------------------------------------------------*/
 
 #if FF_DEFINED != 80286 /* Revision ID */
-#error Wrong include file (ff.h).
+#error Wrong include file (fatfs.h).
 #endif
 
 /* Limits and boundaries */

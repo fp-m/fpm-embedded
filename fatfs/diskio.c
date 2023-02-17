@@ -8,8 +8,7 @@
 /*-----------------------------------------------------------------------*/
 
 #include "diskio.h" /* Declarations of disk functions */
-
-#include "ff.h" /* Obtains integer types */
+#include "fatfs.h"  /* Obtains integer types */
 
 /* Definitions of physical drive number for each drive */
 #define DEV_RAM 0 /* Example: Map Ramdisk to physical drive 0 */

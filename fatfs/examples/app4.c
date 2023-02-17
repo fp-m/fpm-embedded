@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "diskio.h" /* Declarations of disk functions */
-#include "ff.h"     /* Declarations of sector size */
+#include "fatfs.h"  /* Declarations of sector size */
 
 /* Pseudo random number generator */
 static DWORD pn(DWORD pns) /* 0:Initialize, !0:Read */

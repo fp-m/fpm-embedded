@@ -16,7 +16,7 @@ specific language governing permissions and limitations under the License.
 #include <stdio.h>
 #include <time.h>
 
-#include "ff.h"
+#include "fatfs.h"
 #include "pico/stdio.h"
 #include "pico/stdlib.h"
 #include "pico/util/datetime.h"

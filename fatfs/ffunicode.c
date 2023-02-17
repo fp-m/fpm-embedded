@@ -21,8 +21,7 @@
 / The copyright owner or contributors be NOT LIABLE for any damages caused
 / by use of this software.
 */
-
-#include "ff.h"
+#include "fatfs.h"
 
 #if FF_USE_LFN != 0 /* This module will be blanked if in non-LFN configuration */
 

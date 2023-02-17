@@ -22,7 +22,7 @@ specific language governing permissions and limitations under the License.
 /*-----------------------------------------------------------------------*/
 #include <stdio.h>
 
-#include "ff.h"     /* Obtains integer types */
+#include "fatfs.h"  /* Obtains integer types */
 #include "diskio.h" /* Declarations of disk functions */
 #include "hw_config.h"
 #include "my_debug.h"

@@ -17,7 +17,7 @@ specific language governing permissions and limitations under the License.
 #include <stdlib.h>
 #include <string.h>
 
-#include "ff.h"
+#include "fatfs.h"
 #include "my_debug.h"
 
 #define BaseType_t int

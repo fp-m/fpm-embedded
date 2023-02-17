@@ -6,7 +6,7 @@
 #include <systimer.h>
 
 #include "diskio.h"
-#include "ff.h"
+#include "fatfs.h"
 
 int test_raw_speed(BYTE pdrv,    /* Physical drive number */
                    DWORD lba,    /* Start LBA for read/write test */

@@ -20,7 +20,7 @@ specific language governing permissions and limitations under the License.
 
 #include <stdint.h>
 #include "pico/mutex.h"
-#include "ff.h"
+#include "fatfs.h"
 #include "spi.h"
 
 #ifdef __cplusplus
