@@ -13,35 +13,36 @@ specific language governing permissions and limitations under the License.
 */
 
 #include <stdbool.h>
-//
-#include "pico/stdlib.h"
+
 #include "pico/mutex.h"
 #include "pico/sem.h"
-//
+#include "pico/stdlib.h"
+
 #include "my_debug.h"
-//
 #include "spi.h"
 
 static bool irqChannel1 = false;
 static bool irqShared = true;
 
-void spi_irq_handler(spi_t *pSPI) {
+void spi_irq_handler(spi_t *pSPI)
+{
     if (irqChannel1) {
-        if (dma_hw->ints1 & 1u << pSPI->rx_dma) {  // Ours?
-            dma_hw->ints1 = 1u << pSPI->rx_dma;    // clear it
+        if (dma_hw->ints1 & 1u << pSPI->rx_dma) { // Ours?
+            dma_hw->ints1 = 1u << pSPI->rx_dma;   // clear it
             myASSERT(!dma_channel_is_busy(pSPI->rx_dma));
             sem_release(&pSPI->sem);
         }
     } else {
-        if (dma_hw->ints0 & 1u << pSPI->rx_dma) {  // Ours?
-            dma_hw->ints0 = 1u << pSPI->rx_dma;    // clear it
+        if (dma_hw->ints0 & 1u << pSPI->rx_dma) { // Ours?
+            dma_hw->ints0 = 1u << pSPI->rx_dma;   // clear it
             myASSERT(!dma_channel_is_busy(pSPI->rx_dma));
             sem_release(&pSPI->sem);
         }
     }
 }
 
-void set_spi_dma_irq_channel(bool useChannel1, bool shared) {
+void set_spi_dma_irq_channel(bool useChannel1, bool shared)
+{
     irqChannel1 = useChannel1;
     irqShared = shared;
 }
@@ -51,7 +52,8 @@ void set_spi_dma_irq_channel(bool useChannel1, bool shared) {
 //   If the data that will be transmitted is not important,
 //     pass NULL as tx and then the SPI_FILL_CHAR is sent out as each data
 //     element.
-bool spi_transfer(spi_t *pSPI, const uint8_t *tx, uint8_t *rx, size_t length) {
+bool spi_transfer(spi_t *pSPI, const uint8_t *tx, uint8_t *rx, size_t length)
+{
     // myASSERT(512 == length || 1 == length);
     myASSERT(tx || rx);
     // myASSERT(!(tx && rx));
@@ -77,17 +79,17 @@ bool spi_transfer(spi_t *pSPI, const uint8_t *tx, uint8_t *rx, size_t length) {
     dma_hw->ints0 = 1u << pSPI->rx_dma;
 
     dma_channel_configure(pSPI->tx_dma, &pSPI->tx_dma_cfg,
-                          &spi_get_hw(pSPI->hw_inst)->dr,  // write address
-                          tx,                              // read address
-                          length,  // element count (each element is of
-                                   // size transfer_data_size)
-                          false);  // start
+                          &spi_get_hw(pSPI->hw_inst)->dr, // write address
+                          tx,                             // read address
+                          length,                         // element count (each element is of
+                                                          // size transfer_data_size)
+                          false);                         // start
     dma_channel_configure(pSPI->rx_dma, &pSPI->rx_dma_cfg,
-                          rx,                              // write address
-                          &spi_get_hw(pSPI->hw_inst)->dr,  // read address
-                          length,  // element count (each element is of
-                                   // size transfer_data_size)
-                          false);  // start
+                          rx,                             // write address
+                          &spi_get_hw(pSPI->hw_inst)->dr, // read address
+                          length,                         // element count (each element is of
+                                                          // size transfer_data_size)
+                          false);                         // start
 
     // start them exactly simultaneously to avoid races (in extreme cases
     // the FIFO could overflow)
@@ -96,8 +98,7 @@ bool spi_transfer(spi_t *pSPI, const uint8_t *tx, uint8_t *rx, size_t length) {
     /* Timeout 1 sec */
     uint32_t timeOut = 1000;
     /* Wait until master completes transfer or time out has occured. */
-    bool rc = sem_acquire_timeout_ms(
-        &pSPI->sem, timeOut);  // Wait for notification from ISR
+    bool rc = sem_acquire_timeout_ms(&pSPI->sem, timeOut); // Wait for notification from ISR
     if (!rc) {
         // If the timeout is reached the function will return false
         DBG_PRINTF("Notification wait timed out in %s\n", __FUNCTION__);
@@ -113,23 +114,28 @@ bool spi_transfer(spi_t *pSPI, const uint8_t *tx, uint8_t *rx, size_t length) {
     return true;
 }
 
-void spi_lock(spi_t *pSPI) {
+void spi_lock(spi_t *pSPI)
+{
     myASSERT(mutex_is_initialized(&pSPI->mutex));
     mutex_enter_blocking(&pSPI->mutex);
 }
-void spi_unlock(spi_t *pSPI) {
+
+void spi_unlock(spi_t *pSPI)
+{
     myASSERT(mutex_is_initialized(&pSPI->mutex));
     mutex_exit(&pSPI->mutex);
 }
 
-bool my_spi_init(spi_t *pSPI) {
+bool my_spi_init(spi_t *pSPI)
+{
     auto_init_mutex(my_spi_init_mutex);
     mutex_enter_blocking(&my_spi_init_mutex);
     if (!pSPI->initialized) {
         //// The SPI may be shared (using multiple SSs); protect it
-        //pSPI->mutex = xSemaphoreCreateRecursiveMutex();
-        //xSemaphoreTakeRecursive(pSPI->mutex, portMAX_DELAY);
-        if (!mutex_is_initialized(&pSPI->mutex)) mutex_init(&pSPI->mutex);
+        // pSPI->mutex = xSemaphoreCreateRecursiveMutex();
+        // xSemaphoreTakeRecursive(pSPI->mutex, portMAX_DELAY);
+        if (!mutex_is_initialized(&pSPI->mutex))
+            mutex_init(&pSPI->mutex);
         spi_lock(pSPI);
 
         // For the IRQ notification:
@@ -166,18 +172,16 @@ bool my_spi_init(spi_t *pSPI) {
         // transmit FIFO paced by the SPI TX FIFO DREQ The default is for the
         // read address to increment every element (in this case 1 byte -
         // DMA_SIZE_8) and for the write address to remain unchanged.
-        channel_config_set_dreq(&pSPI->tx_dma_cfg, spi_get_index(pSPI->hw_inst)
-                                                       ? DREQ_SPI1_TX
-                                                       : DREQ_SPI0_TX);
+        channel_config_set_dreq(&pSPI->tx_dma_cfg,
+                                spi_get_index(pSPI->hw_inst) ? DREQ_SPI1_TX : DREQ_SPI0_TX);
         channel_config_set_write_increment(&pSPI->tx_dma_cfg, false);
 
         // We set the inbound DMA to transfer from the SPI receive FIFO to a
         // memory buffer paced by the SPI RX FIFO DREQ We coinfigure the read
         // address to remain unchanged for each element, but the write address
         // to increment (so data is written throughout the buffer)
-        channel_config_set_dreq(&pSPI->rx_dma_cfg, spi_get_index(pSPI->hw_inst)
-                                                       ? DREQ_SPI1_RX
-                                                       : DREQ_SPI0_RX);
+        channel_config_set_dreq(&pSPI->rx_dma_cfg,
+                                spi_get_index(pSPI->hw_inst) ? DREQ_SPI1_RX : DREQ_SPI0_RX);
         channel_config_set_read_increment(&pSPI->rx_dma_cfg, false);
 
         /* Theory: we only need an interrupt on rx complete,
@@ -187,9 +191,8 @@ bool my_spi_init(spi_t *pSPI) {
         // asserted:
         int irq = irqChannel1 ? DMA_IRQ_1 : DMA_IRQ_0;
         if (irqShared) {
-            irq_add_shared_handler(
-                irq, pSPI->dma_isr,
-                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+            irq_add_shared_handler(irq, pSPI->dma_isr,
+                                   PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         } else {
             irq_set_exclusive_handler(irq, pSPI->dma_isr);
         }

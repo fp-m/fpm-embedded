@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 #pragma once
 
 #include <stdbool.h>
-//
+
 // Pico includes
 #include "hardware/dma.h"
 #include "hardware/irq.h"
@@ -30,7 +30,7 @@ specific language governing permissions and limitations under the License.
 typedef struct {
     // SPI HW
     spi_inst_t *hw_inst;
-    uint miso_gpio;  // SPI MISO GPIO number (not pin number)
+    uint miso_gpio; // SPI MISO GPIO number (not pin number)
     uint mosi_gpio;
     uint sck_gpio;
     uint baud_rate;

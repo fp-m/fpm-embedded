@@ -16,35 +16,42 @@ specific language governing permissions and limitations under the License.
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-//
+
 #include "hardware/gpio.h"
-//
+
 #include "my_debug.h"
 #include "sd_card.h"
 #include "sd_spi.h"
 #include "spi.h"
 
-//#define TRACE_PRINTF(fmt, args...)
-#define TRACE_PRINTF printf  // task_printf
+// #define TRACE_PRINTF(fmt, args...)
+#define TRACE_PRINTF printf // task_printf
 
-void sd_spi_go_high_frequency(sd_card_t *pSD) {
+void sd_spi_go_high_frequency(sd_card_t *pSD)
+{
     uint actual = spi_set_baudrate(pSD->spi->hw_inst, pSD->spi->baud_rate);
     TRACE_PRINTF("%s: Actual frequency: %lu\n", __FUNCTION__, (long)actual);
 }
-void sd_spi_go_low_frequency(sd_card_t *pSD) {
+
+void sd_spi_go_low_frequency(sd_card_t *pSD)
+{
     uint actual = spi_set_baudrate(pSD->spi->hw_inst, 400 * 1000); // Actual frequency: 398089
     TRACE_PRINTF("%s: Actual frequency: %lu\n", __FUNCTION__, (long)actual);
 }
 
-static void sd_spi_lock(sd_card_t *pSD) {
+static void sd_spi_lock(sd_card_t *pSD)
+{
     spi_lock(pSD->spi);
 }
-static void sd_spi_unlock(sd_card_t *pSD) {
-   spi_unlock(pSD->spi);
+
+static void sd_spi_unlock(sd_card_t *pSD)
+{
+    spi_unlock(pSD->spi);
 }
 
 // Would do nothing if pSD->ss_gpio were set to GPIO_FUNC_SPI.
-static void sd_spi_select(sd_card_t *pSD) {
+static void sd_spi_select(sd_card_t *pSD)
+{
     gpio_put(pSD->ss_gpio, 0);
     // A fill byte seems to be necessary, sometimes:
     uint8_t fill = SPI_FILL_CHAR;
@@ -56,7 +63,8 @@ static void sd_spi_select(sd_card_t *pSD) {
 #endif
 }
 
-static void sd_spi_deselect(sd_card_t *pSD) {
+static void sd_spi_deselect(sd_card_t *pSD)
+{
     gpio_put(pSD->ss_gpio, 1);
 #ifdef SPI_LED_PIN
     // LED off.
@@ -72,28 +80,34 @@ static void sd_spi_deselect(sd_card_t *pSD) {
     uint8_t fill = SPI_FILL_CHAR;
     spi_write_blocking(pSD->spi->hw_inst, &fill, 1);
 }
+
 /* Some SD cards want to be deselected between every bus transaction */
-void sd_spi_deselect_pulse(sd_card_t *pSD) {
+void sd_spi_deselect_pulse(sd_card_t *pSD)
+{
     sd_spi_deselect(pSD);
     // tCSH Pulse duration, CS high 200 ns
     sd_spi_select(pSD);
 }
-void sd_spi_acquire(sd_card_t *pSD) {
+
+void sd_spi_acquire(sd_card_t *pSD)
+{
     sd_spi_lock(pSD);
     sd_spi_select(pSD);
 }
 
-void sd_spi_release(sd_card_t *pSD) {
+void sd_spi_release(sd_card_t *pSD)
+{
     sd_spi_deselect(pSD);
     sd_spi_unlock(pSD);
 }
 
-bool sd_spi_transfer(sd_card_t *pSD, const uint8_t *tx, uint8_t *rx,
-                     size_t length) {
+bool sd_spi_transfer(sd_card_t *pSD, const uint8_t *tx, uint8_t *rx, size_t length)
+{
     return spi_transfer(pSD->spi, tx, rx, length);
 }
 
-uint8_t sd_spi_write(sd_card_t *pSD, const uint8_t value) {
+uint8_t sd_spi_write(sd_card_t *pSD, const uint8_t value)
+{
     // TRACE_PRINTF("%s\n", __FUNCTION__);
     uint8_t received = SPI_FILL_CHAR;
 #if 0
@@ -106,7 +120,8 @@ uint8_t sd_spi_write(sd_card_t *pSD, const uint8_t value) {
     return received;
 }
 
-void sd_spi_send_initializing_sequence(sd_card_t * pSD) {
+void sd_spi_send_initializing_sequence(sd_card_t *pSD)
+{
     bool old_ss = gpio_get(pSD->ss_gpio);
     // Set DI and CS high and apply 74 or more clock pulses to SCLK:
     gpio_put(pSD->ss_gpio, 1);
@@ -119,7 +134,8 @@ void sd_spi_send_initializing_sequence(sd_card_t * pSD) {
     gpio_put(pSD->ss_gpio, old_ss);
 }
 
-void sd_spi_init_pl022(sd_card_t *pSD) {
+void sd_spi_init_pl022(sd_card_t *pSD)
+{
     // Let the PL022 SPI handle it.
     // the CS line is brought high between each byte during transmission.
     gpio_set_function(pSD->ss_gpio, GPIO_FUNC_SPI);
