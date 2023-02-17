@@ -164,6 +164,7 @@ specific language governing permissions and limitations under the License.
 #include <string.h>
 //
 #include "pico/mutex.h"
+#include "hardware/gpio.h"
 //
 #include "hw_config.h"  // Hardware Configuration of the SPI and SD Card "objects"
 #include "my_debug.h"
@@ -1201,9 +1202,6 @@ bool sd_init_driver() {
                 gpio_init(pSD->card_detect_gpio);
                 gpio_pull_up(pSD->card_detect_gpio);
                 gpio_set_dir(pSD->card_detect_gpio, GPIO_IN);
-            }
-            if (pSD->set_drive_strength) {
-                gpio_set_drive_strength(pSD->ss_gpio, pSD->ss_gpio_drive_strength);
             }
             // Chip select is active-low, so we'll initialise it to a
             // driven-high state.

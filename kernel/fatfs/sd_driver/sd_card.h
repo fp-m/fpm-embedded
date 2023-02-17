@@ -1,18 +1,18 @@
 /* sd_card.h
 Copyright 2021 Carl John Kugler III
 
-Licensed under the Apache License, Version 2.0 (the License); you may not use 
-this file except in compliance with the License. You may obtain a copy of the 
+Licensed under the Apache License, Version 2.0 (the License); you may not use
+this file except in compliance with the License. You may obtain a copy of the
 License at
 
-   http://www.apache.org/licenses/LICENSE-2.0 
-Unless required by applicable law or agreed to in writing, software distributed 
-under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR 
-CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+   http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 */
 
-// Note: The model used here is one FatFS per SD card. 
+// Note: The model used here is one FatFS per SD card.
 // Multiple partitions on a card are not supported.
 
 #ifndef _SD_CARD_H_
@@ -20,7 +20,6 @@ specific language governing permissions and limitations under the License.
 
 #include <stdint.h>
 //
-#include "hardware/gpio.h"
 #include "pico/mutex.h"
 //
 #include "ff.h"
@@ -40,11 +39,6 @@ typedef struct {
     bool use_card_detect;
     uint card_detect_gpio;    // Card detect; ignored if !use_card_detect
     uint card_detected_true;  // Varies with card socket; ignored if !use_card_detect
-    // Drive strength levels for GPIO outputs.
-    // enum gpio_drive_strength { GPIO_DRIVE_STRENGTH_2MA = 0, GPIO_DRIVE_STRENGTH_4MA = 1, GPIO_DRIVE_STRENGTH_8MA = 2,
-    // GPIO_DRIVE_STRENGTH_12MA = 3 }
-    bool set_drive_strength;
-    enum gpio_drive_strength ss_gpio_drive_strength;
 
     // Following fields are used to keep track of the state of the card:
     int m_Status;                                    // Card status

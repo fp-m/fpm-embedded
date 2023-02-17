@@ -1,14 +1,14 @@
 /* sd_spi.c
 Copyright 2021 Carl John Kugler III
 
-Licensed under the Apache License, Version 2.0 (the License); you may not use 
-this file except in compliance with the License. You may obtain a copy of the 
+Licensed under the Apache License, Version 2.0 (the License); you may not use
+this file except in compliance with the License. You may obtain a copy of the
 License at
 
-   http://www.apache.org/licenses/LICENSE-2.0 
-Unless required by applicable law or agreed to in writing, software distributed 
-under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR 
-CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+   http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 */
 
@@ -49,12 +49,19 @@ static void sd_spi_select(sd_card_t *pSD) {
     // A fill byte seems to be necessary, sometimes:
     uint8_t fill = SPI_FILL_CHAR;
     spi_write_blocking(pSD->spi->hw_inst, &fill, 1);
-    LED_ON();
+
+#ifdef SPI_LED_PIN
+    // LED on.
+    gpio_put(SPI_LED_PIN, 1);
+#endif
 }
 
 static void sd_spi_deselect(sd_card_t *pSD) {
     gpio_put(pSD->ss_gpio, 1);
-    LED_OFF();
+#ifdef SPI_LED_PIN
+    // LED off.
+    gpio_put(SPI_LED_PIN, 0);
+#endif
     /*
     MMC/SDC enables/disables the DO output in synchronising to the SCLK. This
     means there is a posibility of bus conflict with MMC/SDC and another SPI
@@ -90,7 +97,7 @@ uint8_t sd_spi_write(sd_card_t *pSD, const uint8_t value) {
     // TRACE_PRINTF("%s\n", __FUNCTION__);
     uint8_t received = SPI_FILL_CHAR;
 #if 0
-    int num = spi_write_read_blocking(pSD->spi->hw_inst, &value, &received, 1);    
+    int num = spi_write_read_blocking(pSD->spi->hw_inst, &value, &received, 1);
     myASSERT(1 == num);
 #else
     bool success = spi_transfer(pSD->spi, &value, &received, 1);
