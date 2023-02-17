@@ -24,24 +24,24 @@ pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # Build FatFs library
 add_library(FatFs_SPI STATIC
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/ff15/source/ffsystem.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/ff15/source/ffunicode.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/ff15/source/ff.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/sd_driver/sd_spi.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/sd_driver/demo_logging.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/sd_driver/spi.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/sd_driver/sd_card.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/sd_driver/crc.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/src/glue.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/src/f_util.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/src/ff_stdio.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/src/my_debug.c
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/src/rtc.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/ffsystem.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/ffunicode.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/ff.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/sd_spi.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/demo_logging.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/spi.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/sd_card.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/crc.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/glue.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/f_util.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/ff_stdio.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/my_debug.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/rtc.c
 )
 target_include_directories(FatFs_SPI BEFORE PUBLIC
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/ff15/source
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/sd_driver
-    ${CMAKE_SOURCE_DIR}/../../kernel/fatfs/include
+    ${CMAKE_SOURCE_DIR}/../../fatfs
+    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver
+    ${CMAKE_SOURCE_DIR}/../../fatfs/glue
     $ENV{PICO_SDK_PATH}/src/common/pico_stdlib/include
     $ENV{PICO_SDK_PATH}/src/common/pico_base/include
     $ENV{PICO_SDK_PATH}/src/common/pico_sync/include

@@ -1,4 +1,3 @@
-for-analysis
 demo/*/build
 demo/shell_unix/rpm_shell_unix
 test/*_test
