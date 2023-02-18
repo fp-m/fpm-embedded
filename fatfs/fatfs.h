@@ -128,15 +128,16 @@ struct _directory_t {
 #endif
 };
 
-/* Format parameter structure (MKFS_PARM) */
-
+//
+// Format parameter structure.
+//
 typedef struct {
-    uint8_t fmt;      /* Format option (FM_FAT, FM_FAT32, FM_EXFAT and FM_SFD) */
-    uint8_t n_fat;    /* Number of FATs */
-    unsigned align;    /* Data area alignment (sector) */
-    unsigned n_root;   /* Number of root directory entries */
-    uint32_t au_size; /* Cluster size (byte) */
-} MKFS_PARM;
+    uint8_t fmt;      // Format option (FM_FAT, FM_FAT32, FM_EXFAT and FM_SFD)
+    uint8_t n_fat;    // Number of FATs
+    unsigned align;   // Data area alignment (sector)
+    unsigned n_root;  // Number of root directory entries
+    uint32_t au_size; // Cluster size (byte)
+} mkfs_parm_t;
 
 /* File function return code (fs_result_t) */
 

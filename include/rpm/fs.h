@@ -112,10 +112,8 @@ fs_result_t f_getcwd(char *buff, unsigned len);                  /* Get current 
 // Volume management functions.
 //
 fs_result_t f_mount(FATFS *fs, const char *path, uint8_t opt); /* Mount/Unmount a logical drive */
-fs_result_t f_mkfs(const char *path, const MKFS_PARM *opt, void *work,
-               unsigned len); /* Create a FAT volume */
-fs_result_t f_getfree(const char *path, uint32_t *nclst,
-                  FATFS **fatfs); /* Get number of free clusters on the drive */
+fs_result_t f_mkfs(const char *path, void *work, unsigned len); /* Create a FAT volume */
+fs_result_t f_getfree(const char *path, uint32_t *nclst, FATFS **fatfs); /* Get number of free clusters on the drive */
 fs_result_t f_getlabel(const char *path, char *label, uint32_t *vsn); /* Get volume label */
 fs_result_t f_setlabel(const char *label);                          /* Set volume label */
 #define f_unmount(path) f_mount(0, path, 0)

@@ -5552,11 +5552,9 @@ static fs_result_t create_partition(uint8_t drv,           /* Physical drive num
     return FR_OK;
 }
 
-fs_result_t f_mkfs(const char *path,    /* Logical drive number */
-               const MKFS_PARM *opt, /* Format options */
-               void *work,           /* Pointer to working buffer (null: use len bytes
-                                        of heap memory) */
-               unsigned len)             /* Size of working buffer [byte] */
+fs_result_t f_mkfs(const char *path, /* Logical drive number */
+                   void *work,       /* Pointer to working buffer (null: use len bytes of heap memory) */
+                   unsigned len)     /* Size of working buffer [byte] */
 {
     static const uint16_t cst[] = {
         1, 4, 16, 64, 256, 512, 0
@@ -5564,7 +5562,7 @@ fs_result_t f_mkfs(const char *path,    /* Logical drive number */
     static const uint16_t cst32[] = {
         1, 2, 4, 8, 16, 32, 0
     }; /* Cluster size boundary for FAT32 volume (128Ks unit) */
-    static const MKFS_PARM defopt = { FM_ANY, 0, 0, 0, 0 }; /* Default parameter */
+    static const mkfs_parm_t defopt = { FM_ANY, 0, 0, 0, 0 }; /* Default parameter */
     uint8_t fsopt, fsty, sys, pdrv, ipart;
     uint8_t *buf;
     uint8_t *pte;
@@ -5596,8 +5594,7 @@ fs_result_t f_mkfs(const char *path,    /* Logical drive number */
         return FR_WRITE_PROTECTED;
 
     /* Get physical drive parameters (sz_drv, sz_blk and ss) */
-    if (!opt)
-        opt = &defopt; /* Use default parameter if it is not given */
+    const mkfs_parm_t *opt = &defopt; /* Use default parameter */
     sz_blk = opt->align;
     if (sz_blk == 0)
         disk_ioctl(pdrv, GET_BLOCK_SIZE, &sz_blk); /* Block size from the paramter or lower layer */
