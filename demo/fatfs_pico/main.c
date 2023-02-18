@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 #include "sd_card.h"
 #include "fatfs.h"
+#include <rpm/fs.h>
 
 int main() {
 

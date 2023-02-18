@@ -17,9 +17,8 @@
 / by use of this software.
 /
 /----------------------------------------------------------------------------*/
-
-#ifndef FF_DEFINED
-#define FF_DEFINED 80286 /* Revision ID */
+#ifndef RPM_FATFS_H
+#define RPM_FATFS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,23 +26,8 @@ extern "C" {
 
 #include "ffconf.h" /* FatFs configuration options */
 
-#if FF_DEFINED != FFCONF_DEF
-#error Wrong configuration file (ffconf.h).
-#endif
-
 /* Integer types used for FatFs API */
 
-#if defined(_WIN32) /* Windows VC++ (for development only) */
-#define FF_INTDEF 2
-#include <windows.h>
-typedef unsigned __int64 QWORD;
-#include <float.h>
-#define isnan(v) _isnan(v)
-#define isinf(v) (!_finite(v))
-
-#elif (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) || \
-    defined(__cplusplus) /* C99 or later */
-#define FF_INTDEF 2
 #include <stdint.h>
 typedef unsigned int UINT;  /* int must be 16-bit or 32-bit */
 typedef unsigned char BYTE; /* char must be 8-bit */
@@ -52,34 +36,14 @@ typedef uint32_t DWORD;     /* 32-bit unsigned integer */
 typedef uint64_t QWORD;     /* 64-bit unsigned integer */
 typedef WORD WCHAR;         /* UTF-16 character type */
 
-#else /* Earlier than C99 */
-#define FF_INTDEF 1
-typedef unsigned int UINT;   /* int must be 16-bit or 32-bit */
-typedef unsigned char BYTE;  /* char must be 8-bit */
-typedef unsigned short WORD; /* 16-bit unsigned integer */
-typedef unsigned long DWORD; /* 32-bit unsigned integer */
-typedef WORD WCHAR;          /* UTF-16 character type */
-#endif
-
 /* Type of file size and LBA variables */
 
 #if FF_FS_EXFAT
-#if FF_INTDEF != 2
-#error exFAT feature wants C99 or later
-#endif
 typedef QWORD FSIZE_t;
-#if FF_LBA64
-typedef QWORD LBA_t;
 #else
-typedef DWORD LBA_t;
-#endif
-#else
-#if FF_LBA64
-#error exFAT needs to be enabled when enable 64-bit LBA
-#endif
 typedef DWORD FSIZE_t;
-typedef DWORD LBA_t;
 #endif
+typedef DWORD LBA_t; // LBA-32
 
 /* Type of path name strings on FatFs API (TCHAR) */
 
@@ -104,14 +68,6 @@ typedef char TCHAR;
 #endif
 
 /* Definitions of volume management */
-
-#if FF_MULTI_PARTITION /* Multiple partition configuration */
-typedef struct {
-    BYTE pd; /* Physical drive number */
-    BYTE pt; /* Partition: 0:Auto detect, 1-4:Forced partition) */
-} PARTITION;
-extern PARTITION VolToPart[]; /* Volume - Partition mapping table */
-#endif
 
 #if FF_STR_VOLUME_ID
 #ifndef FF_VOLUME_STRS
@@ -277,62 +233,6 @@ typedef enum {
 } FRESULT;
 
 /*--------------------------------------------------------------*/
-/* FatFs Module Application Interface                           */
-/*--------------------------------------------------------------*/
-
-FRESULT f_open(FIL *fp, const TCHAR *path, BYTE mode);          /* Open or create a file */
-FRESULT f_close(FIL *fp);                                       /* Close an open file object */
-FRESULT f_read(FIL *fp, void *buff, UINT btr, UINT *br);        /* Read data from the file */
-FRESULT f_write(FIL *fp, const void *buff, UINT btw, UINT *bw); /* Write data to the file */
-FRESULT f_lseek(FIL *fp, FSIZE_t ofs);         /* Move file pointer of the file object */
-FRESULT f_truncate(FIL *fp);                   /* Truncate the file */
-FRESULT f_sync(FIL *fp);                       /* Flush cached data of the writing file */
-FRESULT f_opendir(DIR *dp, const TCHAR *path); /* Open a directory */
-FRESULT f_closedir(DIR *dp);                   /* Close an open directory */
-FRESULT f_readdir(DIR *dp, FILINFO *fno);      /* Read a directory item */
-FRESULT f_findfirst(DIR *dp, FILINFO *fno, const TCHAR *path,
-                    const TCHAR *pattern); /* Find first file */
-FRESULT f_findnext(DIR *dp, FILINFO *fno); /* Find next file */
-FRESULT f_mkdir(const TCHAR *path);        /* Create a sub directory */
-FRESULT f_unlink(const TCHAR *path);       /* Delete an existing file or directory */
-FRESULT f_rename(const TCHAR *path_old,
-                 const TCHAR *path_new);                  /* Rename/Move a file or directory */
-FRESULT f_stat(const TCHAR *path, FILINFO *fno);          /* Get file status */
-FRESULT f_chmod(const TCHAR *path, BYTE attr, BYTE mask); /* Change attribute of a file/dir */
-FRESULT f_utime(const TCHAR *path, const FILINFO *fno);   /* Change timestamp of a file/dir */
-FRESULT f_chdir(const TCHAR *path);                       /* Change current directory */
-FRESULT f_chdrive(const TCHAR *path);                     /* Change current drive */
-FRESULT f_getcwd(TCHAR *buff, UINT len);                  /* Get current directory */
-FRESULT f_getfree(const TCHAR *path, DWORD *nclst,
-                  FATFS **fatfs); /* Get number of free clusters on the drive */
-FRESULT f_getlabel(const TCHAR *path, TCHAR *label, DWORD *vsn); /* Get volume label */
-FRESULT f_setlabel(const TCHAR *label);                          /* Set volume label */
-FRESULT f_forward(FIL *fp, UINT (*func)(const BYTE *, UINT), UINT btf,
-                  UINT *bf);                      /* Forward data to the stream */
-FRESULT f_expand(FIL *fp, FSIZE_t fsz, BYTE opt); /* Allocate a contiguous block to the file */
-FRESULT f_mount(FATFS *fs, const TCHAR *path, BYTE opt); /* Mount/Unmount a logical drive */
-FRESULT f_mkfs(const TCHAR *path, const MKFS_PARM *opt, void *work,
-               UINT len); /* Create a FAT volume */
-FRESULT f_fdisk(BYTE pdrv, const LBA_t ptbl[],
-                void *work);                  /* Divide a physical drive into some partitions */
-FRESULT f_setcp(WORD cp);                     /* Set current code page */
-int f_putc(TCHAR c, FIL *fp);                 /* Put a character to the file */
-int f_puts(const TCHAR *str, FIL *cp);        /* Put a string to the file */
-int f_printf(FIL *fp, const TCHAR *str, ...); /* Put a formatted string to the file */
-TCHAR *f_gets(TCHAR *buff, int len, FIL *fp); /* Get a string from the file */
-
-/* Some API fucntions are implemented as macro */
-
-#define f_eof(fp) ((int)((fp)->fptr == (fp)->obj.objsize))
-#define f_error(fp) ((fp)->err)
-#define f_tell(fp) ((fp)->fptr)
-#define f_size(fp) ((fp)->obj.objsize)
-#define f_rewind(fp) f_lseek((fp), 0)
-#define f_rewinddir(dp) f_readdir((dp), 0)
-#define f_rmdir(path) f_unlink(path)
-#define f_unmount(path) f_mount(0, path, 0)
-
-/*--------------------------------------------------------------*/
 /* Additional Functions                                         */
 /*--------------------------------------------------------------*/
 
@@ -366,15 +266,6 @@ void ff_mutex_give(int vol);   /* Unlock sync object */
 /* Flags and Offset Address                                     */
 /*--------------------------------------------------------------*/
 
-/* File access mode and open method flags (3rd argument of f_open) */
-#define FA_READ 0x01
-#define FA_WRITE 0x02
-#define FA_OPEN_EXISTING 0x00
-#define FA_CREATE_NEW 0x04
-#define FA_CREATE_ALWAYS 0x08
-#define FA_OPEN_ALWAYS 0x10
-#define FA_OPEN_APPEND 0x30
-
 /* Fast seek controls (2nd argument of f_lseek) */
 #define CREATE_LINKMAP ((FSIZE_t)0 - 1)
 
@@ -402,4 +293,4 @@ void ff_mutex_give(int vol);   /* Unlock sync object */
 }
 #endif
 
-#endif /* FF_DEFINED */
+#endif // RPM_FATFS_H

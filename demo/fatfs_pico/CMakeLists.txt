@@ -42,6 +42,7 @@ target_include_directories(FatFs_SPI BEFORE PUBLIC
     ${CMAKE_SOURCE_DIR}/../../fatfs
     ${CMAKE_SOURCE_DIR}/../../disk
     ${CMAKE_SOURCE_DIR}/../../sd_pico
+    ${CMAKE_SOURCE_DIR}/../../include
     $ENV{PICO_SDK_PATH}/src/common/pico_stdlib/include
     $ENV{PICO_SDK_PATH}/src/common/pico_base/include
     $ENV{PICO_SDK_PATH}/src/common/pico_sync/include

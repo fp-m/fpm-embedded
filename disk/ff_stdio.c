@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 // For compatibility with FreeRTOS+FAT API
 
 #include "ff_stdio.h"
+#include <rpm/fs.h>
 
 #include <errno.h>
 #include <limits.h>

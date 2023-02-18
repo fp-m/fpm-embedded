@@ -19,16 +19,13 @@
 /----------------------------------------------------------------------------*/
 
 #include "fatfs.h" /* Declarations of FatFs API */
+#include "rpm/fs.h" /* Declarations of FatFs API */
 #include "diskio.h" /* Declarations of device I/O functions */
 #include <string.h>
 
 //-------------------------------------------------------------------------
 // Module Private Definitions
 //
-
-#if FF_DEFINED != 80286 /* Revision ID */
-#error Wrong include file (fatfs.h).
-#endif
 
 //
 // Limits and boundaries
@@ -261,15 +258,9 @@
 //
 // Definitions of logical drive - physical location conversion
 //
-#if FF_MULTI_PARTITION
-#define LD2PD(vol) VolToPart[vol].pd // Get physical drive number
-#define LD2PT(vol) VolToPart[vol].pt // Get partition number (0:auto search,
-                                     // 1..:forced partition number)
-#else
 #define LD2PD(vol) (BYTE)(vol) // Each logical drive is associated with
                                // the same physical drive number
 #define LD2PT(vol) 0           // Auto partition search
-#endif
 
 //
 // Definitions of sector size
@@ -353,14 +344,6 @@ static BYTE SysLock; /* System lock flag (0:no mutex, 1:unlocked, 2:locked) */
 #ifdef FF_VOLUME_STRS
 static const char *const VolumeStr[FF_VOLUMES] = { FF_VOLUME_STRS }; /* Pre-defined volume ID */
 #endif
-#endif
-
-#if FF_LBA64
-#if FF_MIN_GPT > 0x100000000
-#error Wrong FF_MIN_GPT setting
-#endif
-static const BYTE GUID_MS_Basic[16] = { 0xA2, 0xA0, 0xD0, 0xEB, 0xE5, 0xB9, 0x33, 0x44,
-                                        0x87, 0xC0, 0x68, 0xB6, 0xB7, 0x26, 0x99, 0xC7 };
 #endif
 
 /*--------------------------------*/
@@ -3259,77 +3242,6 @@ static int get_ldnumber(                   /* Returns logical drive number (-1:i
 /* GPT support functions                                                 */
 /*-----------------------------------------------------------------------*/
 
-#if FF_LBA64
-
-/* Calculate CRC32 in byte-by-byte */
-
-static DWORD crc32(           /* Returns next CRC value */
-                   DWORD crc, /* Current CRC value */
-                   BYTE d     /* A byte to be processed */
-)
-{
-    BYTE b;
-
-    for (b = 1; b; b <<= 1) {
-        crc ^= (d & b) ? 1 : 0;
-        crc = (crc & 1) ? crc >> 1 ^ 0xEDB88320 : crc >> 1;
-    }
-    return crc;
-}
-
-/* Check validity of GPT header */
-
-static int test_gpt_header(                 /* 0:Invalid, 1:Valid */
-                           const BYTE *gpth /* Pointer to the GPT header */
-)
-{
-    UINT i;
-    DWORD bcc, hlen;
-
-    if (memcmp(gpth + GPTH_Sign,
-               "EFI PART"
-               "\0\0\1",
-               12))
-        return 0;                      /* Check signature and version (1.0) */
-    hlen = ld_dword(gpth + GPTH_Size); /* Check header size */
-    if (hlen < 92 || hlen > FF_MIN_SS)
-        return 0;
-    for (i = 0, bcc = 0xFFFFFFFF; i < hlen; i++) { /* Check header BCC */
-        bcc = crc32(bcc, i - GPTH_Bcc < 4 ? 0 : gpth[i]);
-    }
-    if (~bcc != ld_dword(gpth + GPTH_Bcc))
-        return 0;
-    if (ld_dword(gpth + GPTH_PteSize) != SZ_GPTE)
-        return 0; /* Table entry size (must be SZ_GPTE bytes) */
-    if (ld_dword(gpth + GPTH_PtNum) > 128)
-        return 0; /* Table size (must be 128 entries or less) */
-
-    return 1;
-}
-
-#if !FF_FS_READONLY && FF_USE_MKFS
-
-/* Generate random value */
-static DWORD make_rand(DWORD seed, /* Seed value */
-                       BYTE *buff, /* Output buffer */
-                       UINT n      /* Data length */
-)
-{
-    UINT r;
-
-    if (seed == 0)
-        seed = 1;
-    do {
-        for (r = 0; r < 8; r++)
-            seed = seed & 1 ? seed >> 1 ^ 0xA3000000 : seed >> 1; /* Shift 8 bits the 32-bit LFSR */
-        *buff++ = (BYTE)seed;
-    } while (--n);
-    return seed;
-}
-
-#endif
-#endif
-
 /*-----------------------------------------------------------------------*/
 /* Load a sector and check if it is an FAT VBR                           */
 /*-----------------------------------------------------------------------*/
@@ -3403,39 +3315,6 @@ static UINT find_volume(           /* Returns BS status found in the hosting dri
         /* Sector 0 is not an FAT VBR or forced partition number wants a
          * partition */
 
-#if FF_LBA64
-    if (fs->win[MBR_Table + PTE_System] == 0xEE) { /* GPT protective MBR? */
-        DWORD n_ent, v_ent, ofs;
-        QWORD pt_lba;
-
-        if (move_window(fs, 1) != FR_OK)
-            return 4; /* Load GPT header sector (next to MBR) */
-        if (!test_gpt_header(fs->win))
-            return 3;                            /* Check if GPT header is valid */
-        n_ent = ld_dword(fs->win + GPTH_PtNum);  /* Number of entries */
-        pt_lba = ld_qword(fs->win + GPTH_PtOfs); /* Table location */
-        for (v_ent = i = 0; i < n_ent; i++) {    /* Find FAT partition */
-            if (move_window(fs, pt_lba + i * SZ_GPTE / SS(fs)) != FR_OK)
-                return 4;               /* PT sector */
-            ofs = i * SZ_GPTE % SS(fs); /* Offset in the sector */
-            if (!memcmp(fs->win + ofs + GPTE_PtGuid, GUID_MS_Basic,
-                        16)) { /* MS basic data partition? */
-                v_ent++;
-                fmt = check_fs(
-                    fs, ld_qword(fs->win + ofs + GPTE_FstLba)); /* Load VBR and check status */
-                if (part == 0 && fmt <= 1)
-                    return fmt; /* Auto search (valid FAT volume found first)
-                                 */
-                if (part != 0 && v_ent == part)
-                    return fmt; /* Forced partition order (regardless of it
-                                   is valid or not) */
-            }
-        }
-        return 3; /* Not found */
-    }
-#endif
-    if (FF_MULTI_PARTITION && part > 4)
-        return 3;             /* MBR has 4 partitions max */
     for (i = 0; i < 4; i++) { /* Load partition offset in the MBR */
         mbr_pt[i] = ld_dword(fs->win + MBR_Table + i * SZ_PTE + PTE_StLba);
     }
@@ -3545,10 +3424,11 @@ static FRESULT mount_volume(                    /* FR_OK(0): successful, !=0: an
         }
 
         maxlba = ld_qword(fs->win + BPB_TotSecEx) + bsect; /* Last LBA of the volume + 1 */
-        if (!FF_LBA64 && maxlba >= 0x100000000)
-            return FR_NO_FILESYSTEM; /* (It cannot be accessed in 32-bit LBA)
-                                      */
-
+        if (maxlba >= 0x100000000) {
+            // This volume cannot be accessed in 32-bit LBA.
+            // No LBA64, sorry.
+            return FR_NO_FILESYSTEM;
+        }
         fs->fsize = ld_dword(fs->win + BPB_FatSzEx); /* Number of sectors per FAT */
 
         fs->n_fats = fs->win[BPB_NumFATsEx]; /* Number of FATs */
@@ -5988,159 +5868,53 @@ static FRESULT create_partition(BYTE drv,           /* Physical drive number */
     if (disk_ioctl(drv, GET_SECTOR_COUNT, &sz_drv) != RES_OK)
         return FR_DISK_ERR;
 
-#if FF_LBA64
-    if (sz_drv >= FF_MIN_GPT) { /* Create partitions in GPT format */
-        WORD ss;
-        UINT sz_ptbl, pi, si, ofs;
-        DWORD bcc, rnd, align;
-        QWORD nxt_alloc, sz_part, sz_pool, top_bpt;
-        static const BYTE gpt_mbr[16] = { 0x00, 0x00, 0x02, 0x00, 0xEE, 0xFE, 0xFF, 0x00,
-                                          0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF };
+    /* Create partitions in MBR format */
+    sz_drv32 = (DWORD)sz_drv;
+    n_sc = N_SEC_TRACK; /* Determine drive CHS without any consideration
+                           of the drive geometry */
+    for (n_hd = 8; n_hd != 0 && sz_drv32 / n_hd / n_sc > 1024; n_hd *= 2)
+        ;
+    if (n_hd == 0)
+        n_hd = 255; /* Number of heads needs to be <256 */
 
-#if FF_MAX_SS != FF_MIN_SS
-        if (disk_ioctl(drv, GET_SECTOR_SIZE, &ss) != RES_OK)
-            return FR_DISK_ERR; /* Get sector size */
-        if (ss > FF_MAX_SS || ss < FF_MIN_SS || (ss & (ss - 1)))
-            return FR_DISK_ERR;
-#else
-        ss = FF_MAX_SS;
-#endif
-        rnd = (DWORD)sz_drv + GET_FATTIME(); /* Random seed */
-        align = GPT_ALIGN / ss;              /* Partition alignment for GPT [sector] */
-        sz_ptbl = GPT_ITEMS * SZ_GPTE / ss;  /* Size of partition table [sector] */
-        top_bpt = sz_drv - sz_ptbl - 1;      /* Backup partition table start sector */
-        nxt_alloc = 2 + sz_ptbl;             /* First allocatable sector */
-        sz_pool = top_bpt - nxt_alloc;       /* Size of allocatable area */
-        bcc = 0xFFFFFFFF;
-        sz_part = 1;
-        pi = si = 0; /* partition table index, size table index */
-        do {
-            if (pi * SZ_GPTE % ss == 0)
-                memset(buf, 0, ss); /* Clean the buffer if needed */
-            if (sz_part != 0) {     /* Is the size table not termintated? */
-                nxt_alloc =
-                    (nxt_alloc + align - 1) & ((QWORD)0 - align); /* Align partition start */
-                sz_part = plst[si++];                             /* Get a partition size */
-                if (sz_part <= 100) {                             /* Is the size in percentage? */
-                    sz_part = sz_pool * sz_part / 100;
-                    sz_part =
-                        (sz_part + align - 1) & ((QWORD)0 - align); /* Align partition end (only if
-                                                                       in percentage) */
-                }
-                if (nxt_alloc + sz_part > top_bpt) { /* Clip the size at end of the pool */
-                    sz_part = (nxt_alloc < top_bpt) ? top_bpt - nxt_alloc : 0;
-                }
-            }
-            if (sz_part != 0) { /* Add a partition? */
-                ofs = pi * SZ_GPTE % ss;
-                memcpy(buf + ofs + GPTE_PtGuid, GUID_MS_Basic,
-                       16); /* Set partition GUID (Microsoft Basic Data) */
-                rnd = make_rand(rnd, buf + ofs + GPTE_UpGuid, 16); /* Set unique partition GUID */
-                st_qword(buf + ofs + GPTE_FstLba, nxt_alloc);      /* Set partition start sector */
-                st_qword(buf + ofs + GPTE_LstLba,
-                         nxt_alloc + sz_part - 1); /* Set partition end sector */
-                nxt_alloc += sz_part;              /* Next allocatable sector */
-            }
-            if ((pi + 1) * SZ_GPTE % ss == 0) { /* Write the buffer if it is filled up */
-                for (i = 0; i < ss; bcc = crc32(bcc, buf[i++]))
-                    ; /* Calculate table check sum */
-                if (disk_write(drv, buf, 2 + pi * SZ_GPTE / ss, 1) != RES_OK)
-                    return FR_DISK_ERR; /* Write to primary table */
-                if (disk_write(drv, buf, top_bpt + pi * SZ_GPTE / ss, 1) != RES_OK)
-                    return FR_DISK_ERR; /* Write to secondary table */
-            }
-        } while (++pi < GPT_ITEMS);
+    memset(buf, 0, FF_MAX_SS); /* Clear MBR */
+    pte = buf + MBR_Table;     /* Partition table in the MBR */
+    for (i = 0, nxt_alloc32 = n_sc; i < 4 && nxt_alloc32 != 0 && nxt_alloc32 < sz_drv32;
+         i++, nxt_alloc32 += sz_part32) {
+        sz_part32 = (DWORD)plst[i]; /* Get partition size */
+        if (sz_part32 <= 100)
+            sz_part32 = (sz_part32 == 100)
+                            ? sz_drv32
+                            : sz_drv32 / 100 * sz_part32; /* Size in percentage? */
+        if (nxt_alloc32 + sz_part32 > sz_drv32 || nxt_alloc32 + sz_part32 < nxt_alloc32)
+            sz_part32 = sz_drv32 - nxt_alloc32; /* Clip at drive size */
+        if (sz_part32 == 0)
+            break; /* End of table or no sector to allocate? */
 
-        /* Create primary GPT header */
-        memset(buf, 0, ss);
-        memcpy(buf + GPTH_Sign,
-               "EFI PART"
-               "\0\0\1\0"
-               "\x5C\0\0",
-               16);                                   /* Signature, version (1.0) and size (92) */
-        st_dword(buf + GPTH_PtBcc, ~bcc);             /* Table check sum */
-        st_qword(buf + GPTH_CurLba, 1);               /* LBA of this header */
-        st_qword(buf + GPTH_BakLba, sz_drv - 1);      /* LBA of secondary header */
-        st_qword(buf + GPTH_FstLba, 2 + sz_ptbl);     /* LBA of first allocatable sector */
-        st_qword(buf + GPTH_LstLba, top_bpt - 1);     /* LBA of last allocatable sector */
-        st_dword(buf + GPTH_PteSize, SZ_GPTE);        /* Size of a table entry */
-        st_dword(buf + GPTH_PtNum, GPT_ITEMS);        /* Number of table entries */
-        st_dword(buf + GPTH_PtOfs, 2);                /* LBA of this table */
-        rnd = make_rand(rnd, buf + GPTH_DskGuid, 16); /* Disk GUID */
-        for (i = 0, bcc = 0xFFFFFFFF; i < 92; bcc = crc32(bcc, buf[i++]))
-            ;                           /* Calculate header check sum */
-        st_dword(buf + GPTH_Bcc, ~bcc); /* Header check sum */
-        if (disk_write(drv, buf, 1, 1) != RES_OK)
-            return FR_DISK_ERR;
+        st_dword(pte + PTE_StLba, nxt_alloc32); /* Start LBA */
+        st_dword(pte + PTE_SizLba, sz_part32);  /* Number of sectors */
+        pte[PTE_System] = sys;                  /* System type */
 
-        /* Create secondary GPT header */
-        st_qword(buf + GPTH_CurLba, sz_drv - 1); /* LBA of this header */
-        st_qword(buf + GPTH_BakLba, 1);          /* LBA of primary header */
-        st_qword(buf + GPTH_PtOfs, top_bpt);     /* LBA of this table */
-        st_dword(buf + GPTH_Bcc, 0);
-        for (i = 0, bcc = 0xFFFFFFFF; i < 92; bcc = crc32(bcc, buf[i++]))
-            ;                           /* Calculate header check sum */
-        st_dword(buf + GPTH_Bcc, ~bcc); /* Header check sum */
-        if (disk_write(drv, buf, sz_drv - 1, 1) != RES_OK)
-            return FR_DISK_ERR;
+        cy = (UINT)(nxt_alloc32 / n_sc / n_hd); /* Start cylinder */
+        hd = (BYTE)(nxt_alloc32 / n_sc % n_hd); /* Start head */
+        sc = (BYTE)(nxt_alloc32 % n_sc + 1);    /* Start sector */
+        pte[PTE_StHead] = hd;
+        pte[PTE_StSec] = (BYTE)((cy >> 2 & 0xC0) | sc);
+        pte[PTE_StCyl] = (BYTE)cy;
 
-        /* Create protective MBR */
-        memset(buf, 0, ss);
-        memcpy(buf + MBR_Table, gpt_mbr, 16); /* Create a GPT partition */
-        st_word(buf + BS_55AA, 0xAA55);
-        if (disk_write(drv, buf, 0, 1) != RES_OK)
-            return FR_DISK_ERR;
+        cy = (UINT)((nxt_alloc32 + sz_part32 - 1) / n_sc / n_hd); /* End cylinder */
+        hd = (BYTE)((nxt_alloc32 + sz_part32 - 1) / n_sc % n_hd); /* End head */
+        sc = (BYTE)((nxt_alloc32 + sz_part32 - 1) % n_sc + 1);    /* End sector */
+        pte[PTE_EdHead] = hd;
+        pte[PTE_EdSec] = (BYTE)((cy >> 2 & 0xC0) | sc);
+        pte[PTE_EdCyl] = (BYTE)cy;
 
-    } else
-#endif
-    { /* Create partitions in MBR format */
-        sz_drv32 = (DWORD)sz_drv;
-        n_sc = N_SEC_TRACK; /* Determine drive CHS without any consideration
-                               of the drive geometry */
-        for (n_hd = 8; n_hd != 0 && sz_drv32 / n_hd / n_sc > 1024; n_hd *= 2)
-            ;
-        if (n_hd == 0)
-            n_hd = 255; /* Number of heads needs to be <256 */
-
-        memset(buf, 0, FF_MAX_SS); /* Clear MBR */
-        pte = buf + MBR_Table;     /* Partition table in the MBR */
-        for (i = 0, nxt_alloc32 = n_sc; i < 4 && nxt_alloc32 != 0 && nxt_alloc32 < sz_drv32;
-             i++, nxt_alloc32 += sz_part32) {
-            sz_part32 = (DWORD)plst[i]; /* Get partition size */
-            if (sz_part32 <= 100)
-                sz_part32 = (sz_part32 == 100)
-                                ? sz_drv32
-                                : sz_drv32 / 100 * sz_part32; /* Size in percentage? */
-            if (nxt_alloc32 + sz_part32 > sz_drv32 || nxt_alloc32 + sz_part32 < nxt_alloc32)
-                sz_part32 = sz_drv32 - nxt_alloc32; /* Clip at drive size */
-            if (sz_part32 == 0)
-                break; /* End of table or no sector to allocate? */
-
-            st_dword(pte + PTE_StLba, nxt_alloc32); /* Start LBA */
-            st_dword(pte + PTE_SizLba, sz_part32);  /* Number of sectors */
-            pte[PTE_System] = sys;                  /* System type */
-
-            cy = (UINT)(nxt_alloc32 / n_sc / n_hd); /* Start cylinder */
-            hd = (BYTE)(nxt_alloc32 / n_sc % n_hd); /* Start head */
-            sc = (BYTE)(nxt_alloc32 % n_sc + 1);    /* Start sector */
-            pte[PTE_StHead] = hd;
-            pte[PTE_StSec] = (BYTE)((cy >> 2 & 0xC0) | sc);
-            pte[PTE_StCyl] = (BYTE)cy;
-
-            cy = (UINT)((nxt_alloc32 + sz_part32 - 1) / n_sc / n_hd); /* End cylinder */
-            hd = (BYTE)((nxt_alloc32 + sz_part32 - 1) / n_sc % n_hd); /* End head */
-            sc = (BYTE)((nxt_alloc32 + sz_part32 - 1) % n_sc + 1);    /* End sector */
-            pte[PTE_EdHead] = hd;
-            pte[PTE_EdSec] = (BYTE)((cy >> 2 & 0xC0) | sc);
-            pte[PTE_EdCyl] = (BYTE)cy;
-
-            pte += SZ_PTE; /* Next entry */
-        }
-
-        st_word(buf + BS_55AA, 0xAA55); /* MBR signature */
-        if (disk_write(drv, buf, 0, 1) != RES_OK)
-            return FR_DISK_ERR; /* Write it to the MBR */
+        pte += SZ_PTE; /* Next entry */
     }
+
+    st_word(buf + BS_55AA, 0xAA55); /* MBR signature */
+    if (disk_write(drv, buf, 0, 1) != RES_OK)
+        return FR_DISK_ERR; /* Write it to the MBR */
 
     return FR_OK;
 }
@@ -6229,70 +6003,14 @@ FRESULT f_mkfs(const TCHAR *path,    /* Logical drive number */
 
     /* Determine where the volume to be located (b_vol, sz_vol) */
     b_vol = sz_vol = 0;
-    if (FF_MULTI_PARTITION &&
-        ipart != 0) { /* Is the volume associated with any specific partition? */
-        /* Get partition location from the existing partition table */
-        if (disk_read(pdrv, buf, 0, 1) != RES_OK)
-            LEAVE_MKFS(FR_DISK_ERR); /* Load MBR */
-        if (ld_word(buf + BS_55AA) != 0xAA55)
-            LEAVE_MKFS(FR_MKFS_ABORTED); /* Check if MBR is valid */
-#if FF_LBA64
-        if (buf[MBR_Table + PTE_System] == 0xEE) { /* GPT protective MBR? */
-            DWORD n_ent, ofs;
-            QWORD pt_lba;
-
-            /* Get the partition location from GPT */
-            if (disk_read(pdrv, buf, 1, 1) != RES_OK)
-                LEAVE_MKFS(FR_DISK_ERR); /* Load GPT header sector (next to MBR) */
-            if (!test_gpt_header(buf))
-                LEAVE_MKFS(FR_MKFS_ABORTED);     /* Check if GPT header is valid */
-            n_ent = ld_dword(buf + GPTH_PtNum);  /* Number of entries */
-            pt_lba = ld_qword(buf + GPTH_PtOfs); /* Table start sector */
-            ofs = i = 0;
-            while (n_ent) { /* Find MS Basic partition with order of ipart */
-                if (ofs == 0 && disk_read(pdrv, buf, pt_lba++, 1) != RES_OK)
-                    LEAVE_MKFS(FR_DISK_ERR); /* Get PT sector */
-                if (!memcmp(buf + ofs + GPTE_PtGuid, GUID_MS_Basic, 16) &&
-                    ++i == ipart) { /* MS basic data partition? */
-                    b_vol = ld_qword(buf + ofs + GPTE_FstLba);
-                    sz_vol = ld_qword(buf + ofs + GPTE_LstLba) - b_vol + 1;
-                    break;
-                }
-                n_ent--;
-                ofs = (ofs + SZ_GPTE) % ss; /* Next entry */
-            }
-            if (n_ent == 0)
-                LEAVE_MKFS(FR_MKFS_ABORTED); /* Partition not found */
-            fsopt |= 0x80;                   /* Partitioning is in GPT */
-        } else
-#endif
-        { /* Get the partition location from MBR partition table */
-            pte = buf + (MBR_Table + (ipart - 1) * SZ_PTE);
-            if (ipart > 4 || pte[PTE_System] == 0)
-                LEAVE_MKFS(FR_MKFS_ABORTED);     /* No partition? */
-            b_vol = ld_dword(pte + PTE_StLba);   /* Get volume start sector */
-            sz_vol = ld_dword(pte + PTE_SizLba); /* Get volume size */
-        }
-    } else { /* The volume is associated with a physical drive */
-        if (disk_ioctl(pdrv, GET_SECTOR_COUNT, &sz_vol) != RES_OK)
-            LEAVE_MKFS(FR_DISK_ERR);
-        if (!(fsopt & FM_SFD)) { /* To be partitioned? */
-                                 /* Create a single-partition on the drive in this function */
-#if FF_LBA64
-            if (sz_vol >= FF_MIN_GPT) { /* Which partition type to create,
-                                           MBR or GPT? */
-                fsopt |= 0x80;          /* Partitioning is in GPT */
-                b_vol = GPT_ALIGN / ss;
-                sz_vol -=
-                    b_vol + GPT_ITEMS * SZ_GPTE / ss + 1; /* Estimated partition offset and size */
-            } else
-#endif
-            { /* Partitioning is in MBR */
-                if (sz_vol > N_SEC_TRACK) {
-                    b_vol = N_SEC_TRACK;
-                    sz_vol -= b_vol; /* Estimated partition offset and size */
-                }
-            }
+    if (disk_ioctl(pdrv, GET_SECTOR_COUNT, &sz_vol) != RES_OK)
+        LEAVE_MKFS(FR_DISK_ERR);
+    if (!(fsopt & FM_SFD)) { /* To be partitioned? */
+                             /* Create a single-partition on the drive in this function */
+        /* Partitioning is in MBR */
+        if (sz_vol > N_SEC_TRACK) {
+            b_vol = N_SEC_TRACK;
+            sz_vol -= b_vol; /* Estimated partition offset and size */
         }
     }
     if (sz_vol < 128)
@@ -6308,10 +6026,6 @@ FRESULT f_mkfs(const TCHAR *path,    /* Logical drive number */
                 break;
             }
         }
-#if FF_LBA64
-        if (sz_vol >= 0x100000000)
-            LEAVE_MKFS(FR_MKFS_ABORTED); /* Too large volume for FAT/FAT32 */
-#endif
         if (sz_au > 128)
             sz_au = 128;             /* Invalid AU for FAT/FAT32? */
         if (fsopt & FM_FAT32) {      /* FAT32 possible? */
@@ -6755,23 +6469,12 @@ FRESULT f_mkfs(const TCHAR *path,    /* Logical drive number */
     }
 
     /* Update partition information */
-    if (FF_MULTI_PARTITION && ipart != 0) { /* Volume is in the existing partition */
-        if (!FF_LBA64 || !(fsopt & 0x80)) { /* Is the partition in MBR? */
-            /* Update system ID in the partition table */
-            if (disk_read(pdrv, buf, 0, 1) != RES_OK)
-                LEAVE_MKFS(FR_DISK_ERR);                              /* Read the MBR */
-            buf[MBR_Table + (ipart - 1) * SZ_PTE + PTE_System] = sys; /* Set system ID */
-            if (disk_write(pdrv, buf, 0, 1) != RES_OK)
-                LEAVE_MKFS(FR_DISK_ERR); /* Write it back to the MBR */
-        }
-    } else {                     /* Volume as a new single partition */
-        if (!(fsopt & FM_SFD)) { /* Create partition table if not in SFD format */
-            lba[0] = sz_vol;
-            lba[1] = 0;
-            res = create_partition(pdrv, lba, sys, buf);
-            if (res != FR_OK)
-                LEAVE_MKFS(res);
-        }
+    if (!(fsopt & FM_SFD)) { /* Create partition table if not in SFD format */
+        lba[0] = sz_vol;
+        lba[1] = 0;
+        res = create_partition(pdrv, lba, sys, buf);
+        if (res != FR_OK)
+            LEAVE_MKFS(res);
     }
 
     if (disk_ioctl(pdrv, CTRL_SYNC, 0) != RES_OK)
@@ -6780,40 +6483,6 @@ FRESULT f_mkfs(const TCHAR *path,    /* Logical drive number */
     LEAVE_MKFS(FR_OK);
 }
 
-#if FF_MULTI_PARTITION
-/*-----------------------------------------------------------------------*/
-/* Create Partition Table on the Physical Drive                          */
-/*-----------------------------------------------------------------------*/
-
-FRESULT f_fdisk(BYTE pdrv,          /* Physical drive number */
-                const LBA_t ptbl[], /* Pointer to the size table for each partitions */
-                void *work)         /* Pointer to the working buffer (null: use heap memory) */
-{
-    BYTE *buf = (BYTE *)work;
-    DSTATUS stat;
-    FRESULT res;
-
-    /* Initialize the physical drive */
-    stat = disk_initialize(pdrv);
-    if (stat & STA_NOINIT)
-        return FR_NOT_READY;
-    if (stat & STA_PROTECT)
-        return FR_WRITE_PROTECTED;
-
-#if FF_USE_LFN == 3
-    if (!buf)
-        buf = ff_memalloc(FF_MAX_SS); /* Use heap memory for working buffer */
-#endif
-    if (!buf)
-        return FR_NOT_ENOUGH_CORE;
-
-    res = create_partition(pdrv, ptbl, 0x07, buf); /* Create partitions (system ID is temporary
-                                                      setting and determined by f_mkfs) */
-
-    LEAVE_MKFS(res);
-}
-
-#endif /* FF_MULTI_PARTITION */
 #endif /* !FF_FS_READONLY && FF_USE_MKFS */
 
 #if FF_USE_STRFUNC
@@ -7191,7 +6860,7 @@ int f_puts(const TCHAR *str, /* Pointer to the string to be output */
 /*-----------------------------------------------------------------------*/
 /* Put a Formatted String to the File (with sub-functions)               */
 /*-----------------------------------------------------------------------*/
-#if FF_PRINT_FLOAT && FF_INTDEF == 2
+#if FF_PRINT_FLOAT
 #include <math.h>
 
 static int ilog10(double n) /* Calculate log10(n) in integer output */
@@ -7325,7 +6994,7 @@ static void ftoa(char *buf,  /* Buffer to output the floating point string */
     }
     *buf = 0; /* Term */
 }
-#endif /* FF_PRINT_FLOAT && FF_INTDEF == 2 */
+#endif /* FF_PRINT_FLOAT */
 
 int f_printf(FIL *fp,          /* Pointer to the file object */
              const TCHAR *fmt, /* Pointer to the format string */
@@ -7335,7 +7004,7 @@ int f_printf(FIL *fp,          /* Pointer to the file object */
     putbuff pb;
     UINT i, j, w, f, r;
     int prec;
-#if FF_PRINT_LLI && FF_INTDEF == 2
+#if FF_PRINT_LLI
     QWORD v;
 #else
     DWORD v;
@@ -7393,7 +7062,7 @@ int f_printf(FIL *fp,          /* Pointer to the file object */
         if (tc == 'l') { /* Size: long int */
             f |= 4;
             tc = *fmt++;
-#if FF_PRINT_LLI && FF_INTDEF == 2
+#if FF_PRINT_LLI
             if (tc == 'l') { /* Size: long long int */
                 f |= 8;
                 tc = *fmt++;
@@ -7440,7 +7109,7 @@ int f_printf(FIL *fp,          /* Pointer to the file object */
             while (j++ < w)
                 putc_bfd(&pb, ' '); /* Right pads */
             continue;
-#if FF_PRINT_FLOAT && FF_INTDEF == 2
+#if FF_PRINT_FLOAT
         case 'f':                                     /* Floating point (decimal) */
         case 'e':                                     /* Floating point (e) */
         case 'E':                                     /* Floating point (E) */
@@ -7459,7 +7128,7 @@ int f_printf(FIL *fp,          /* Pointer to the file object */
         }
 
         /* Get an integer argument and put it in numeral */
-#if FF_PRINT_LLI && FF_INTDEF == 2
+#if FF_PRINT_LLI
         if (f & 8) { /* long long argument? */
             v = (QWORD)va_arg(arp, long long);
         } else if (f & 4) { /* long argument? */
