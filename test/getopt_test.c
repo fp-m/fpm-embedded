@@ -1,3 +1,6 @@
+//
+// Test rpm_getopt() - parser of CLI options and arguments.
+//
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>

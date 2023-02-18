@@ -7,18 +7,20 @@
 
 static void set_date(const char *str)
 {
-    int mm = 0, dd = 0, yyyy = 0;
-    if (rpm_sscanf(str, "%d/%d/%d", &mm, &dd, &yyyy) != 3 ||
-        mm < 1 || mm > 12 ||
-        dd < 1 || dd > 31 ||
-        yyyy < 2000 || yyyy > 9999) {
+    int year, month, day, dotw, hour, min, sec;
+    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
+
+    if (rpm_sscanf(str, "%d/%d/%d", &month, &day, &year) != 3 ||
+        month < 1 || month > 12 ||
+        day < 1 || day > 31 ||
+        year < 2000 || year > 9999) {
         rpm_puts("The specified date is not correct.\r\n"
                  "\n");
         return;
     }
 
     // Set date.
-    rpm_set_date(yyyy, mm, dd);
+    rpm_set_datetime(year, month, day, hour, min, sec);
     rpm_puts("\r\n");
 }
 
@@ -60,8 +62,8 @@ void rpm_cmd_date(int argc, char *argv[])
 
     // Display current date.
     static const char *dotw_name[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-    int year, month, day, dotw;
-    rpm_get_date(&year, &month, &day, &dotw);
+    int year, month, day, dotw, hour, min, sec;
+    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
 
     if (terse) {
         rpm_printf("%02d/%02d/%04d\r\n", month, day, year);

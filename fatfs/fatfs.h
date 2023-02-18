@@ -150,11 +150,6 @@ typedef struct {
 /* Additional Functions                                         */
 /*--------------------------------------------------------------*/
 
-/* RTC function (provided by user) */
-#if !FF_FS_READONLY && !FF_FS_NORTC
-uint32_t get_fattime(void); /* Get current time */
-#endif
-
 /* LFN support functions (defined in ffunicode.c) */
 
 uint16_t ff_oem2uni(uint16_t oem, uint16_t cp); /* OEM code to Unicode conversion */

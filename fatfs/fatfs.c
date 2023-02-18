@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include <rpm/diskio.h> /* Declarations of device I/O functions */
+#include <rpm/api.h> /* Declaration of rpm_get_datetime() */
 #include "fatfs.h" /* Definitions of FatFs structures */
 
 //-------------------------------------------------------------------------
@@ -306,8 +307,7 @@ typedef struct {
 #endif
 
 /* Macros for table definitions */
-#define MERGE_2STR(a, b) a##b
-#define MKCVTBL(hd, cp) MERGE_2STR(hd, cp)
+#define CODEPAGE 0 // No code pages, only simple ASCII
 
 //-------------------------------------------------------------------------
 // Module Private Work Area
@@ -2476,7 +2476,7 @@ static void get_fileinfo(directory_t *dp,     /* Pointer to the directory object
             dbc_2nd(dp->dir[si])) { /* Make a DBC if needed */
             wc = wc << 8 | dp->dir[si++];
         }
-        // wc = ff_oem2uni(wc, CODEPAGE); /* ANSI/OEM -> Unicode */
+        wc = ff_oem2uni(wc, CODEPAGE); /* ANSI/OEM -> Unicode */
         if (wc == 0) { /* Wrong char in the current code page? */
             di = 0;
             break;
@@ -3402,6 +3402,44 @@ fs_result_t f_mount(filesystem_t *fs,         /* Pointer to the filesystem objec
     res = mount_volume(&path, &fs, 0); /* Force mounted the volume */
     LEAVE_FF(fs, res);
 }
+
+#if !FF_FS_READONLY && !FF_FS_NORTC
+//
+// Get timestamp in FatFS format.
+//
+static uint32_t get_fattime(void)
+{
+    int year, month, day, dotw, hour, min, sec;
+    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
+
+    uint32_t fattime = 0;
+    // bit31:25
+    // Year origin from the 1980 (0..127, e.g. 37 for 2017)
+    uint8_t yr = year - 1980;
+    fattime |= (0b01111111 & yr) << 25;
+    // bit24:21
+    // Month (1..12)
+    uint8_t mo = month;
+    fattime |= (0b00001111 & mo) << 21;
+    // bit20:16
+    // Day of the month (1..31)
+    uint8_t da = day;
+    fattime |= (0b00011111 & da) << 16;
+    // bit15:11
+    // Hour (0..23)
+    uint8_t hr = hour;
+    fattime |= (0b00011111 & hr) << 11;
+    // bit10:5
+    // Minute (0..59)
+    uint8_t mi = min;
+    fattime |= (0b00111111 & mi) << 5;
+    // bit4:0
+    // Second / 2 (0..29, e.g. 25 for 50)
+    uint8_t sd = sec / 2;
+    fattime |= (0b00011111 & sd);
+    return fattime;
+}
+#endif
 
 /*-----------------------------------------------------------------------*/
 /* Open or Create a File                                                 */
@@ -5562,9 +5600,8 @@ fs_result_t f_mkfs(const char *path, /* Logical drive number */
         1, 2, 4, 8, 16, 32, 0
     }; /* Cluster size boundary for FAT32 volume (128Ks unit) */
     static const mkfs_parm_t defopt = { FM_ANY, 0, 0, 0, 0 }; /* Default parameter */
-    uint8_t fsopt, fsty, sys, pdrv, ipart;
+    uint8_t fsopt, fsty, sys, pdrv;
     uint8_t *buf;
-    uint8_t *pte;
     uint16_t ss; /* Sector size */
     uint32_t sz_buf, sz_blk, n_clst, pau, nsect, n, vsn;
     fs_lba_t sz_vol, b_vol, b_fat, b_data; /* Size of volume, Base LBA of volume, fat, data */
@@ -5582,8 +5619,6 @@ fs_result_t f_mkfs(const char *path, /* Logical drive number */
     if (FatFs[vol])
         FatFs[vol]->fs_type = 0; /* Clear the fs object if mounted */
     pdrv = LD2PD(vol);           /* Hosting physical drive */
-    ipart = LD2PT(vol);          /* Hosting partition (0:create as new, 1..:existing
-                                    partition) */
 
     /* Initialize the hosting physical drive */
     ds = disk_initialize(pdrv);

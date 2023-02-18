@@ -1,3 +1,6 @@
+//
+// Test rpm_tokenize() - split a command line into arguments.
+//
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>

@@ -23,6 +23,10 @@
 uint16_t ff_uni2oem(uint32_t uni, /* UTF-16 encoded character to be converted */
                     uint16_t cp)  /* Code page for the conversion */
 {
+    if (uni < ' ')
+        return '?';
+    if (uni > '~')
+        return '?';
     return uni;
 }
 

@@ -103,9 +103,9 @@ void rpm_print_version()
 }
 
 //
-// Get date.
+// Get date and time (local).
 //
-void rpm_get_date(int *year, int *month, int *day, int *dotw)
+void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
 {
     struct timeval tv;
     gettimeofday(&tv, 0);
@@ -117,36 +117,15 @@ void rpm_get_date(int *year, int *month, int *day, int *dotw)
     *month = 1 + info->tm_mon;
     *day = info->tm_mday;
     *dotw = info->tm_wday;
-}
-
-//
-// Get local time.
-//
-void rpm_get_time(int *hour, int *min, int *sec)
-{
-    struct timeval tv;
-    gettimeofday(&tv, 0);
-
-    time_t now = tv.tv_sec;
-    struct tm *info = localtime(&now);
-
     *hour = info->tm_hour;
     *min = info->tm_min;
     *sec = info->tm_sec;
 }
 
 //
-// Set date.
+// Set date and time.
 //
-void rpm_set_date(int year, int month, int day)
-{
-    // Ignore.
-}
-
-//
-// Set time.
-//
-void rpm_set_time(int hour, int min, int sec)
+void rpm_set_datetime(int year, int month, int day, int hour, int min, int sec)
 {
     // Ignore.
 }

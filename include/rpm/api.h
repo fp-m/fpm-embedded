@@ -112,10 +112,8 @@ void rpm_print_version(void);
 //
 // Get/set date and time.
 //
-void rpm_get_date(int *year, int *month, int *day, int *dotw);
-void rpm_get_time(int *hour, int *min, int *sec);
-void rpm_set_date(int year, int month, int day);
-void rpm_set_time(int hour, int min, int sec);
+void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec);
+void rpm_set_datetime(int year, int month, int day, int hour, int min, int sec);
 
 //
 // Compute day of the week.

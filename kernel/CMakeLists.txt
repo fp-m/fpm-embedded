@@ -66,6 +66,7 @@ add_library(rpm_unix STATIC
 
 add_library(rpm_pico STATIC
     rpm_pico.c
+    ../rtc/rtc_pico.c
 )
 target_include_directories(rpm_pico BEFORE PUBLIC
     $ENV{PICO_SDK_PATH}/src/rp2_common/pico_stdio_usb/include

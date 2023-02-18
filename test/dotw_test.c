@@ -1,3 +1,6 @@
+//
+// Test rpm_get_dotw() - Day Of The Week function.
+//
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>

@@ -6,8 +6,31 @@
 #include "sd_card.h"
 #include "fatfs.h"
 
+#include "hardware/rtc.h"
+
+void setup_date_time()
+{
+    // Start the real time clock.
+    rtc_init();
+
+    //TODO: get time/date from battery backed RTC or from filesystem
+    datetime_t t = {
+        .year  = 2023,
+        .month = 02,
+        .day   = 18,
+        .dotw  = 6, // 0 is Sunday
+        .hour  = 15,
+        .min   = 02,
+        .sec   = 30,
+    };
+    rtc_set_datetime(&t);
+    sleep_us(64);
+}
+
 int main()
 {
+    setup_date_time();
+
     fs_result_t fr;
     filesystem_t *fs = alloca(f_sizeof_filesystem_t());
     file_t *fil = alloca(f_sizeof_file_t());

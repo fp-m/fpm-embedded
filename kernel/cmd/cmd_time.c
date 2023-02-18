@@ -7,18 +7,20 @@
 
 static void set_time(const char *str)
 {
-    int hh = 0, mm = 0, ss = 0;
-    if (rpm_sscanf(str, "%d:%d:%d", &hh, &mm, &ss) != 3 ||
-        hh < 0 || hh > 23 ||
-        mm < 0 || mm > 59 ||
-        ss < 0 || ss > 59) {
+    int year, month, day, dotw, hour, min, sec;
+    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
+
+    if (rpm_sscanf(str, "%d:%d:%d", &hour, &min, &sec) != 3 ||
+        hour < 0 || hour > 23 ||
+        min < 0 || min > 59 ||
+        sec < 0 || sec > 59) {
         rpm_puts("The specified time is not correct.\r\n"
                  "\n");
         return;
     }
 
     // Set time.
-    rpm_set_time(hh, mm, ss);
+    rpm_set_datetime(year, month, day, hour, min, sec);
     rpm_puts("\r\n");
 }
 
@@ -59,8 +61,8 @@ void rpm_cmd_time(int argc, char *argv[])
     }
 
     // Display current time.
-    int hour, min, sec;
-    rpm_get_time(&hour, &min, &sec);
+    int year, month, day, dotw, hour, min, sec;
+    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
 
     if (terse) {
         rpm_printf("%02d:%02d:%02d\r\n", hour, min, sec);

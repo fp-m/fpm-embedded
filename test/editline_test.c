@@ -1,3 +1,6 @@
+//
+// Test rpm_editline() - command line editor.
+//
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>

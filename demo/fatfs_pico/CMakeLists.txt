@@ -26,15 +26,15 @@ pico_enable_stdio_uart(${PROJECT_NAME} 0)
 add_library(FatFs_SPI STATIC
     ${CMAKE_SOURCE_DIR}/../../fatfs/fatfs.c
     ${CMAKE_SOURCE_DIR}/../../fatfs/unicode.c
-    ${CMAKE_SOURCE_DIR}/../../sd_pico/sd_spi.c
-    ${CMAKE_SOURCE_DIR}/../../sd_pico/demo_logging.c
-    ${CMAKE_SOURCE_DIR}/../../sd_pico/spi.c
-    ${CMAKE_SOURCE_DIR}/../../sd_pico/sd_card.c
-    ${CMAKE_SOURCE_DIR}/../../sd_pico/crc.c
     ${CMAKE_SOURCE_DIR}/../../disk/diskio.c
-    ${CMAKE_SOURCE_DIR}/../../disk/f_util.c
     ${CMAKE_SOURCE_DIR}/../../disk/my_debug.c
-    ${CMAKE_SOURCE_DIR}/../../disk/rtc.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/sd_card.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/sd_spi.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/spi.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/crc.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/demo_logging.c
+    ${CMAKE_SOURCE_DIR}/../../rtc/rtc_pico.c
+    ${CMAKE_SOURCE_DIR}/../../kernel/rpm_get_dotw.c
 )
 target_include_directories(FatFs_SPI BEFORE PUBLIC
     ${CMAKE_SOURCE_DIR}/../../fatfs
