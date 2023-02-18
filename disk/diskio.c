@@ -40,7 +40,7 @@ media_status_t disk_status(uint8_t pdrv) /* Physical drive nmuber to identify th
 
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return STA_NOINIT;
+        return MEDIA_NOINIT;
 
     sd_card_detect(p_sd); // Fast: just a GPIO read
     return p_sd->m_Status;
@@ -56,7 +56,7 @@ media_status_t disk_initialize(uint8_t pdrv) /* Physical drive number to identif
 
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return STA_NOINIT;
+        return MEDIA_NOINIT;
 
     return sd_init(p_sd);
 }

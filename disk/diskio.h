@@ -14,8 +14,9 @@ extern "C" {
 //
 // Bits of SD card status.
 //
-typedef enum {
-    STA_NOINIT = 0x01,
+typedef int media_status_t;
+enum {
+    MEDIA_NOINIT = 0x01,
     // Indicates that the device has not been initialized and not
     // ready to work. This flag is set on system reset, media removal
     // or failure of disk_initialize function. It is cleared on
@@ -24,29 +25,28 @@ typedef enum {
     // status flags, or auto-mount function will not work correctly.
     // If the system does not support media change detection,
     // application program needs to explicitly re-mount the volume
-    // with f_mount function after each media change.
+    // with f_mount() function after each media change.
 
-    STA_NODISK = 0x02,
+    MEDIA_NODISK = 0x02,
     // Indicates that no medium in the drive. This is always
-    // cleared when the drive is non-removable class. Note that FatFs
-    // does not refer this flag.
+    // cleared when the drive is non-removable class.
+    // Note that FatFs does not refer this flag.
 
-    STA_PROTECT = 0x04,
+    MEDIA_PROTECT = 0x04,
     // Indicates that the medium is write protected. This is always
-    // cleared when the drive has no write protect function. Not valid
-    // if STA_NODISK is set.
-
-} media_status_t;
+    // cleared when the drive has no write protect function.
+    // Not valid if MEDIA_NODISK is set.
+};
 
 //
 // Results of Disk Functions.
 //
 typedef enum {
-    DISK_OK = 0, // 0: Successful
-    DISK_ERROR,  // 1: R/W Error
-    DISK_WRPRT,  // 2: Write Protected
-    DISK_NOTRDY, // 3: Not Ready
-    DISK_PARERR, // 4: Invalid Parameter
+    DISK_OK = 0,     // Successful
+    DISK_ERROR = 1,  // R/W Error
+    DISK_WRPRT = 2,  // Write Protected
+    DISK_NOTRDY = 3, // Not Ready
+    DISK_PARERR = 4, // Invalid Parameter
 } disk_result_t;
 
 //

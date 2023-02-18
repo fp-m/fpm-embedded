@@ -58,7 +58,7 @@ static sd_card_t sd_cards[] = {  // One for each SD card
         .spi = &spis[0],          // Pointer to the SPI driving this card
         .ss_gpio = 9,             // The SPI slave select GPIO for this SD card
         //.use_card_detect = false,
-        .m_Status = STA_NOINIT
+        .m_Status = MEDIA_NOINIT
     }
 };
 

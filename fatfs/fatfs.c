@@ -3064,9 +3064,9 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
     mode &= (uint8_t)~FA_READ; /* Desired access mode, write access or not */
     if (fs->fs_type != 0) { /* If the volume has been mounted */
         stat = disk_status(fs->pdrv);
-        if (!(stat & STA_NOINIT)) { /* and the physical drive is kept initialized */
+        if (!(stat & MEDIA_NOINIT)) { /* and the physical drive is kept initialized */
             if (!FF_FS_READONLY && mode &&
-                (stat & STA_PROTECT)) { /* Check write protection if needed */
+                (stat & MEDIA_PROTECT)) { /* Check write protection if needed */
                 return FR_WRITE_PROTECTED;
             }
             return FR_OK; /* The filesystem object is already valid */
@@ -3079,12 +3079,12 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
 
     fs->fs_type = 0;                  /* Invalidate the filesystem object */
     stat = disk_initialize(fs->pdrv); /* Initialize the volume hosting physical drive */
-    if (stat & STA_NOINIT) {          /* Check if the initialization succeeded */
+    if (stat & MEDIA_NOINIT) {          /* Check if the initialization succeeded */
         return FR_NOT_READY;          /* Failed to initialize due to no medium or hard
                                          error */
     }
     if (!FF_FS_READONLY && mode &&
-        (stat & STA_PROTECT)) { /* Check disk write protection if needed */
+        (stat & MEDIA_PROTECT)) { /* Check disk write protection if needed */
         return FR_WRITE_PROTECTED;
     }
 #if FF_MAX_SS != FF_MIN_SS /* Get sector size (multiple sector size cfg only) */
@@ -3316,7 +3316,7 @@ static fs_result_t validate(              /* Returns FR_OK or FR_INVALID_OBJECT 
         obj->id == obj->fs->id) { /* Test if the object is valid */
 #if FF_FS_REENTRANT
         if (lock_volume(obj->fs, 0)) { /* Take a grant to access the volume */
-            if (!(disk_status(obj->fs->pdrv) & STA_NOINIT)) { /* Test if the hosting phsical drive
+            if (!(disk_status(obj->fs->pdrv) & MEDIA_NOINIT)) { /* Test if the hosting phsical drive
                                                                  is kept initialized */
                 res = FR_OK;
             } else {
@@ -3327,7 +3327,7 @@ static fs_result_t validate(              /* Returns FR_OK or FR_INVALID_OBJECT 
         }
 #else
         if (!(disk_status(obj->fs->pdrv) &
-              STA_NOINIT)) { /* Test if the hosting phsical drive is kept initialized */
+              MEDIA_NOINIT)) { /* Test if the hosting phsical drive is kept initialized */
             res = FR_OK;
         }
 #endif
@@ -5587,9 +5587,9 @@ fs_result_t f_mkfs(const char *path, /* Logical drive number */
 
     /* Initialize the hosting physical drive */
     ds = disk_initialize(pdrv);
-    if (ds & STA_NOINIT)
+    if (ds & MEDIA_NOINIT)
         return FR_NOT_READY;
-    if (ds & STA_PROTECT)
+    if (ds & MEDIA_PROTECT)
         return FR_WRITE_PROTECTED;
 
     /* Get physical drive parameters (sz_drv, sz_blk and ss) */

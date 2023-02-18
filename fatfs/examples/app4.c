@@ -55,7 +55,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
 
         printf(" disk_initalize(%u)", pdrv);
         ds = disk_initialize(pdrv);
-        if (ds & STA_NOINIT) {
+        if (ds & MEDIA_NOINIT) {
             printf(" - failed.\n");
             return 2;
         } else {

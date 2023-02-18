@@ -171,7 +171,7 @@ specific language governing permissions and limitations under the License.
 #include "my_debug.h"
 #include "sd_spi.h"
 #include "sd_card.h"
-#include "diskio.h" /* Declarations of disk functions */ // Needed for STA_NOINIT, ...
+#include "diskio.h" /* Declarations of disk functions */ // Needed for MEDIA_NOINIT, ...
 
 #ifndef SD_CRC_ENABLED
 #define SD_CRC_ENABLED 1
@@ -614,18 +614,18 @@ bool sd_card_detect(sd_card_t *pSD)
 {
     TRACE_PRINTF("> %s\r\n", __FUNCTION__);
     if (!pSD->use_card_detect) {
-        pSD->m_Status &= ~STA_NODISK;
+        pSD->m_Status &= ~MEDIA_NODISK;
         return true;
     }
     /*!< Check GPIO to detect SD */
     if (gpio_get(pSD->card_detect_gpio) == pSD->card_detected_true) {
         // The socket is now occupied
-        pSD->m_Status &= ~STA_NODISK;
+        pSD->m_Status &= ~MEDIA_NODISK;
         TRACE_PRINTF("SD card detected!\r\n");
         return true;
     } else {
         // The socket is now empty
-        pSD->m_Status |= (STA_NODISK | STA_NOINIT);
+        pSD->m_Status |= (MEDIA_NODISK | MEDIA_NOINIT);
         pSD->card_type = SDCARD_NONE;
         printf("No SD card detected!\r\n");
         return false;
@@ -850,7 +850,7 @@ static int in_sd_read_blocks(sd_card_t *pSD, uint8_t *buffer, uint64_t ulSectorN
 
     if (ulSectorNumber + blockCnt > pSD->sectors)
         return SD_BLOCK_DEVICE_ERROR_PARAMETER;
-    if (pSD->m_Status & (STA_NOINIT | STA_NODISK))
+    if (pSD->m_Status & (MEDIA_NOINIT | MEDIA_NODISK))
         return SD_BLOCK_DEVICE_ERROR_PARAMETER;
 
     int status = SD_BLOCK_DEVICE_ERROR_NONE;
@@ -951,7 +951,7 @@ static int in_sd_write_blocks(sd_card_t *pSD, const uint8_t *buffer, uint64_t ul
 {
     if (ulSectorNumber + blockCnt > pSD->sectors)
         return SD_BLOCK_DEVICE_ERROR_PARAMETER;
-    if (pSD->m_Status & (STA_NOINIT | STA_NODISK))
+    if (pSD->m_Status & (MEDIA_NOINIT | MEDIA_NODISK))
         return SD_BLOCK_DEVICE_ERROR_PARAMETER;
 
     int status = SD_BLOCK_DEVICE_ERROR_NONE;
@@ -1133,12 +1133,12 @@ int sd_init(sd_card_t *pSD)
 {
     TRACE_PRINTF("> %s\r\n", __FUNCTION__);
     if (!sd_init_driver()) {
-        pSD->m_Status |= STA_NOINIT;
+        pSD->m_Status |= MEDIA_NOINIT;
         return pSD->m_Status;
     }
-    //	STA_NOINIT = 0x01, /* Drive not initialized */
-    //	STA_NODISK = 0x02, /* No medium in the drive */
-    //	STA_PROTECT = 0x04 /* Write protected */
+    //	MEDIA_NOINIT = 0x01, /* Drive not initialized */
+    //	MEDIA_NODISK = 0x02, /* No medium in the drive */
+    //	MEDIA_PROTECT = 0x04 /* Write protected */
 
     if (!mutex_is_initialized(&pSD->mutex))
         mutex_init(&pSD->mutex);
@@ -1146,12 +1146,12 @@ int sd_init(sd_card_t *pSD)
 
     // Make sure there's a card in the socket before proceeding
     sd_card_detect(pSD);
-    if (pSD->m_Status & STA_NODISK) {
+    if (pSD->m_Status & MEDIA_NODISK) {
         sd_unlock(pSD);
         return pSD->m_Status;
     }
     // Make sure we're not already initialized before proceeding
-    if (!(pSD->m_Status & STA_NOINIT)) {
+    if (!(pSD->m_Status & MEDIA_NOINIT)) {
         sd_unlock(pSD);
         return pSD->m_Status;
     }
@@ -1186,7 +1186,7 @@ int sd_init(sd_card_t *pSD)
     sd_spi_go_high_frequency(pSD);
 
     // The card is now initialized
-    pSD->m_Status &= ~STA_NOINIT;
+    pSD->m_Status &= ~MEDIA_NOINIT;
 
     sd_spi_release(pSD);
     sd_unlock(pSD);
