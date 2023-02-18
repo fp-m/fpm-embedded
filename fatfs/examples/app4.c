@@ -38,7 +38,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
 {
     UINT n, cc, ns;
     uint32_t sz_drv, lba, lba2, sz_eblk, pns = 1;
-    WORD sz_sect;
+    uint16_t sz_sect;
     BYTE *pbuff = (BYTE *)buff;
     DSTATUS ds;
     DRESULT dr;

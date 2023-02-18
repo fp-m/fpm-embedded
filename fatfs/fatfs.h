@@ -31,7 +31,6 @@ extern "C" {
 #include <stdint.h>
 typedef unsigned int UINT;  /* int must be 16-bit or 32-bit */
 typedef uint8_t BYTE;       /* char must be 8-bit */
-typedef uint16_t WORD;      /* 16-bit unsigned integer */
 
 /* Type of file size and LBA variables */
 
@@ -55,11 +54,11 @@ typedef struct {
     BYTE n_fats;    /* Number of FATs (1 or 2) */
     BYTE wflag;     /* win[] status (b0:dirty) */
     BYTE fsi_flag;  /* FSINFO status (b7:disabled, b0:dirty) */
-    WORD id;        /* Volume mount ID */
-    WORD n_rootdir; /* Number of root directory entries (FAT12/16) */
-    WORD csize;     /* Cluster size [sectors] */
+    uint16_t id;        /* Volume mount ID */
+    uint16_t n_rootdir; /* Number of root directory entries (FAT12/16) */
+    uint16_t csize;     /* Cluster size [sectors] */
 #if FF_MAX_SS != FF_MIN_SS
-    WORD ssize; /* Sector size (512, 1024, 2048 or 4096) */
+    uint16_t ssize; /* Sector size (512, 1024, 2048 or 4096) */
 #endif
     uint16_t *lfnbuf; /* LFN working buffer */
     BYTE *dirbuf; /* Directory entry block scratchpad buffer for exFAT */
@@ -88,7 +87,7 @@ typedef struct {
 
 typedef struct {
     FATFS *fs; /* Pointer to the hosting volume of this object */
-    WORD id;   /* Hosting volume's mount ID */
+    uint16_t id;   /* Hosting volume's mount ID */
     BYTE attr; /* Object attribute */
     BYTE stat; /* Object chain status (b1-0: =0:not contiguous, =2:contiguous, =3:fragmented in this
                   session, b2:sub-directory stretched) */
@@ -145,8 +144,8 @@ typedef struct {
 
 typedef struct {
     FSIZE_t fsize; /* File size */
-    WORD fdate;    /* Modified date */
-    WORD ftime;    /* Modified time */
+    uint16_t fdate;    /* Modified date */
+    uint16_t ftime;    /* Modified time */
     BYTE fattrib;  /* File attribute */
     char altname[FF_SFN_BUF + 1]; /* Alternative file name */
     char fname[FF_LFN_BUF + 1];   /* Primary file name */
@@ -198,8 +197,8 @@ uint32_t get_fattime(void); /* Get current time */
 
 /* LFN support functions (defined in ffunicode.c) */
 
-uint16_t ff_oem2uni(uint16_t oem, WORD cp); /* OEM code to Unicode conversion */
-uint16_t ff_uni2oem(uint32_t uni, WORD cp); /* Unicode to OEM code conversion */
+uint16_t ff_oem2uni(uint16_t oem, uint16_t cp); /* OEM code to Unicode conversion */
+uint16_t ff_uni2oem(uint32_t uni, uint16_t cp); /* Unicode to OEM code conversion */
 uint32_t ff_wtoupper(uint32_t uni);         /* Unicode upper-case conversion */
 
 /* O/S dependent functions (samples available in ffsystem.c) */

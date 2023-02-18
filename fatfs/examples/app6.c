@@ -14,7 +14,7 @@ int test_raw_speed(BYTE pdrv,    /* Physical drive number */
                    void *buff,   /* Read/write buffer */
                    UINT sz_buff) /* Size of read/write buffer (must be multiple of FF_MAX_SS) */
 {
-    WORD ss;
+    uint16_t ss;
     uint32_t ofs, tmr;
 
 #if FF_MIN_SS != FF_MAX_SS

@@ -21,7 +21,7 @@
 // Returns OEM code character, zero on error
 //
 uint16_t ff_uni2oem(uint32_t uni, /* UTF-16 encoded character to be converted */
-                    WORD cp)   /* Code page for the conversion */
+                    uint16_t cp)  /* Code page for the conversion */
 {
     return uni;
 }
@@ -30,7 +30,7 @@ uint16_t ff_uni2oem(uint32_t uni, /* UTF-16 encoded character to be converted */
 // Returns Unicode character in UTF-16, zero on error
 //
 uint16_t ff_oem2uni(uint16_t oem, /* OEM code to be converted */
-                    WORD cp)   /* Code page for the conversion */
+                    uint16_t cp)  /* Code page for the conversion */
 {
     return oem;
 }
@@ -40,9 +40,9 @@ uint16_t ff_oem2uni(uint16_t oem, /* OEM code to be converted */
 //
 uint32_t ff_wtoupper(uint32_t uni) /* Unicode code point to be up-converted */
 {
-    const WORD *p;
-    WORD uc, bc, nc, cmd;
-    static const WORD cvt1[] = {
+    const uint16_t *p;
+    uint16_t uc, bc, nc, cmd;
+    static const uint16_t cvt1[] = {
         /* Compressed up conversion table for U+0000 - U+0FFF */
         /* Basic Latin */
         0x0061, 0x031A,
@@ -81,7 +81,7 @@ uint32_t ff_wtoupper(uint32_t uni) /* Unicode code point to be up-converted */
 
         0x0000 /* EOT */
     };
-    static const WORD cvt2[] = {
+    static const uint16_t cvt2[] = {
         /* Compressed up conversion table for U+1000 - U+FFFF */
         /* Phonetic Extensions */
         0x1D7D, 0x0001, 0x2C63,
@@ -113,7 +113,7 @@ uint32_t ff_wtoupper(uint32_t uni) /* Unicode code point to be up-converted */
     };
 
     if (uni < 0x10000) { /* Is it in BMP? */
-        uc = (WORD)uni;
+        uc = (uint16_t)uni;
         p = uc < 0x1000 ? cvt1 : cvt2;
         for (;;) {
             bc = *p++; /* Get the block base */
