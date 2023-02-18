@@ -7,7 +7,7 @@
 
 fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory to delete */
                     unsigned sz_buff, /* Size of path name buffer (items) */
-                    FILINFO *fno) /* Name read buffer */
+                    file_info_t *fno) /* Name read buffer */
 {
     unsigned i, j;
     fs_result_t fr;
@@ -55,7 +55,7 @@ int main(void) /* How to use */
     fs_result_t fr;
     FATFS fs;
     char buff[256];
-    FILINFO fno;
+    file_info_t fno;
 
     f_mount(&fs, _T("5:"), 0);
 

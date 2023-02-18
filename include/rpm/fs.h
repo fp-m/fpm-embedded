@@ -38,6 +38,20 @@ typedef enum {
 #endif
 
 //
+// File information structure.
+//
+#define FF_SFN_BUF 12             // Size of short file name
+#define FF_LFN_BUF 255            // Size of long file name
+typedef struct {
+    fs_size_t fsize;              // File size
+    uint16_t fdate;               // Modified date
+    uint16_t ftime;               // Modified time
+    uint8_t fattrib;              // File attribute
+    char altname[FF_SFN_BUF + 1]; // Alternative file name
+    char fname[FF_LFN_BUF + 1];   // Primary file name
+} file_info_t;
+
+//
 // File access functions.
 //
 typedef struct _file_t file_t; // Opaque pointer
@@ -68,23 +82,26 @@ int f_printf(file_t *fp, const char *str, ...); /* Put a formatted string to the
 //
 // Directory access functions.
 //
-fs_result_t f_opendir(DIR *dp, const char *path); /* Open a directory */
-fs_result_t f_closedir(DIR *dp);                   /* Close an open directory */
-fs_result_t f_readdir(DIR *dp, FILINFO *fno);      /* Read a directory item */
-fs_result_t f_findfirst(DIR *dp, FILINFO *fno, const char *path,
+typedef struct _directory_t directory_t; // Opaque pointer
+unsigned f_sizeof_directory_t();
+
+fs_result_t f_opendir(directory_t *dp, const char *path); /* Open a directory */
+fs_result_t f_closedir(directory_t *dp);                   /* Close an open directory */
+fs_result_t f_readdir(directory_t *dp, file_info_t *fno);      /* Read a directory item */
+fs_result_t f_findfirst(directory_t *dp, file_info_t *fno, const char *path,
                     const char *pattern); /* Find first file */
-fs_result_t f_findnext(DIR *dp, FILINFO *fno); /* Find next file */
+fs_result_t f_findnext(directory_t *dp, file_info_t *fno); /* Find next file */
 #define f_rewinddir(dp) f_readdir((dp), 0)
 
 //
 // File and directory management functions.
 //
-fs_result_t f_stat(const char *path, FILINFO *fno);          /* Get file status */
+fs_result_t f_stat(const char *path, file_info_t *fno);          /* Get file status */
 fs_result_t f_unlink(const char *path);       /* Delete an existing file or directory */
 fs_result_t f_rename(const char *path_old,
                  const char *path_new);                  /* Rename/Move a file or directory */
 fs_result_t f_chmod(const char *path, uint8_t attr, uint8_t mask); /* Change attribute of a file/dir */
-fs_result_t f_utime(const char *path, const FILINFO *fno);   /* Change timestamp of a file/dir */
+fs_result_t f_utime(const char *path, const file_info_t *fno);   /* Change timestamp of a file/dir */
 fs_result_t f_mkdir(const char *path);        /* Create a sub directory */
 fs_result_t f_chdir(const char *path);                       /* Change current directory */
 fs_result_t f_chdrive(const char *path);                     /* Change current drive */

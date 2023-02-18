@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 */
 #include "fatfs.h"
 #include <rpm/fs.h>
+#include <alloca.h>
 
 const char *fs_result_str(fs_result_t i)
 {
@@ -66,13 +67,13 @@ const char *fs_result_str(fs_result_t i)
 
 fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory to delete */
                     unsigned sz_buff, /* Size of path name buffer (items) */
-                    FILINFO *fno) /* Name read buffer */
+                    file_info_t *fno) /* Name read buffer */
 {
     unsigned i, j;
     fs_result_t fr;
-    DIR dir;
+    directory_t *dir = alloca(f_sizeof_directory_t());
 
-    fr = f_opendir(&dir, path); /* Open the sub-directory to make it empty */
+    fr = f_opendir(dir, path); /* Open the sub-directory to make it empty */
     if (fr != FR_OK)
         return fr;
 
@@ -81,7 +82,7 @@ fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory 
     path[i++] = '/';
 
     for (;;) {
-        fr = f_readdir(&dir, fno); /* Get a directory item */
+        fr = f_readdir(dir, fno); /* Get a directory item */
         if (fr != FR_OK || !fno->fname[0])
             break; /* End of directory? */
         j = 0;
@@ -102,7 +103,7 @@ fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory 
     }
 
     path[--i] = 0; /* Restore the path name */
-    f_closedir(&dir);
+    f_closedir(dir);
 
     if (fr == FR_OK)
         fr = f_unlink(path); /* Delete the empty sub-directory */

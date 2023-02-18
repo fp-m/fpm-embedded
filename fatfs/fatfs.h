@@ -128,17 +128,6 @@ struct _directory_t {
 #endif
 };
 
-/* File information structure (FILINFO) */
-
-typedef struct {
-    fs_size_t fsize; /* File size */
-    uint16_t fdate;    /* Modified date */
-    uint16_t ftime;    /* Modified time */
-    uint8_t fattrib;  /* File attribute */
-    char altname[FF_SFN_BUF + 1]; /* Alternative file name */
-    char fname[FF_LFN_BUF + 1];   /* Primary file name */
-} FILINFO;
-
 /* Format parameter structure (MKFS_PARM) */
 
 typedef struct {
@@ -231,7 +220,7 @@ extern const char *VolumeStr[FF_VOLUMES]; /* User defied volume ID */
 #define FS_FAT32 3
 #define FS_EXFAT 4
 
-/* File attribute bits for directory entry (FILINFO.fattrib) */
+/* File attribute bits for directory entry (file_info_t.fattrib) */
 #define AM_RDO 0x01 /* Read only */
 #define AM_HID 0x02 /* Hidden */
 #define AM_SYS 0x04 /* System */

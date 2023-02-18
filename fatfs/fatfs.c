@@ -2382,7 +2382,7 @@ static fs_result_t dir_remove(        /* FR_OK:Succeeded, FR_DISK_ERR:A disk err
 /*-----------------------------------------------------------------------*/
 
 static void get_fileinfo(directory_t *dp,     /* Pointer to the directory object */
-                         FILINFO *fno /* Pointer to the file information to be filled */
+                         file_info_t *fno /* Pointer to the file information to be filled */
 )
 {
     unsigned si, di;
@@ -4062,7 +4062,7 @@ fs_result_t f_getcwd(char *buff, /* Pointer to the directory path */
     const char *vp;
 #endif
 #endif
-    FILINFO fno;
+    file_info_t fno;
     DEF_NAMBUF
 
     /* Get logical drive */
@@ -4447,7 +4447,7 @@ fs_result_t f_closedir(directory_t *dp /* Pointer to the directory object to be 
 /*-----------------------------------------------------------------------*/
 
 fs_result_t f_readdir(directory_t *dp,     /* Pointer to the open directory object */
-                  FILINFO *fno /* Pointer to file information to return */
+                  file_info_t *fno /* Pointer to file information to return */
 )
 {
     fs_result_t res;
@@ -4481,7 +4481,7 @@ fs_result_t f_readdir(directory_t *dp,     /* Pointer to the open directory obje
 /*-----------------------------------------------------------------------*/
 
 fs_result_t f_findnext(directory_t *dp,     /* Pointer to the open directory object */
-                   FILINFO *fno /* Pointer to the file information structure */
+                   file_info_t *fno /* Pointer to the file information structure */
 )
 {
     fs_result_t res;
@@ -4505,7 +4505,7 @@ fs_result_t f_findnext(directory_t *dp,     /* Pointer to the open directory obj
 /*-----------------------------------------------------------------------*/
 
 fs_result_t f_findfirst(directory_t *dp,             /* Pointer to the blank directory object */
-                    FILINFO *fno,        /* Pointer to the file information structure */
+                    file_info_t *fno,        /* Pointer to the file information structure */
                     const char *path,   /* Pointer to the directory to open */
                     const char *pattern /* Pointer to the matching pattern */
 )
@@ -4528,7 +4528,7 @@ fs_result_t f_findfirst(directory_t *dp,             /* Pointer to the blank dir
 /*-----------------------------------------------------------------------*/
 
 fs_result_t f_stat(const char *path, /* Pointer to the file path */
-               FILINFO *fno       /* Pointer to file information to return */
+               file_info_t *fno       /* Pointer to file information to return */
 )
 {
     fs_result_t res;
@@ -5043,7 +5043,7 @@ fs_result_t f_chmod(const char *path, /* Pointer to the file path */
 /*-----------------------------------------------------------------------*/
 
 fs_result_t f_utime(const char *path, /* Pointer to the file/directory name */
-                const FILINFO *fno /* Pointer to the timestamp to be set */
+                const file_info_t *fno /* Pointer to the timestamp to be set */
 )
 {
     fs_result_t res;

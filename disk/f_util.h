@@ -22,7 +22,7 @@ const char *fs_result_str(fs_result_t i);
 
 fs_result_t delete_node(char *path,   /* Path name buffer with the sub-directory to delete */
                     unsigned sz_buff,  /* Size of path name buffer (items) */
-                    FILINFO *fno); /* Name read buffer */
+                    file_info_t *fno); /* Name read buffer */
 
 #ifdef __cplusplus
 }
