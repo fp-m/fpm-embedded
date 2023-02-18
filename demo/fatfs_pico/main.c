@@ -1,10 +1,10 @@
 // From https://www.digikey.com/en/maker/projects/raspberry-pi-pico-rp2040-sd-card-example-with-micropython-and-cc/e472c7f578734bfd96d437e68e670050
 #include <stdio.h>
 #include <alloca.h>
+#include <rpm/fs.h>
 #include "pico/stdlib.h"
 #include "sd_card.h"
 #include "fatfs.h"
-#include <rpm/fs.h>
 
 int main()
 {

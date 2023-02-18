@@ -163,6 +163,7 @@ specific language governing permissions and limitations under the License.
 /* Standard includes. */
 #include <inttypes.h>
 #include <string.h>
+#include <rpm/diskio.h> /* Definitions of media status bits */
 
 #include "hardware/gpio.h"
 #include "pico/mutex.h"
@@ -171,7 +172,6 @@ specific language governing permissions and limitations under the License.
 #include "my_debug.h"
 #include "sd_spi.h"
 #include "sd_card.h"
-#include "diskio.h" /* Declarations of disk functions */ // Needed for MEDIA_NOINIT, ...
 
 #ifndef SD_CRC_ENABLED
 #define SD_CRC_ENABLED 1
@@ -1129,16 +1129,13 @@ static int sd_init_medium(sd_card_t *pSD)
     return status;
 }
 
-int sd_init(sd_card_t *pSD)
+media_status_t sd_init(sd_card_t *pSD)
 {
     TRACE_PRINTF("> %s\r\n", __FUNCTION__);
     if (!sd_init_driver()) {
         pSD->m_Status |= MEDIA_NOINIT;
         return pSD->m_Status;
     }
-    //	MEDIA_NOINIT = 0x01, /* Drive not initialized */
-    //	MEDIA_NODISK = 0x02, /* No medium in the drive */
-    //	MEDIA_PROTECT = 0x04 /* Write protected */
 
     if (!mutex_is_initialized(&pSD->mutex))
         mutex_init(&pSD->mutex);

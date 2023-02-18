@@ -26,7 +26,6 @@ socket, which SPI it is driven by, and how it is wired.
 */
 #include <string.h>
 #include "hw_config.h"
-#include "diskio.h" /* Declarations of disk functions */
 
 void spi_dma_isr();
 

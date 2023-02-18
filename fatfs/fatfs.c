@@ -18,9 +18,9 @@
 /
 /----------------------------------------------------------------------------*/
 
-#include "fatfs.h" /* Definitions of FatFs structures */
-#include "diskio.h" /* Declarations of device I/O functions */
 #include <string.h>
+#include <rpm/diskio.h> /* Declarations of device I/O functions */
+#include "fatfs.h" /* Definitions of FatFs structures */
 
 //-------------------------------------------------------------------------
 // Module Private Definitions

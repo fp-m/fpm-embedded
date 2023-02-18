@@ -19,6 +19,7 @@ specific language governing permissions and limitations under the License.
 #define _SD_CARD_H_
 
 #include <stdint.h>
+#include <rpm/diskio.h> /* Declarations of media status */
 #include "pico/mutex.h"
 #include "spi.h"
 
@@ -38,9 +39,9 @@ typedef struct {
     uint card_detected_true; // Varies with card socket; ignored if !use_card_detect
 
     // Following fields are used to keep track of the state of the card:
-    int m_Status;     // Card status
-    uint64_t sectors; // Assigned dynamically
-    int card_type;    // Assigned dynamically
+    media_status_t m_Status; // Card status
+    uint64_t sectors;        // Assigned dynamically
+    int card_type;           // Assigned dynamically
     mutex_t mutex;
     bool mounted;
 } sd_card_t;
@@ -58,8 +59,8 @@ typedef struct {
 #define SD_BLOCK_DEVICE_ERROR_ERASE -5010           /*!< Erase error: reset/sequence */
 #define SD_BLOCK_DEVICE_ERROR_WRITE -5011           /*!< SPI Write error: !SPI_DATA_ACCEPTED */
 
-bool sd_init_driver();
-int sd_init(sd_card_t *pSD);
+bool sd_init_driver(void);
+media_status_t sd_init(sd_card_t *pSD);
 int sd_write_blocks(sd_card_t *pSD, const uint8_t *buffer, uint64_t ulSectorNumber,
                     uint32_t blockCnt);
 int sd_read_blocks(sd_card_t *pSD, uint8_t *buffer, uint64_t ulSectorNumber,
