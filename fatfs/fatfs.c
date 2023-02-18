@@ -372,7 +372,7 @@ static const BYTE LfnOfs[] = { 1, 3, 5, 7, 9, 14, 16, 18, 20, 22, 24, 28, 30 };
 #if FF_USE_LFN == 1
 
 static BYTE DirBuf[MAXDIRB(FF_MAX_LFN)]; /* Directory entry block scratchpad buffer */
-static WCHAR LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
+static uint16_t LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 #define DEF_NAMBUF
 #define INIT_NAMBUF(fs)
 #define FREE_NAMBUF()
@@ -385,7 +385,7 @@ static WCHAR LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 
 /* LFN working buffer and directory entry block scratchpad buffer */
 #define DEF_NAMBUF              \
-    WCHAR lbuf[FF_MAX_LFN + 1]; \
+    uint16_t lbuf[FF_MAX_LFN + 1]; \
     BYTE dbuf[MAXDIRB(FF_MAX_LFN)];
 #define INIT_NAMBUF(fs)      \
     {                        \
@@ -401,7 +401,7 @@ static WCHAR LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 #elif FF_USE_LFN == 3
 
 /* Pointer to LFN working buffer and directory entry block scratchpad buffer */
-#define DEF_NAMBUF WCHAR *lfn;
+#define DEF_NAMBUF uint16_t *lfn;
 
 #define INIT_NAMBUF(fs)                                                \
     {                                                                  \
@@ -1651,14 +1651,14 @@ static void st_clust(FATFS *fs, /* Pointer to the fs object */
 /*--------------------------------------------------------*/
 
 static int cmp_lfn(                     /* 1:matched, 0:not matched */
-                   const WCHAR *lfnbuf, /* Pointer to the LFN working buffer
+                   const uint16_t *lfnbuf, /* Pointer to the LFN working buffer
                                            to be compared */
                    BYTE *dir            /* Pointer to the directory entry containing the
                                            part of LFN */
 )
 {
     UINT i, s;
-    WCHAR wc, uc;
+    uint16_t wc, uc;
 
     if (ld_word(dir + LDIR_FstClusLO) != 0)
         return 0; /* Check LDIR_FstClusLO */
@@ -1690,12 +1690,12 @@ static int cmp_lfn(                     /* 1:matched, 0:not matched */
 /*-----------------------------------------------------*/
 
 static int pick_lfn(               /* 1:succeeded, 0:buffer overflow or invalid LFN entry */
-                    WCHAR *lfnbuf, /* Pointer to the LFN working buffer */
+                    uint16_t *lfnbuf, /* Pointer to the LFN working buffer */
                     BYTE *dir      /* Pointer to the LFN entry */
 )
 {
     UINT i, s;
-    WCHAR wc, uc;
+    uint16_t wc, uc;
 
     if (ld_word(dir + LDIR_FstClusLO) != 0)
         return 0; /* Check LDIR_FstClusLO is 0 */
@@ -1729,14 +1729,14 @@ static int pick_lfn(               /* 1:succeeded, 0:buffer overflow or invalid 
 /* FAT-LFN: Create an entry of LFN entries */
 /*-----------------------------------------*/
 
-static void put_lfn(const WCHAR *lfn, /* Pointer to the LFN */
+static void put_lfn(const uint16_t *lfn, /* Pointer to the LFN */
                     BYTE *dir,        /* Pointer to the LFN entry to be created */
                     BYTE ord,         /* LFN order (1-20) */
                     BYTE sum          /* Checksum of the corresponding SFN */
 )
 {
     UINT i, s;
-    WCHAR wc;
+    uint16_t wc;
 
     dir[LDIR_Chksum] = sum;  /* Set checksum */
     dir[LDIR_Attr] = AM_LFN; /* Set attribute. LFN entry */
@@ -1766,13 +1766,13 @@ static void put_lfn(const WCHAR *lfn, /* Pointer to the LFN */
 
 static void gen_numname(BYTE *dst,        /* Pointer to the buffer to store numbered SFN */
                         const BYTE *src,  /* Pointer to SFN in directory form */
-                        const WCHAR *lfn, /* Pointer to LFN */
+                        const uint16_t *lfn, /* Pointer to LFN */
                         UINT seq          /* Sequence number */
 )
 {
     BYTE ns[8], c;
     UINT i, j;
-    WCHAR wc;
+    uint16_t wc;
     DWORD sreg;
 
     memcpy(dst, src, 11); /* Prepare the SFN to be modified */
@@ -1856,14 +1856,14 @@ static WORD xdir_sum(                /* Get checksum of the directoly entry bloc
 }
 
 static WORD xname_sum(                  /* Get check sum (to be used as hash) of the file name */
-                      const WCHAR *name /* File name to be calculated */
+                      const uint16_t *name /* File name to be calculated */
 )
 {
-    WCHAR chr;
+    uint16_t chr;
     WORD sum = 0;
 
     while ((chr = *name++) != 0) {
-        chr = (WCHAR)ff_wtoupper(chr); /* File name needs to be up-case converted */
+        chr = (uint16_t)ff_wtoupper(chr); /* File name needs to be up-case converted */
         sum = ((sum & 1) ? 0x8000 : 0) + (sum >> 1) + (chr & 0xFF);
         sum = ((sum & 1) ? 0x8000 : 0) + (sum >> 1) + (chr >> 8);
     }
@@ -2026,12 +2026,12 @@ static FRESULT store_xdir(DIR *dp /* Pointer to the directory object */
 /*-------------------------------------------*/
 
 static void create_xdir(BYTE *dirb,      /* Pointer to the directory entry block buffer */
-                        const WCHAR *lfn /* Pointer to the object name */
+                        const uint16_t *lfn /* Pointer to the object name */
 )
 {
     UINT i;
     BYTE nc1, nlen;
-    WCHAR wc;
+    uint16_t wc;
 
     /* Create file-directory and stream-extension entry */
     memset(dirb, 0, 2 * SZDIRE);
@@ -2387,7 +2387,7 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
 {
     UINT si, di;
     BYTE lcf;
-    WCHAR wc, hs;
+    uint16_t wc, hs;
     FATFS *fs = dp->obj.fs;
     UINT nw;
 
@@ -2498,7 +2498,7 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
         } else {
             for (si = di = 0, lcf = NS_BODY; fno->altname[si];
                  si++, di++) { /* Copy altname[] to fname[] with case information */
-                wc = (WCHAR)fno->altname[si];
+                wc = (uint16_t)fno->altname[si];
                 if (wc == '.')
                     lcf = NS_EXT;
                 if (IsUpper(wc) && (dp->dir[DIR_NTres] & lcf))
@@ -2611,8 +2611,8 @@ static FRESULT create_name(         /* FR_OK: successful, FR_INVALID_NAME: could
 )
 {
     BYTE b, cf;
-    WCHAR wc;
-    WCHAR *lfn;
+    uint16_t wc;
+    uint16_t *lfn;
     const char *p;
     DWORD uc;
     UINT i, ni, si, di;
@@ -2626,8 +2626,8 @@ static FRESULT create_name(         /* FR_OK: successful, FR_INVALID_NAME: could
         if (uc == 0xFFFFFFFF)
             return FR_INVALID_NAME; /* Invalid code or UTF decode error */
         if (uc >= 0x10000)
-            lfn[di++] = (WCHAR)(uc >> 16); /* Store high surrogate if needed */
-        wc = (WCHAR)uc;
+            lfn[di++] = (uint16_t)(uc >> 16); /* Store high surrogate if needed */
+        wc = (uint16_t)uc;
         if (wc < ' ' || IsSeparator(wc))
             break; /* Break if end of the path or a separator is found */
         if (wc < 0x80 && strchr("*:<>|\"\?\x7F", (int)wc))
@@ -5091,7 +5091,7 @@ FRESULT f_getlabel(const char *path, /* Logical drive number */
     FATFS *fs;
     DIR dj;
     UINT si, di;
-    WCHAR wc;
+    uint16_t wc;
 
     /* Get logical drive */
     res = mount_volume(&path, &fs, 0);
@@ -5105,7 +5105,7 @@ FRESULT f_getlabel(const char *path, /* Logical drive number */
             res = DIR_READ_LABEL(&dj); /* Find a volume label entry */
             if (res == FR_OK) {
                 if (fs->fs_type == FS_EXFAT) {
-                    WCHAR hs;
+                    uint16_t hs;
                     UINT nw;
 
                     for (si = di = hs = 0; si < dj.dir[XDIR_NumLabel];
@@ -5191,7 +5191,7 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
     DIR dj;
     BYTE dirvn[22];
     UINT di;
-    WCHAR wc;
+    uint16_t wc;
     static const char badchr[18] =
         "+.,;=[]"
         "/*:<>|\\\"\?\x7F"; /* [0..16] for FAT, [7..16] for exFAT */
@@ -5211,7 +5211,7 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
                 if (dc == 0xFFFFFFFF || di >= 10) { /* Wrong surrogate or buffer overflow */
                     dc = 0;
                 } else {
-                    st_word(dirvn + di * 2, (WCHAR)(dc >> 16));
+                    st_word(dirvn + di * 2, (uint16_t)(dc >> 16));
                     di++;
                 }
             }
@@ -5219,7 +5219,7 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
                 di >= 11) { /* Check validity of the volume label */
                 LEAVE_FF(fs, FR_INVALID_NAME);
             }
-            st_word(dirvn + di * 2, (WCHAR)dc);
+            st_word(dirvn + di * 2, (uint16_t)dc);
             di++;
         }
     } else {
@@ -5677,7 +5677,7 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
 
     if (fsty == FS_EXFAT) { /* Create an exFAT volume */
         DWORD szb_bit, szb_case, sum, nbit, clu, clen[3];
-        WCHAR ch, si;
+        uint16_t ch, si;
         UINT j, st;
 
         if (sz_vol < 0x1000)
@@ -5722,12 +5722,12 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
         do {
             switch (st) {
             case 0:
-                ch = (WCHAR)ff_wtoupper(si); /* Get an up-case char */
+                ch = (uint16_t)ff_wtoupper(si); /* Get an up-case char */
                 if (ch != si) {
                     si++;
                     break; /* Store the up-case char if exist */
                 }
-                for (j = 1; (WCHAR)(si + j) && (WCHAR)(si + j) == ff_wtoupper((WCHAR)(si + j)); j++)
+                for (j = 1; (uint16_t)(si + j) && (uint16_t)(si + j) == ff_wtoupper((uint16_t)(si + j)); j++)
                     ; /* Get run length of no-case block */
                 if (j >= 128) {
                     ch = 0xFFFF;
@@ -5744,8 +5744,8 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
                 break;
 
             default:
-                ch = (WCHAR)j;
-                si += (WCHAR)j; /* Number of chars to skip */
+                ch = (uint16_t)j;
+                si += (uint16_t)j; /* Number of chars to skip */
                 st = 0;
             }
             sum = xsum32(buf[i + 0] = (BYTE)ch, sum); /* Put it into the write buffer */
@@ -6231,7 +6231,7 @@ static void putc_bfd(putbuff *pb, char c)
 {
     UINT n;
     int i, nc;
-    WCHAR hs, wc;
+    uint16_t hs, wc;
     DWORD dc;
     const char *tp;
 
@@ -6272,8 +6272,8 @@ static void putc_bfd(putbuff *pb, char c)
     dc = tchar2uni(&tp); /* UTF-8 ==> UTF-16 */
     if (dc == 0xFFFFFFFF)
         return; /* Wrong code? */
-    hs = (WCHAR)(dc >> 16);
-    wc = (WCHAR)dc;
+    hs = (uint16_t)(dc >> 16);
+    wc = (uint16_t)dc;
     /* A code point in UTF-16 is available in hs and wc */
 
     /* Write a code point in UTF-8 */

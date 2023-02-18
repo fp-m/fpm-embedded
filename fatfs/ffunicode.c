@@ -20,7 +20,7 @@
 //
 // Returns OEM code character, zero on error
 //
-WCHAR ff_uni2oem(DWORD uni, /* UTF-16 encoded character to be converted */
+uint16_t ff_uni2oem(DWORD uni, /* UTF-16 encoded character to be converted */
                  WORD cp)   /* Code page for the conversion */
 {
     return uni;
@@ -29,7 +29,7 @@ WCHAR ff_uni2oem(DWORD uni, /* UTF-16 encoded character to be converted */
 //
 // Returns Unicode character in UTF-16, zero on error
 //
-WCHAR ff_oem2uni(WCHAR oem, /* OEM code to be converted */
+uint16_t ff_oem2uni(uint16_t oem, /* OEM code to be converted */
                  WORD cp)   /* Code page for the conversion */
 {
     return oem;

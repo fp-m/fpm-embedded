@@ -34,7 +34,6 @@ typedef unsigned char BYTE; /* char must be 8-bit */
 typedef uint16_t WORD;      /* 16-bit unsigned integer */
 typedef uint32_t DWORD;     /* 32-bit unsigned integer */
 typedef uint64_t QWORD;     /* 64-bit unsigned integer */
-typedef WORD WCHAR;         /* UTF-16 character type */
 
 /* Type of file size and LBA variables */
 
@@ -64,7 +63,7 @@ typedef struct {
 #if FF_MAX_SS != FF_MIN_SS
     WORD ssize; /* Sector size (512, 1024, 2048 or 4096) */
 #endif
-    WCHAR *lfnbuf; /* LFN working buffer */
+    uint16_t *lfnbuf; /* LFN working buffer */
     BYTE *dirbuf; /* Directory entry block scratchpad buffer for exFAT */
 #if !FF_FS_READONLY
     DWORD last_clst; /* Last allocated cluster */
@@ -201,8 +200,8 @@ DWORD get_fattime(void); /* Get current time */
 
 /* LFN support functions (defined in ffunicode.c) */
 
-WCHAR ff_oem2uni(WCHAR oem, WORD cp); /* OEM code to Unicode conversion */
-WCHAR ff_uni2oem(DWORD uni, WORD cp); /* Unicode to OEM code conversion */
+uint16_t ff_oem2uni(uint16_t oem, WORD cp); /* OEM code to Unicode conversion */
+uint16_t ff_uni2oem(DWORD uni, WORD cp); /* Unicode to OEM code conversion */
 DWORD ff_wtoupper(DWORD uni);         /* Unicode upper-case conversion */
 
 /* O/S dependent functions (samples available in ffsystem.c) */
