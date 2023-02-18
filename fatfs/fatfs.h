@@ -32,12 +32,11 @@ extern "C" {
 typedef unsigned int UINT;  /* int must be 16-bit or 32-bit */
 typedef uint8_t BYTE;       /* char must be 8-bit */
 typedef uint16_t WORD;      /* 16-bit unsigned integer */
-typedef uint32_t DWORD;     /* 32-bit unsigned integer */
 
 /* Type of file size and LBA variables */
 
 typedef uint64_t FSIZE_t; // exFAT enabled
-typedef DWORD LBA_t;      // only LBA-32 is supported
+typedef uint32_t LBA_t;      // only LBA-32 is supported
 
 /* Definitions of volume management */
 
@@ -65,17 +64,17 @@ typedef struct {
     uint16_t *lfnbuf; /* LFN working buffer */
     BYTE *dirbuf; /* Directory entry block scratchpad buffer for exFAT */
 #if !FF_FS_READONLY
-    DWORD last_clst; /* Last allocated cluster */
-    DWORD free_clst; /* Number of free clusters */
+    uint32_t last_clst; /* Last allocated cluster */
+    uint32_t free_clst; /* Number of free clusters */
 #endif
 #if FF_FS_RPATH
-    DWORD cdir; /* Current directory start cluster (0:root) */
-    DWORD cdc_scl;  /* Containing directory start cluster (invalid when cdir is 0) */
-    DWORD cdc_size; /* b31-b8:Size of containing directory, b7-b0: Chain status */
-    DWORD cdc_ofs;  /* Offset in the containing directory (invalid when cdir is 0) */
+    uint32_t cdir; /* Current directory start cluster (0:root) */
+    uint32_t cdc_scl;  /* Containing directory start cluster (invalid when cdir is 0) */
+    uint32_t cdc_size; /* b31-b8:Size of containing directory, b7-b0: Chain status */
+    uint32_t cdc_ofs;  /* Offset in the containing directory (invalid when cdir is 0) */
 #endif
-    DWORD n_fatent; /* Number of FAT entries (number of clusters + 2) */
-    DWORD fsize;    /* Number of sectors per FAT */
+    uint32_t n_fatent; /* Number of FAT entries (number of clusters + 2) */
+    uint32_t fsize;    /* Number of sectors per FAT */
     LBA_t volbase;  /* Volume base sector */
     LBA_t fatbase;  /* FAT base sector */
     LBA_t dirbase;  /* Root directory base sector (FAT12/16) or cluster (FAT32/exFAT) */
@@ -93,14 +92,14 @@ typedef struct {
     BYTE attr; /* Object attribute */
     BYTE stat; /* Object chain status (b1-0: =0:not contiguous, =2:contiguous, =3:fragmented in this
                   session, b2:sub-directory stretched) */
-    DWORD sclust;    /* Object data start cluster (0:no cluster or root directory) */
+    uint32_t sclust;    /* Object data start cluster (0:no cluster or root directory) */
     FSIZE_t objsize; /* Object size (valid when sclust != 0) */
-    DWORD n_cont; /* Size of first fragment - 1 (valid when stat == 3) */
-    DWORD n_frag; /* Size of last fragment needs to be written to FAT (valid when not zero) */
-    DWORD c_scl;  /* Containing directory start cluster (valid when sclust != 0) */
-    DWORD c_size; /* b31-b8:Size of containing directory, b7-b0: Chain status (valid when c_scl !=
+    uint32_t n_cont; /* Size of first fragment - 1 (valid when stat == 3) */
+    uint32_t n_frag; /* Size of last fragment needs to be written to FAT (valid when not zero) */
+    uint32_t c_scl;  /* Containing directory start cluster (valid when sclust != 0) */
+    uint32_t c_size; /* b31-b8:Size of containing directory, b7-b0: Chain status (valid when c_scl !=
                      0) */
-    DWORD c_ofs;  /* Offset in the containing directory (valid when file object and sclust != 0) */
+    uint32_t c_ofs;  /* Offset in the containing directory (valid when file object and sclust != 0) */
 #if FF_FS_LOCK
     UINT lockid; /* File lock ID origin from 1 (index of file semaphore table Files[]) */
 #endif
@@ -113,14 +112,14 @@ typedef struct {
     BYTE flag;    /* File status flags */
     BYTE err;     /* Abort flag (error code) */
     FSIZE_t fptr; /* File read/write pointer (Zeroed on file open) */
-    DWORD clust;  /* Current cluster of fpter (invalid when fptr is 0) */
+    uint32_t clust;  /* Current cluster of fpter (invalid when fptr is 0) */
     LBA_t sect;   /* Sector number appearing in buf[] (0:invalid) */
 #if !FF_FS_READONLY
     LBA_t dir_sect; /* Sector number containing the directory entry (not used at exFAT) */
     BYTE *dir_ptr;  /* Pointer to the directory entry in the win[] (not used at exFAT) */
 #endif
 #if FF_USE_FASTSEEK
-    DWORD *cltbl; /* Pointer to the cluster link map table (nulled on open, set by application) */
+    uint32_t *cltbl; /* Pointer to the cluster link map table (nulled on open, set by application) */
 #endif
 #if !FF_FS_TINY
     BYTE buf[FF_MAX_SS]; /* File private data read/write window */
@@ -131,12 +130,12 @@ typedef struct {
 
 typedef struct {
     FFOBJID obj; /* Object identifier */
-    DWORD dptr;  /* Current read/write offset */
-    DWORD clust; /* Current cluster */
+    uint32_t dptr;  /* Current read/write offset */
+    uint32_t clust; /* Current cluster */
     LBA_t sect;  /* Current sector (0:Read operation has terminated) */
     BYTE *dir;   /* Pointer to the directory item in the win[] */
     BYTE fn[12]; /* SFN (in/out) {body[8],ext[3],status[1]} */
-    DWORD blk_ofs; /* Offset of current entry block being processed (0xFFFFFFFF:Invalid) */
+    uint32_t blk_ofs; /* Offset of current entry block being processed (0xFFFFFFFF:Invalid) */
 #if FF_USE_FIND
     const char *pat; /* Pointer to the name matching pattern */
 #endif
@@ -160,7 +159,7 @@ typedef struct {
     BYTE n_fat;    /* Number of FATs */
     UINT align;    /* Data area alignment (sector) */
     UINT n_root;   /* Number of root directory entries */
-    DWORD au_size; /* Cluster size (byte) */
+    uint32_t au_size; /* Cluster size (byte) */
 } MKFS_PARM;
 
 /* File function return code (FRESULT) */
@@ -194,14 +193,14 @@ typedef enum {
 
 /* RTC function (provided by user) */
 #if !FF_FS_READONLY && !FF_FS_NORTC
-DWORD get_fattime(void); /* Get current time */
+uint32_t get_fattime(void); /* Get current time */
 #endif
 
 /* LFN support functions (defined in ffunicode.c) */
 
 uint16_t ff_oem2uni(uint16_t oem, WORD cp); /* OEM code to Unicode conversion */
-uint16_t ff_uni2oem(DWORD uni, WORD cp); /* Unicode to OEM code conversion */
-DWORD ff_wtoupper(DWORD uni);         /* Unicode upper-case conversion */
+uint16_t ff_uni2oem(uint32_t uni, WORD cp); /* Unicode to OEM code conversion */
+uint32_t ff_wtoupper(uint32_t uni);         /* Unicode upper-case conversion */
 
 /* O/S dependent functions (samples available in ffsystem.c) */
 

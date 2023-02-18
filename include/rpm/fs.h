@@ -57,9 +57,9 @@ FRESULT f_getcwd(char *buff, UINT len);                  /* Get current director
 FRESULT f_mount(FATFS *fs, const char *path, BYTE opt); /* Mount/Unmount a logical drive */
 FRESULT f_mkfs(const char *path, const MKFS_PARM *opt, void *work,
                UINT len); /* Create a FAT volume */
-FRESULT f_getfree(const char *path, DWORD *nclst,
+FRESULT f_getfree(const char *path, uint32_t *nclst,
                   FATFS **fatfs); /* Get number of free clusters on the drive */
-FRESULT f_getlabel(const char *path, char *label, DWORD *vsn); /* Get volume label */
+FRESULT f_getlabel(const char *path, char *label, uint32_t *vsn); /* Get volume label */
 FRESULT f_setlabel(const char *label);                          /* Set volume label */
 #define f_unmount(path) f_mount(0, path, 0)
 

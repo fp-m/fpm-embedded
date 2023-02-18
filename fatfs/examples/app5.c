@@ -5,7 +5,7 @@
 FRESULT test_contiguous_file(FIL *fp,   /* [IN]  Open file object to be checked */
                              int *cont) /* [OUT] 1:Contiguous, 0:Fragmented or zero-length */
 {
-    DWORD clst, clsz, step;
+    uint32_t clst, clsz, step;
     FSIZE_t fsz;
     FRESULT fr;
 
@@ -15,15 +15,15 @@ FRESULT test_contiguous_file(FIL *fp,   /* [IN]  Open file object to be checked 
         return fr;
 
 #if FF_MAX_SS == FF_MIN_SS
-    clsz = (DWORD)fp->obj.fs->csize * FF_MAX_SS; /* Cluster size */
+    clsz = (uint32_t)fp->obj.fs->csize * FF_MAX_SS; /* Cluster size */
 #else
-    clsz = (DWORD)fp->obj.fs->csize * fp->obj.fs->ssize;
+    clsz = (uint32_t)fp->obj.fs->csize * fp->obj.fs->ssize;
 #endif
     fsz = f_size(fp);
     if (fsz > 0) {
         clst = fp->obj.sclust - 1; /* A cluster leading the first cluster for first test */
         while (fsz) {
-            step = (fsz >= clsz) ? clsz : (DWORD)fsz;
+            step = (fsz >= clsz) ? clsz : (uint32_t)fsz;
             fr = f_lseek(fp, f_tell(fp) + step); /* Advances file pointer a cluster */
             if (fr != FR_OK)
                 return fr;

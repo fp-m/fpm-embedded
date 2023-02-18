@@ -82,14 +82,14 @@ void time_init()
 }
 
 // Called by FatFs:
-DWORD get_fattime(void)
+uint32_t get_fattime(void)
 {
     datetime_t t = { 0, 0, 0, 0, 0, 0, 0 };
     bool rc = rtc_get_datetime(&t);
     if (!rc)
         return 0;
 
-    DWORD fattime = 0;
+    uint32_t fattime = 0;
     // bit31:25
     // Year origin from the 1980 (0..127, e.g. 37 for 2017)
     uint8_t yr = t.year - 1980;

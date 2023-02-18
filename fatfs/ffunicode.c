@@ -20,8 +20,8 @@
 //
 // Returns OEM code character, zero on error
 //
-uint16_t ff_uni2oem(DWORD uni, /* UTF-16 encoded character to be converted */
-                 WORD cp)   /* Code page for the conversion */
+uint16_t ff_uni2oem(uint32_t uni, /* UTF-16 encoded character to be converted */
+                    WORD cp)   /* Code page for the conversion */
 {
     return uni;
 }
@@ -30,7 +30,7 @@ uint16_t ff_uni2oem(DWORD uni, /* UTF-16 encoded character to be converted */
 // Returns Unicode character in UTF-16, zero on error
 //
 uint16_t ff_oem2uni(uint16_t oem, /* OEM code to be converted */
-                 WORD cp)   /* Code page for the conversion */
+                    WORD cp)   /* Code page for the conversion */
 {
     return oem;
 }
@@ -38,7 +38,7 @@ uint16_t ff_oem2uni(uint16_t oem, /* OEM code to be converted */
 //
 // Unicode Up-case Conversion
 //
-DWORD ff_wtoupper(DWORD uni) /* Unicode code point to be up-converted */
+uint32_t ff_wtoupper(uint32_t uni) /* Unicode code point to be up-converted */
 {
     const WORD *p;
     WORD uc, bc, nc, cmd;

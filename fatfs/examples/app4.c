@@ -11,9 +11,9 @@
 #include "fatfs.h"  /* Declarations of sector size */
 
 /* Pseudo random number generator */
-static DWORD pn(DWORD pns) /* 0:Initialize, !0:Read */
+static uint32_t pn(uint32_t pns) /* 0:Initialize, !0:Read */
 {
-    static DWORD lfsr;
+    static uint32_t lfsr;
     UINT n;
 
     if (pns) {
@@ -33,11 +33,11 @@ static DWORD pn(DWORD pns) /* 0:Initialize, !0:Read */
 int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
                               /* (all data on the drive will be lost) */
                 UINT ncyc,    /* Number of test cycles */
-                DWORD *buff,  /* Pointer to the working buffer */
+                uint32_t *buff,  /* Pointer to the working buffer */
                 UINT sz_buff) /* Size of the working buffer in unit of byte */
 {
     UINT n, cc, ns;
-    DWORD sz_drv, lba, lba2, sz_eblk, pns = 1;
+    uint32_t sz_drv, lba, lba2, sz_eblk, pns = 1;
     WORD sz_sect;
     BYTE *pbuff = (BYTE *)buff;
     DSTATUS ds;
@@ -303,7 +303,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
 int main(int argc, char *argv[])
 {
     int rc;
-    DWORD buff[FF_MAX_SS]; /* Working buffer (4 sector in size) */
+    uint32_t buff[FF_MAX_SS]; /* Working buffer (4 sector in size) */
 
     /* Check function/compatibility of the physical drive #0 */
     rc = test_diskio(0, 3, buff, sizeof buff);

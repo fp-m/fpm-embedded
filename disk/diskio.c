@@ -148,7 +148,7 @@ DRESULT disk_ioctl(BYTE pdrv,  /* Physical drive nmuber (0..) */
         return RES_OK;
     }
     case GET_BLOCK_SIZE: { // Retrieves erase block size of the flash
-                           // memory media in unit of sector into the DWORD
+                           // memory media in unit of sector into the uint32_t
                            // variable pointed by buff. The allowable value
                            // is 1 to 32768 in power of 2. Return 1 if the
                            // erase block size is unknown or non flash
@@ -156,8 +156,8 @@ DRESULT disk_ioctl(BYTE pdrv,  /* Physical drive nmuber (0..) */
                            // f_mkfs function and it attempts to align data
                            // area on the erase block boundary. It is
                            // required when FF_USE_MKFS == 1.
-        static DWORD bs = 1;
-        *(DWORD *)buff = bs;
+        static uint32_t bs = 1;
+        *(uint32_t *)buff = bs;
         return RES_OK;
     }
     case CTRL_SYNC:

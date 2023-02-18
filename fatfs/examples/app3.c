@@ -12,15 +12,15 @@
 
 /* Declarations of FatFs internal functions accessible from applications.
 /  This is intended to be used for disk checking/fixing or dirty hacks :-) */
-DWORD clust2sect(FATFS *fs, DWORD clst);
-DWORD get_fat(FATFS *fs, DWORD clst);
-FRESULT put_fat(FATFS *fs, DWORD clst, DWORD val);
+uint32_t clust2sect(FATFS *fs, uint32_t clst);
+uint32_t get_fat(FATFS *fs, uint32_t clst);
+FRESULT put_fat(FATFS *fs, uint32_t clst, uint32_t val);
 
 /* Returns the first sector in LBA (0:error or not contiguous) */
-DWORD allocate_contiguous_clusters(FIL *fp,   /* Pointer to the open file object */
-                                   DWORD len) /* Number of bytes to allocate */
+uint32_t allocate_contiguous_clusters(FIL *fp,   /* Pointer to the open file object */
+                                   uint32_t len) /* Number of bytes to allocate */
 {
-    DWORD csz, tcl, ncl, ccl, cl;
+    uint32_t csz, tcl, ncl, ccl, cl;
 
     if (f_lseek(fp, 0) || !len) /* Check if the given parameters are valid */
         return 0;
@@ -88,7 +88,7 @@ int main(void)
     DRESULT dr;
     FATFS fs;
     FIL fil;
-    DWORD org;
+    uint32_t org;
 
     /* Open or create a file to write */
     f_mount(&fs, "", 0);
