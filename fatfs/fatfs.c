@@ -18,8 +18,8 @@
 /
 /----------------------------------------------------------------------------*/
 
-#include "fatfs.h" /* Declarations of FatFs API */
-#include "rpm/fs.h" /* Declarations of FatFs API */
+#include "fatfs.h" /* Definitions of FatFs structures */
+#include <rpm/fs.h> /* Declarations of FatFs API */
 #include "diskio.h" /* Declarations of device I/O functions */
 #include <string.h>
 
@@ -131,8 +131,8 @@
 #define BS_BootCode32 90   /* FAT32: Boot code (420-byte) */
 
 #define BPB_ZeroedEx 11      /* exFAT: MBZ field (53-byte) */
-#define BPB_VolOfsEx 64      /* exFAT: Volume offset from top of the drive [sector] (QWORD) */
-#define BPB_TotSecEx 72      /* exFAT: Volume size [sector] (QWORD) */
+#define BPB_VolOfsEx 64      /* exFAT: Volume offset from top of the drive [sector] (uint64_t) */
+#define BPB_TotSecEx 72      /* exFAT: Volume size [sector] (uint64_t) */
 #define BPB_FatOfsEx 80      /* exFAT: FAT offset from top of the volume [sector] (DWORD) */
 #define BPB_FatSzEx 84       /* exFAT: FAT size [sector] (DWORD) */
 #define BPB_DataOfsEx 88     /* exFAT: Data offset from top of the volume [sector] (DWORD) */
@@ -182,9 +182,9 @@
 #define XDIR_GenFlags 33      /* exFAT: General secondary flags (BYTE) */
 #define XDIR_NumName 35       /* exFAT: Number of file name characters (BYTE) */
 #define XDIR_NameHash 36      /* exFAT: Hash of file name (WORD) */
-#define XDIR_ValidFileSize 40 /* exFAT: Valid file size (QWORD) */
+#define XDIR_ValidFileSize 40 /* exFAT: Valid file size (uint64_t) */
 #define XDIR_FstClus 52       /* exFAT: First cluster of the file data (DWORD) */
-#define XDIR_FileSize 56      /* exFAT: File/Directory size (QWORD) */
+#define XDIR_FileSize 56      /* exFAT: File/Directory size (uint64_t) */
 
 #define SZDIRE 32  /* Size of a directory entry */
 #define DDEM 0xE5  /* Deleted directory entry mark set to DIR_Name[0] */
@@ -213,21 +213,21 @@
 #define GPTH_Rev 8      /* GPT HDR: Revision (DWORD) */
 #define GPTH_Size 12    /* GPT HDR: Header size (DWORD) */
 #define GPTH_Bcc 16     /* GPT HDR: Header BCC (DWORD) */
-#define GPTH_CurLba 24  /* GPT HDR: This header LBA (QWORD) */
-#define GPTH_BakLba 32  /* GPT HDR: Another header LBA (QWORD) */
-#define GPTH_FstLba 40  /* GPT HDR: First LBA for partition data (QWORD) */
-#define GPTH_LstLba 48  /* GPT HDR: Last LBA for partition data (QWORD) */
+#define GPTH_CurLba 24  /* GPT HDR: This header LBA (uint64_t) */
+#define GPTH_BakLba 32  /* GPT HDR: Another header LBA (uint64_t) */
+#define GPTH_FstLba 40  /* GPT HDR: First LBA for partition data (uint64_t) */
+#define GPTH_LstLba 48  /* GPT HDR: Last LBA for partition data (uint64_t) */
 #define GPTH_DskGuid 56 /* GPT HDR: Disk GUID (16-byte) */
-#define GPTH_PtOfs 72   /* GPT HDR: Partition table LBA (QWORD) */
+#define GPTH_PtOfs 72   /* GPT HDR: Partition table LBA (uint64_t) */
 #define GPTH_PtNum 80   /* GPT HDR: Number of table entries (DWORD) */
 #define GPTH_PteSize 84 /* GPT HDR: Size of table entry (DWORD) */
 #define GPTH_PtBcc 88   /* GPT HDR: Partition table BCC (DWORD) */
 #define SZ_GPTE 128     /* GPT PTE: Size of partition table entry */
 #define GPTE_PtGuid 0   /* GPT PTE: Partition type GUID (16-byte) */
 #define GPTE_UpGuid 16  /* GPT PTE: Partition unique GUID (16-byte) */
-#define GPTE_FstLba 32  /* GPT PTE: First LBA of partition (QWORD) */
-#define GPTE_LstLba 40  /* GPT PTE: Last LBA of partition (QWORD) */
-#define GPTE_Flags 48   /* GPT PTE: Partition flags (QWORD) */
+#define GPTE_FstLba 32  /* GPT PTE: First LBA of partition (uint64_t) */
+#define GPTE_LstLba 40  /* GPT PTE: Last LBA of partition (uint64_t) */
+#define GPTE_Flags 48   /* GPT PTE: Partition flags (uint64_t) */
 #define GPTE_Name 56    /* GPT PTE: Partition name */
 
 //
@@ -452,9 +452,9 @@ static DWORD ld_dword(const BYTE *ptr) /* Load a 4-byte little-endian word */
     return rv;
 }
 
-static QWORD ld_qword(const BYTE *ptr) /* Load an 8-byte little-endian word */
+static uint64_t ld_qword(const BYTE *ptr) /* Load an 8-byte little-endian word */
 {
-    QWORD rv;
+    uint64_t rv;
 
     rv = ptr[7];
     rv = rv << 8 | ptr[6];
@@ -486,7 +486,7 @@ static void st_dword(BYTE *ptr, DWORD val) /* Store a 4-byte word in little-endi
     *ptr++ = (BYTE)val;
 }
 
-static void st_qword(BYTE *ptr, QWORD val) /* Store an 8-byte word in little-endian */
+static void st_qword(BYTE *ptr, uint64_t val) /* Store an 8-byte word in little-endian */
 {
     *ptr++ = (BYTE)val;
     val >>= 8;
@@ -3107,7 +3107,7 @@ static FRESULT mount_volume(                    /* FR_OK(0): successful, !=0: an
      * filesystem object */
 
     if (fmt == 1) {
-        QWORD maxlba;
+        uint64_t maxlba;
         DWORD so, cv, bcl, i;
 
         for (i = BPB_ZeroedEx; i < BPB_ZeroedEx + 53 && fs->win[i] == 0; i++)
@@ -3149,7 +3149,7 @@ static FRESULT mount_volume(                    /* FR_OK(0): successful, !=0: an
         fs->volbase = bsect;
         fs->database = bsect + ld_dword(fs->win + BPB_DataOfsEx);
         fs->fatbase = bsect + ld_dword(fs->win + BPB_FatOfsEx);
-        if (maxlba < (QWORD)fs->database + nclst * fs->csize)
+        if (maxlba < (uint64_t)fs->database + nclst * fs->csize)
             return FR_NO_FILESYSTEM; /* (Volume size must not be smaller than
                                         the size required) */
         fs->dirbase = ld_dword(fs->win + BPB_RootClusEx);
@@ -6501,7 +6501,7 @@ int f_printf(FIL *fp,          /* Pointer to the file object */
     UINT i, j, w, f, r;
     int prec;
 #if FF_PRINT_LLI
-    QWORD v;
+    uint64_t v;
 #else
     DWORD v;
 #endif
@@ -6626,12 +6626,12 @@ int f_printf(FIL *fp,          /* Pointer to the file object */
         /* Get an integer argument and put it in numeral */
 #if FF_PRINT_LLI
         if (f & 8) { /* long long argument? */
-            v = (QWORD)va_arg(arp, long long);
+            v = (uint64_t)va_arg(arp, long long);
         } else if (f & 4) { /* long argument? */
-            v = (tc == 'd') ? (QWORD)(long long)va_arg(arp, long)
-                            : (QWORD)va_arg(arp, unsigned long);
+            v = (tc == 'd') ? (uint64_t)(long long)va_arg(arp, long)
+                            : (uint64_t)va_arg(arp, unsigned long);
         } else { /* int/short/char argument */
-            v = (tc == 'd') ? (QWORD)(long long)va_arg(arp, int) : (QWORD)va_arg(arp, unsigned int);
+            v = (tc == 'd') ? (uint64_t)(long long)va_arg(arp, int) : (uint64_t)va_arg(arp, unsigned int);
         }
         if (tc == 'd' && (v & 0x8000000000000000)) { /* Negative value? */
             v = 0 - v;

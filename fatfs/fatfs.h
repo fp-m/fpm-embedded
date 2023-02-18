@@ -30,15 +30,14 @@ extern "C" {
 
 #include <stdint.h>
 typedef unsigned int UINT;  /* int must be 16-bit or 32-bit */
-typedef unsigned char BYTE; /* char must be 8-bit */
+typedef uint8_t BYTE;       /* char must be 8-bit */
 typedef uint16_t WORD;      /* 16-bit unsigned integer */
 typedef uint32_t DWORD;     /* 32-bit unsigned integer */
-typedef uint64_t QWORD;     /* 64-bit unsigned integer */
 
 /* Type of file size and LBA variables */
 
-typedef QWORD FSIZE_t; // exFAT enabled
-typedef DWORD LBA_t;   // only LBA-32 is supported
+typedef uint64_t FSIZE_t; // exFAT enabled
+typedef DWORD LBA_t;      // only LBA-32 is supported
 
 /* Definitions of volume management */
 
