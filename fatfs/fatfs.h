@@ -71,7 +71,7 @@ struct _filesystem_t {
     uint8_t win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
 };
 
-/* Object ID and allocation information (FFOBJID) */
+/* Object ID and allocation information (obj_id_t) */
 
 typedef struct {
     struct _filesystem_t *fs; /* Pointer to the hosting volume of this object */
@@ -90,12 +90,12 @@ typedef struct {
 #if FF_FS_LOCK
     unsigned lockid; /* File lock ID origin from 1 (index of file semaphore table Files[]) */
 #endif
-} FFOBJID;
+} obj_id_t;
 
 /* File object structure (file_t) */
 
 struct _file_t {
-    FFOBJID obj;  /* Object identifier (must be the 1st member to detect invalid object pointer) */
+    obj_id_t obj;  /* Object identifier (must be the 1st member to detect invalid object pointer) */
     uint8_t flag;    /* File status flags */
     uint8_t err;     /* Abort flag (error code) */
     fs_size_t fptr; /* File read/write pointer (Zeroed on file open) */
@@ -116,7 +116,7 @@ struct _file_t {
 /* Directory object structure (directory_t) */
 
 struct _directory_t {
-    FFOBJID obj; /* Object identifier */
+    obj_id_t obj; /* Object identifier */
     uint32_t dptr;  /* Current read/write offset */
     uint32_t clust; /* Current cluster */
     fs_lba_t sect;  /* Current sector (0:Read operation has terminated) */

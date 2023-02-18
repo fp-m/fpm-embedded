@@ -881,7 +881,7 @@ static fs_lba_t clst2sect(filesystem_t *fs,  /* Filesystem object */
 /*-----------------------------------------------------------------------*/
 
 /* 0xFFFFFFFF:Disk error, 1:Internal error, 2..0x7FFFFFFF:Cluster status */
-static uint32_t get_fat(FFOBJID *obj, /* Corresponding object */
+static uint32_t get_fat(obj_id_t *obj, /* Corresponding object */
                      uint32_t clst)   /* Cluster number to get the value */
 {
     unsigned wc, bc;
@@ -1115,7 +1115,7 @@ static fs_result_t change_bitmap(filesystem_t *fs,  /* Filesystem object */
 /* Fill the first fragment of the FAT chain    */
 /*---------------------------------------------*/
 
-static fs_result_t fill_first_frag(FFOBJID *obj /* Pointer to the corresponding object */
+static fs_result_t fill_first_frag(obj_id_t *obj /* Pointer to the corresponding object */
 )
 {
     fs_result_t res;
@@ -1137,7 +1137,7 @@ static fs_result_t fill_first_frag(FFOBJID *obj /* Pointer to the corresponding 
 /* Fill the last fragment of the FAT chain     */
 /*---------------------------------------------*/
 
-static fs_result_t fill_last_frag(FFOBJID *obj, /* Pointer to the corresponding object */
+static fs_result_t fill_last_frag(obj_id_t *obj, /* Pointer to the corresponding object */
                               uint32_t lcl,    /* Last cluster of the fragment */
                               uint32_t term    /* Value to set the last FAT entry */
 )
@@ -1162,7 +1162,7 @@ static fs_result_t fill_last_frag(FFOBJID *obj, /* Pointer to the corresponding 
 /*-----------------------------------------------------------------------*/
 
 static fs_result_t remove_chain(              /* FR_OK(0):succeeded, !=0:error */
-                            FFOBJID *obj, /* Corresponding object */
+                            obj_id_t *obj, /* Corresponding object */
                             uint32_t clst,   /* Cluster to remove a chain from */
                             uint32_t pclst   /* Previous cluster of clst (0 if entire chain) */
 )
@@ -1264,7 +1264,7 @@ static fs_result_t remove_chain(              /* FR_OK(0):succeeded, !=0:error *
 
 static uint32_t create_chain(/* 0:No free cluster, 1:Internal error, 0xFFFFFFFF:Disk error,
                              >=2:New cluster# */
-                          FFOBJID *obj, /* Corresponding object */
+                          obj_id_t *obj, /* Corresponding object */
                           uint32_t clst    /* Cluster# to stretch, 0:Create a new chain */
 )
 {
@@ -1951,7 +1951,7 @@ static fs_result_t load_xdir(        /* FR_INT_ERR: invalid entry block */
 /*------------------------------------------------------------------*/
 
 static void init_alloc_info(filesystem_t *fs,   /* Filesystem object */
-                            FFOBJID *obj /* Object allocation information to be initialized */
+                            obj_id_t *obj /* Object allocation information to be initialized */
 )
 {
     obj->sclust = ld_dword(fs->dirbuf + XDIR_FstClus);   /* Start cluster */
@@ -1968,7 +1968,7 @@ static void init_alloc_info(filesystem_t *fs,   /* Filesystem object */
 static fs_result_t load_obj_xdir(
     directory_t *dp,           /* Blank directory object to be used to access containing
                           directory */
-    const FFOBJID *obj /* Object with its containing directory information */
+    const obj_id_t *obj /* Object with its containing directory information */
 )
 {
     fs_result_t res;
@@ -3305,7 +3305,7 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
 /*-----------------------------------------------------------------------*/
 
 static fs_result_t validate(              /* Returns FR_OK or FR_INVALID_OBJECT */
-                        FFOBJID *obj, /* Pointer to the FFOBJID, the 1st member in the
+                        obj_id_t *obj, /* Pointer to the obj_id_t, the 1st member in the
                                          file_t/directory_t structure, to check validity */
                         filesystem_t **rfs   /* Pointer to pointer to the owner filesystem object to
                                          return */
@@ -4571,7 +4571,7 @@ fs_result_t f_getfree(const char *path, /* Logical drive number */
     uint32_t nfree, clst, stat;
     fs_lba_t sect;
     unsigned i;
-    FFOBJID obj;
+    obj_id_t obj;
 
     /* Get logical drive */
     res = mount_volume(&path, &fs, 0);
@@ -4717,7 +4717,7 @@ fs_result_t f_unlink(const char *path /* Pointer to the file or directory path *
     filesystem_t *fs;
     directory_t dj, sdj;
     uint32_t dclst = 0;
-    FFOBJID obj;
+    obj_id_t obj;
     DEF_NAMBUF
 
     /* Get logical drive */
@@ -4798,7 +4798,7 @@ fs_result_t f_mkdir(const char *path /* Pointer to the directory path */
     fs_result_t res;
     filesystem_t *fs;
     directory_t dj;
-    FFOBJID sobj;
+    obj_id_t sobj;
     uint32_t dcl, pcl, tm;
     DEF_NAMBUF
 
