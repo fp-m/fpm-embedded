@@ -12,9 +12,9 @@
 
 /* Declarations of FatFs internal functions accessible from applications.
 /  This is intended to be used for disk checking/fixing or dirty hacks :-) */
-uint32_t clust2sect(FATFS *fs, uint32_t clst);
-uint32_t get_fat(FATFS *fs, uint32_t clst);
-fs_result_t put_fat(FATFS *fs, uint32_t clst, uint32_t val);
+uint32_t clust2sect(filesystem_t *fs, uint32_t clst);
+uint32_t get_fat(filesystem_t *fs, uint32_t clst);
+fs_result_t put_fat(filesystem_t *fs, uint32_t clst, uint32_t val);
 
 /* Returns the first sector in LBA (0:error or not contiguous) */
 uint32_t allocate_contiguous_clusters(file_t *fp,   /* Pointer to the open file object */
@@ -86,12 +86,12 @@ int main(void)
 {
     fs_result_t fr;
     DRESULT dr;
-    FATFS fs;
+    filesystem_t *fs = alloca(f_sizeof_filesystem_t());
     file_t *fil = alloca(f_sizeof_file_t());
     uint32_t org;
 
     /* Open or create a file to write */
-    f_mount(&fs, "", 0);
+    f_mount(fs, "", 0);
     fr = f_open(fil, "fastrec.log", FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
     if (fr)
         return 1;

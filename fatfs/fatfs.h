@@ -33,9 +33,9 @@ extern "C" {
 typedef uint64_t fs_size_t; // Type for file size in bytes.
 typedef uint32_t fs_lba_t;  // only LBA-32 is supported
 
-/* Filesystem object structure (FATFS) */
+/* Filesystem object structure (filesystem_t) */
 
-typedef struct {
+struct _filesystem_t {
     uint8_t fs_type;   /* Filesystem type (0:not mounted) */
     uint8_t pdrv;      /* Volume hosting physical drive */
     uint8_t ldrv;      /* Logical drive number (used only when FF_FS_REENTRANT) */
@@ -69,12 +69,12 @@ typedef struct {
     fs_lba_t bitbase; /* Allocation bitmap base sector */
     fs_lba_t winsect;       /* Current sector appearing in the win[] */
     uint8_t win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
-} FATFS;
+};
 
 /* Object ID and allocation information (FFOBJID) */
 
 typedef struct {
-    FATFS *fs; /* Pointer to the hosting volume of this object */
+    struct _filesystem_t *fs; /* Pointer to the hosting volume of this object */
     uint16_t id;   /* Hosting volume's mount ID */
     uint8_t attr; /* Object attribute */
     uint8_t stat; /* Object chain status (b1-0: =0:not contiguous, =2:contiguous, =3:fragmented in this
@@ -215,7 +215,7 @@ extern const char *VolumeStr[FF_VOLUMES]; /* User defied volume ID */
 #define FM_ANY 0x07
 #define FM_SFD 0x08
 
-/* Filesystem type (FATFS.fs_type) */
+/* Filesystem type (filesystem_t.fs_type) */
 #define FS_FAT12 1
 #define FS_FAT16 2
 #define FS_FAT32 3

@@ -9,7 +9,7 @@
 int main()
 {
     fs_result_t fr;
-    FATFS fs;
+    filesystem_t *fs = alloca(f_sizeof_filesystem_t());
     file_t *fil = alloca(f_sizeof_file_t());
     int ret;
     char buf[100];
@@ -37,7 +37,7 @@ int main()
     }
 
     // Mount drive
-    fr = f_mount(&fs, "0:", 1);
+    fr = f_mount(fs, "0:", 1);
     if (fr != FR_OK) {
         printf("ERROR: Could not mount filesystem (%d)\r\n", fr);
         while (true);

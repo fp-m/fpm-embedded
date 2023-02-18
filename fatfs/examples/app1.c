@@ -22,11 +22,11 @@ fs_result_t open_append(file_t *fp,          /* [OUT] File object to create */
 int main(void)
 {
     fs_result_t fr;
-    FATFS fs;
+    filesystem_t *fs = alloca(f_sizeof_filesystem_t());
     file_t *fil = alloca(f_sizeof_file_t());
 
     /* Open or create a log file and ready to append */
-    f_mount(&fs, "", 0);
+    f_mount(fs, "", 0);
     fr = open_append(fil, "logfile.txt");
     if (fr != FR_OK)
         return 1;

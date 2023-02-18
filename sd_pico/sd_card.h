@@ -20,7 +20,6 @@ specific language governing permissions and limitations under the License.
 
 #include <stdint.h>
 #include "pico/mutex.h"
-#include "fatfs.h"
 #include "spi.h"
 
 #ifdef __cplusplus
@@ -43,7 +42,6 @@ typedef struct {
     uint64_t sectors; // Assigned dynamically
     int card_type;    // Assigned dynamically
     mutex_t mutex;
-    FATFS fatfs;
     bool mounted;
 } sd_card_t;
 

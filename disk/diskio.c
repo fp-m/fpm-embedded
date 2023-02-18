@@ -22,7 +22,6 @@ specific language governing permissions and limitations under the License.
 /*-----------------------------------------------------------------------*/
 #include <stdio.h>
 
-#include "fatfs.h"  /* Obtains integer types */
 #include "diskio.h" /* Declarations of disk functions */
 #include "hw_config.h"
 #include "my_debug.h"
@@ -88,8 +87,8 @@ static int sdrc2dresult(int sd_rc)
 
 DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the drive */
                   uint8_t *buff,   /* Data buffer to store read data */
-                  fs_lba_t sector, /* Start sector in LBA */
-                  unsigned count)   /* Number of sectors to read */
+                  unsigned sector, /* Start sector in LBA */
+                  unsigned count)  /* Number of sectors to read */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
@@ -107,8 +106,8 @@ DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the driv
 
 DRESULT disk_write(uint8_t pdrv,        /* Physical drive nmuber to identify the drive */
                    const uint8_t *buff, /* Data to be written */
-                   fs_lba_t sector,     /* Start sector in LBA */
-                   unsigned count)       /* Number of sectors to write */
+                   unsigned sector,     /* Start sector in LBA */
+                   unsigned count)      /* Number of sectors to write */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
@@ -140,9 +139,8 @@ DRESULT disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
                              // function to determine the size of
                              // volume/partition to be created. It is
                              // required when FF_USE_MKFS == 1.
-        static fs_lba_t n;
-        n = sd_sectors(p_sd);
-        *(fs_lba_t *)buff = n;
+        unsigned n = sd_sectors(p_sd);
+        *(uint32_t *)buff = n;
         if (!n)
             return RES_ERROR;
         return RES_OK;

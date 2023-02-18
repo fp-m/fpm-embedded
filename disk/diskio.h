@@ -5,6 +5,8 @@
 #ifndef _DISKIO_DEFINED
 #define _DISKIO_DEFINED
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,8 +28,8 @@ typedef enum {
 
 DSTATUS disk_initialize(uint8_t pdrv);
 DSTATUS disk_status(uint8_t pdrv);
-DRESULT disk_read(uint8_t pdrv, uint8_t *buff, fs_lba_t sector, unsigned count);
-DRESULT disk_write(uint8_t pdrv, const uint8_t *buff, fs_lba_t sector, unsigned count);
+DRESULT disk_read(uint8_t pdrv, uint8_t *buff, unsigned sector, unsigned count);
+DRESULT disk_write(uint8_t pdrv, const uint8_t *buff, unsigned sector, unsigned count);
 DRESULT disk_ioctl(uint8_t pdrv, uint8_t cmd, void *buff);
 
 /* Disk Status Bits (DSTATUS) */

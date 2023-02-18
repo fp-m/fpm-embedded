@@ -53,11 +53,11 @@ fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory 
 int main(void) /* How to use */
 {
     fs_result_t fr;
-    FATFS fs;
+    filesystem_t *fs = alloca(f_sizeof_filesystem_t());
     char buff[256];
     file_info_t fno;
 
-    f_mount(&fs, _T("5:"), 0);
+    f_mount(fs, _T("5:"), 0);
 
     /* Directory to be deleted */
     _tcscpy(buff, _T("5:dir"));
