@@ -37,6 +37,7 @@ add_library(rpm_kernel STATIC
     rpm_puts.c
     rpm_putwch.c
     rpm_shell.c
+    rpm_exec.c
     rpm_strlcpy.c
     rpm_strwlen.c
     rpm_tokenize.c

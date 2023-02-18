@@ -8,7 +8,7 @@ include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 project(rpm_shell_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-Wall -Werror -Wmissing-prototypes)
+add_compile_options(-Wall -Werror)
 
 # Creates a pico-sdk subdirectory in our project for the libraries
 pico_sdk_init()

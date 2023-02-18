@@ -127,27 +127,14 @@ int rpm_get_dotw(int year, int month, int day);
 //
 void rpm_reboot(void);
 
+//
+// Execute internal command or external program with given arguments.
+//
+void rpm_exec(int argc, char *argv[]);
+
 //TODO: sysvar_time
 
 #if 0 // TODO
-; MOS high level functions
-;
-mos_load:		EQU	01h
-mos_save:		EQU	02h
-mos_cd:			EQU	03h
-mos_dir:		EQU	04h
-mos_del:		EQU	05h
-mos_ren:		EQU	06h
-mos_mkdir:		EQU	07h
-mos_sysvars:		EQU	08h
-mos_fopen:		EQU	0Ah
-mos_fclose:		EQU	0Bh
-mos_fgetc:		EQU	0Ch
-mos_fputc:		EQU	0Dh
-mos_feof:		EQU	0Eh
-mos_getError:		EQU	0Fh
-mos_oscli:		EQU	10h
-
 ; FatFS file access functions
 ;
 ffs_fopen:		EQU	80h

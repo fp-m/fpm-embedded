@@ -3,6 +3,7 @@ TOP             = ../..
 CFLAGS          = -g -Wall -Werror -Wmissing-prototypes -I$(TOP)/include
 OBJ             = main_unix.o \
                   $(TOP)/kernel/rpm_shell.o \
+                  $(TOP)/kernel/rpm_exec.o \
                   $(TOP)/kernel/rpm_puts.o \
                   $(TOP)/kernel/rpm_wputs.o \
                   $(TOP)/kernel/rpm_strwlen.o \
