@@ -2,6 +2,7 @@
 // Show or change the system date
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <rpm/internal.h>
 
 static void set_date(const char *str)

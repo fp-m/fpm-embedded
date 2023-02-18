@@ -2,6 +2,7 @@
 // Restart the RP/M kernel
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <rpm/internal.h>
 
 void rpm_cmd_reboot(int argc, char *argv[])

@@ -25,6 +25,7 @@
 // SOFTWARE.
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <stdlib.h>
 #include <string.h>
 

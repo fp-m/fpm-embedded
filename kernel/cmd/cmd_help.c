@@ -2,6 +2,7 @@
 // Show all built-in commands.
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <rpm/internal.h>
 
 void rpm_cmd_help(int argc, char *argv[])

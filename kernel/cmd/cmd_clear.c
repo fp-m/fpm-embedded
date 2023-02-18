@@ -2,6 +2,7 @@
 // Clear the console screen
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <rpm/internal.h>
 
 void rpm_cmd_clear(int argc, char *argv[])

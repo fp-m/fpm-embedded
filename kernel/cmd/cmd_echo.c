@@ -2,6 +2,7 @@
 // Copy text directly to the console output
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <rpm/internal.h>
 
 void rpm_cmd_echo(int argc, char *argv[])

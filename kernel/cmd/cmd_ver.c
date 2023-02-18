@@ -2,6 +2,7 @@
 // Show the version of RP/M software
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <rpm/internal.h>
 
 void rpm_cmd_ver(int argc, char *argv[])

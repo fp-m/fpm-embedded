@@ -1,6 +1,6 @@
 PROG            = rpm_shell_unix
 TOP             = ../..
-CFLAGS          = -g -Wall -I$(TOP)/include
+CFLAGS          = -g -Wall -Werror -Wmissing-prototypes -I$(TOP)/include
 OBJ             = main_unix.o \
                   $(TOP)/kernel/rpm_shell.o \
                   $(TOP)/kernel/rpm_puts.o \
@@ -29,7 +29,7 @@ CFLAGS          += -DGIT_REVCOUNT=\"$(GIT_REVCOUNT)\" -DGIT_COMMIT=\"$(GIT_COMMI
 all:            $(PROG)
 
 clean:
-		rm -f $(PROG) *.o $(TOP)/kernel/*.o
+		rm -f $(PROG) *.o $(TOP)/kernel/*.o $(TOP)/kernel/cmd/*.o
 
 $(PROG):        $(OBJ)
 		$(CC) $(LDFLAGS) $(OBJ) $(LIBS) -o $@

@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <cmocka.h>
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 
 //
 // Buffer for stdout messages from rpm_getopt().

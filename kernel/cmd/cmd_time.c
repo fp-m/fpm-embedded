@@ -2,6 +2,7 @@
 // Set or show the current system time
 //
 #include <rpm/api.h>
+#include <rpm/getopt.h>
 #include <rpm/internal.h>
 
 static void set_time(const char *str)
