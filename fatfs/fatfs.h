@@ -38,18 +38,12 @@ typedef WORD WCHAR;         /* UTF-16 character type */
 
 /* Type of file size and LBA variables */
 
-#if FF_FS_EXFAT
-typedef QWORD FSIZE_t;
-#else
-typedef DWORD FSIZE_t;
-#endif
-typedef DWORD LBA_t; // LBA-32
+typedef QWORD FSIZE_t; // exFAT enabled
+typedef DWORD LBA_t;   // only LBA-32 is supported
 
 /* Type of path name strings on FatFs API (TCHAR) */
 
 typedef char TCHAR;
-#define _T(x) u8##x
-#define _TEXT(x) u8##x
 
 /* Definitions of volume management */
 
@@ -75,20 +69,16 @@ typedef struct {
     WORD ssize; /* Sector size (512, 1024, 2048 or 4096) */
 #endif
     WCHAR *lfnbuf; /* LFN working buffer */
-#if FF_FS_EXFAT
     BYTE *dirbuf; /* Directory entry block scratchpad buffer for exFAT */
-#endif
 #if !FF_FS_READONLY
     DWORD last_clst; /* Last allocated cluster */
     DWORD free_clst; /* Number of free clusters */
 #endif
 #if FF_FS_RPATH
     DWORD cdir; /* Current directory start cluster (0:root) */
-#if FF_FS_EXFAT
     DWORD cdc_scl;  /* Containing directory start cluster (invalid when cdir is 0) */
     DWORD cdc_size; /* b31-b8:Size of containing directory, b7-b0: Chain status */
     DWORD cdc_ofs;  /* Offset in the containing directory (invalid when cdir is 0) */
-#endif
 #endif
     DWORD n_fatent; /* Number of FAT entries (number of clusters + 2) */
     DWORD fsize;    /* Number of sectors per FAT */
@@ -96,9 +86,7 @@ typedef struct {
     LBA_t fatbase;  /* FAT base sector */
     LBA_t dirbase;  /* Root directory base sector (FAT12/16) or cluster (FAT32/exFAT) */
     LBA_t database; /* Data base sector */
-#if FF_FS_EXFAT
     LBA_t bitbase; /* Allocation bitmap base sector */
-#endif
     LBA_t winsect;       /* Current sector appearing in the win[] */
     BYTE win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
 } FATFS;
@@ -113,14 +101,12 @@ typedef struct {
                   session, b2:sub-directory stretched) */
     DWORD sclust;    /* Object data start cluster (0:no cluster or root directory) */
     FSIZE_t objsize; /* Object size (valid when sclust != 0) */
-#if FF_FS_EXFAT
     DWORD n_cont; /* Size of first fragment - 1 (valid when stat == 3) */
     DWORD n_frag; /* Size of last fragment needs to be written to FAT (valid when not zero) */
     DWORD c_scl;  /* Containing directory start cluster (valid when sclust != 0) */
     DWORD c_size; /* b31-b8:Size of containing directory, b7-b0: Chain status (valid when c_scl !=
                      0) */
     DWORD c_ofs;  /* Offset in the containing directory (valid when file object and sclust != 0) */
-#endif
 #if FF_FS_LOCK
     UINT lockid; /* File lock ID origin from 1 (index of file semaphore table Files[]) */
 #endif
