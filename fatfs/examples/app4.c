@@ -30,7 +30,7 @@ static uint32_t pn(uint32_t pns) /* 0:Initialize, !0:Read */
     return lfsr;
 }
 
-int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
+int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                               /* (all data on the drive will be lost) */
                 UINT ncyc,    /* Number of test cycles */
                 uint32_t *buff,  /* Pointer to the working buffer */
@@ -39,7 +39,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
     UINT n, cc, ns;
     uint32_t sz_drv, lba, lba2, sz_eblk, pns = 1;
     uint16_t sz_sect;
-    BYTE *pbuff = (BYTE *)buff;
+    uint8_t *pbuff = (uint8_t *)buff;
     DSTATUS ds;
     DRESULT dr;
 
@@ -113,7 +113,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
         printf("**** Single sector write test ****\n");
         lba = 0;
         for (n = 0, pn(pns); n < sz_sect; n++)
-            pbuff[n] = (BYTE)pn(0);
+            pbuff[n] = (uint8_t)pn(0);
         printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)pbuff, lba);
         dr = disk_write(pdrv, pbuff, lba, 1);
         if (dr == RES_OK) {
@@ -139,7 +139,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
             printf(" - failed.\n");
             return 8;
         }
-        for (n = 0, pn(pns); n < sz_sect && pbuff[n] == (BYTE)pn(0); n++)
+        for (n = 0, pn(pns); n < sz_sect && pbuff[n] == (uint8_t)pn(0); n++)
             ;
         if (n == sz_sect) {
             printf(" Read data matched.\n");
@@ -156,7 +156,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
             ns = 4;
         if (ns > 1) {
             for (n = 0, pn(pns); n < (UINT)(sz_sect * ns); n++)
-                pbuff[n] = (BYTE)pn(0);
+                pbuff[n] = (uint8_t)pn(0);
             printf(" disk_write(%u, 0x%X, %lu, %u)", pdrv, (UINT)pbuff, lba, ns);
             dr = disk_write(pdrv, pbuff, lba, ns);
             if (dr == RES_OK) {
@@ -182,7 +182,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
                 printf(" - failed.\n");
                 return 13;
             }
-            for (n = 0, pn(pns); n < (UINT)(sz_sect * ns) && pbuff[n] == (BYTE)pn(0); n++)
+            for (n = 0, pn(pns); n < (UINT)(sz_sect * ns) && pbuff[n] == (uint8_t)pn(0); n++)
                 ;
             if (n == (UINT)(sz_sect * ns)) {
                 printf(" Read data matched.\n");
@@ -198,7 +198,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
         printf("**** Single sector write test (unaligned buffer address) ****\n");
         lba = 5;
         for (n = 0, pn(pns); n < sz_sect; n++)
-            pbuff[n + 3] = (BYTE)pn(0);
+            pbuff[n + 3] = (uint8_t)pn(0);
         printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)(pbuff + 3), lba);
         dr = disk_write(pdrv, pbuff + 3, lba, 1);
         if (dr == RES_OK) {
@@ -224,7 +224,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
             printf(" - failed.\n");
             return 17;
         }
-        for (n = 0, pn(pns); n < sz_sect && pbuff[n + 5] == (BYTE)pn(0); n++)
+        for (n = 0, pn(pns); n < sz_sect && pbuff[n + 5] == (uint8_t)pn(0); n++)
             ;
         if (n == sz_sect) {
             printf(" Read data matched.\n");
@@ -239,7 +239,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
             lba = 6;
             lba2 = lba + 0x80000000 / (sz_sect / 2);
             for (n = 0, pn(pns); n < (UINT)(sz_sect * 2); n++)
-                pbuff[n] = (BYTE)pn(0);
+                pbuff[n] = (uint8_t)pn(0);
             printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)pbuff, lba);
             dr = disk_write(pdrv, pbuff, lba, 1);
             if (dr == RES_OK) {
@@ -281,7 +281,7 @@ int test_diskio(BYTE pdrv,    /* Physical drive number to be checked */
                 printf(" - failed.\n");
                 return 23;
             }
-            for (n = 0, pn(pns); pbuff[n] == (BYTE)pn(0) && n < (UINT)(sz_sect * 2); n++)
+            for (n = 0, pn(pns); pbuff[n] == (uint8_t)pn(0) && n < (UINT)(sz_sect * 2); n++)
                 ;
             if (n == (UINT)(sz_sect * 2)) {
                 printf(" Read data matched.\n");

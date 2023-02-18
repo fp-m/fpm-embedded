@@ -8,7 +8,7 @@
 #include "diskio.h"
 #include "fatfs.h"
 
-int test_raw_speed(BYTE pdrv,    /* Physical drive number */
+int test_raw_speed(uint8_t pdrv,    /* Physical drive number */
                    uint32_t lba,    /* Start LBA for read/write test */
                    uint32_t len,    /* Number of bytes to read/write (must be multiple of sz_buff) */
                    void *buff,   /* Read/write buffer */

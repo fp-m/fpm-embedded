@@ -96,20 +96,20 @@
 #define BS_JmpBoot 0      /* x86 jump instruction (3-byte) */
 #define BS_OEMName 3      /* OEM name (8-byte) */
 #define BPB_BytsPerSec 11 /* Sector size [byte] (uint16_t) */
-#define BPB_SecPerClus 13 /* Cluster size [sector] (BYTE) */
+#define BPB_SecPerClus 13 /* Cluster size [sector] (uint8_t) */
 #define BPB_RsvdSecCnt 14 /* Size of reserved area [sector] (uint16_t) */
-#define BPB_NumFATs 16    /* Number of FATs (BYTE) */
+#define BPB_NumFATs 16    /* Number of FATs (uint8_t) */
 #define BPB_RootEntCnt 17 /* Size of root directory area for FAT [entry] (uint16_t) */
 #define BPB_TotSec16 19   /* Volume size (16-bit) [sector] (uint16_t) */
-#define BPB_Media 21      /* Media descriptor byte (BYTE) */
+#define BPB_Media 21      /* Media descriptor byte (uint8_t) */
 #define BPB_FATSz16 22    /* FAT size (16-bit) [sector] (uint16_t) */
 #define BPB_SecPerTrk 24  /* Number of sectors per track for int13h [sector] (uint16_t) */
 #define BPB_NumHeads 26   /* Number of heads for int13h (uint16_t) */
 #define BPB_HiddSec 28    /* Volume offset from top of the drive (uint32_t) */
 #define BPB_TotSec32 32   /* Volume size (32-bit) [sector] (uint32_t) */
-#define BS_DrvNum 36      /* Physical drive number for int13h (BYTE) */
-#define BS_NTres 37       /* WindowsNT error flag (BYTE) */
-#define BS_BootSig 38     /* Extended boot signature (BYTE) */
+#define BS_DrvNum 36      /* Physical drive number for int13h (uint8_t) */
+#define BS_NTres 37       /* WindowsNT error flag (uint8_t) */
+#define BS_BootSig 38     /* Extended boot signature (uint8_t) */
 #define BS_VolID 39       /* Volume serial number (uint32_t) */
 #define BS_VolLab 43      /* Volume label string (8-byte) */
 #define BS_FilSysType 54  /* Filesystem type string (8-byte) */
@@ -122,9 +122,9 @@
 #define BPB_RootClus32 44  /* FAT32: Root directory cluster (uint32_t) */
 #define BPB_FSInfo32 48    /* FAT32: Offset of FSINFO sector (uint16_t) */
 #define BPB_BkBootSec32 50 /* FAT32: Offset of backup boot sector (uint16_t) */
-#define BS_DrvNum32 64     /* FAT32: Physical drive number for int13h (BYTE) */
-#define BS_NTres32 65      /* FAT32: Error flag (BYTE) */
-#define BS_BootSig32 66    /* FAT32: Extended boot signature (BYTE) */
+#define BS_DrvNum32 64     /* FAT32: Physical drive number for int13h (uint8_t) */
+#define BS_NTres32 65      /* FAT32: Error flag (uint8_t) */
+#define BS_BootSig32 66    /* FAT32: Extended boot signature (uint8_t) */
 #define BS_VolID32 67      /* FAT32: Volume serial number (uint32_t) */
 #define BS_VolLab32 71     /* FAT32: Volume label string (8-byte) */
 #define BS_FilSysType32 82 /* FAT32: Filesystem type string (8-byte) */
@@ -141,46 +141,46 @@
 #define BPB_VolIDEx 100      /* exFAT: Volume serial number (uint32_t) */
 #define BPB_FSVerEx 104      /* exFAT: Filesystem version (uint16_t) */
 #define BPB_VolFlagEx 106    /* exFAT: Volume flags (uint16_t) */
-#define BPB_BytsPerSecEx 108 /* exFAT: Log2 of sector size in unit of byte (BYTE) */
-#define BPB_SecPerClusEx 109 /* exFAT: Log2 of cluster size in unit of sector (BYTE) */
-#define BPB_NumFATsEx 110    /* exFAT: Number of FATs (BYTE) */
-#define BPB_DrvNumEx 111     /* exFAT: Physical drive number for int13h (BYTE) */
-#define BPB_PercInUseEx 112  /* exFAT: Percent in use (BYTE) */
+#define BPB_BytsPerSecEx 108 /* exFAT: Log2 of sector size in unit of byte (uint8_t) */
+#define BPB_SecPerClusEx 109 /* exFAT: Log2 of cluster size in unit of sector (uint8_t) */
+#define BPB_NumFATsEx 110    /* exFAT: Number of FATs (uint8_t) */
+#define BPB_DrvNumEx 111     /* exFAT: Physical drive number for int13h (uint8_t) */
+#define BPB_PercInUseEx 112  /* exFAT: Percent in use (uint8_t) */
 #define BPB_RsvdEx 113       /* exFAT: Reserved (7-byte) */
 #define BS_BootCodeEx 120    /* exFAT: Boot code (390-byte) */
 
 #define DIR_Name 0            /* Short file name (11-byte) */
-#define DIR_Attr 11           /* Attribute (BYTE) */
-#define DIR_NTres 12          /* Lower case flag (BYTE) */
-#define DIR_CrtTime10 13      /* Created time sub-second (BYTE) */
+#define DIR_Attr 11           /* Attribute (uint8_t) */
+#define DIR_NTres 12          /* Lower case flag (uint8_t) */
+#define DIR_CrtTime10 13      /* Created time sub-second (uint8_t) */
 #define DIR_CrtTime 14        /* Created time (uint32_t) */
 #define DIR_LstAccDate 18     /* Last accessed date (uint16_t) */
 #define DIR_FstClusHI 20      /* Higher 16-bit of first cluster (uint16_t) */
 #define DIR_ModTime 22        /* Modified time (uint32_t) */
 #define DIR_FstClusLO 26      /* Lower 16-bit of first cluster (uint16_t) */
 #define DIR_FileSize 28       /* File size (uint32_t) */
-#define LDIR_Ord 0            /* LFN: LFN order and LLE flag (BYTE) */
-#define LDIR_Attr 11          /* LFN: LFN attribute (BYTE) */
-#define LDIR_Type 12          /* LFN: Entry type (BYTE) */
-#define LDIR_Chksum 13        /* LFN: Checksum of the SFN (BYTE) */
+#define LDIR_Ord 0            /* LFN: LFN order and LLE flag (uint8_t) */
+#define LDIR_Attr 11          /* LFN: LFN attribute (uint8_t) */
+#define LDIR_Type 12          /* LFN: Entry type (uint8_t) */
+#define LDIR_Chksum 13        /* LFN: Checksum of the SFN (uint8_t) */
 #define LDIR_FstClusLO 26     /* LFN: MBZ field (uint16_t) */
-#define XDIR_Type 0           /* exFAT: Type of exFAT directory entry (BYTE) */
-#define XDIR_NumLabel 1       /* exFAT: Number of volume label characters (BYTE) */
+#define XDIR_Type 0           /* exFAT: Type of exFAT directory entry (uint8_t) */
+#define XDIR_NumLabel 1       /* exFAT: Number of volume label characters (uint8_t) */
 #define XDIR_Label 2          /* exFAT: Volume label (11-uint16_t) */
 #define XDIR_CaseSum 4        /* exFAT: Sum of case conversion table (uint32_t) */
-#define XDIR_NumSec 1         /* exFAT: Number of secondary entries (BYTE) */
+#define XDIR_NumSec 1         /* exFAT: Number of secondary entries (uint8_t) */
 #define XDIR_SetSum 2         /* exFAT: Sum of the set of directory entries (uint16_t) */
 #define XDIR_Attr 4           /* exFAT: File attribute (uint16_t) */
 #define XDIR_CrtTime 8        /* exFAT: Created time (uint32_t) */
 #define XDIR_ModTime 12       /* exFAT: Modified time (uint32_t) */
 #define XDIR_AccTime 16       /* exFAT: Last accessed time (uint32_t) */
-#define XDIR_CrtTime10 20     /* exFAT: Created time subsecond (BYTE) */
-#define XDIR_ModTime10 21     /* exFAT: Modified time subsecond (BYTE) */
-#define XDIR_CrtTZ 22         /* exFAT: Created timezone (BYTE) */
-#define XDIR_ModTZ 23         /* exFAT: Modified timezone (BYTE) */
-#define XDIR_AccTZ 24         /* exFAT: Last accessed timezone (BYTE) */
-#define XDIR_GenFlags 33      /* exFAT: General secondary flags (BYTE) */
-#define XDIR_NumName 35       /* exFAT: Number of file name characters (BYTE) */
+#define XDIR_CrtTime10 20     /* exFAT: Created time subsecond (uint8_t) */
+#define XDIR_ModTime10 21     /* exFAT: Modified time subsecond (uint8_t) */
+#define XDIR_CrtTZ 22         /* exFAT: Created timezone (uint8_t) */
+#define XDIR_ModTZ 23         /* exFAT: Modified timezone (uint8_t) */
+#define XDIR_AccTZ 24         /* exFAT: Last accessed timezone (uint8_t) */
+#define XDIR_GenFlags 33      /* exFAT: General secondary flags (uint8_t) */
+#define XDIR_NumName 35       /* exFAT: Number of file name characters (uint8_t) */
 #define XDIR_NameHash 36      /* exFAT: Hash of file name (uint16_t) */
 #define XDIR_ValidFileSize 40 /* exFAT: Valid file size (uint64_t) */
 #define XDIR_FstClus 52       /* exFAT: First cluster of the file data (uint32_t) */
@@ -235,7 +235,7 @@
 //
 #define ABORT(fs, res)         \
     {                          \
-        fp->err = (BYTE)(res); \
+        fp->err = (uint8_t)(res); \
         LEAVE_FF(fs, res);     \
     }
 
@@ -258,7 +258,7 @@
 //
 // Definitions of logical drive - physical location conversion
 //
-#define LD2PD(vol) (BYTE)(vol) // Each logical drive is associated with
+#define LD2PD(vol) (uint8_t)(vol) // Each logical drive is associated with
                                // the same physical drive number
 #define LD2PT(vol) 0           // Auto partition search
 
@@ -330,13 +330,13 @@ static FATFS *FatFs[FF_VOLUMES]; /* Pointer to the filesystem objects
 static uint16_t Fsid;                /* Filesystem mount ID */
 
 #if FF_FS_RPATH != 0
-static BYTE CurrVol; /* Current drive set by f_chdrive() */
+static uint8_t CurrVol; /* Current drive set by f_chdrive() */
 #endif
 
 #if FF_FS_LOCK != 0
 static FILESEM Files[FF_FS_LOCK]; /* Open object lock semaphores */
 #if FF_FS_REENTRANT
-static BYTE SysLock; /* System lock flag (0:no mutex, 1:unlocked, 2:locked) */
+static uint8_t SysLock; /* System lock flag (0:no mutex, 1:unlocked, 2:locked) */
 #endif
 #endif
 
@@ -361,7 +361,7 @@ static const char *const VolumeStr[FF_VOLUMES] = { FF_VOLUME_STRS }; /* Pre-defi
 #endif
 
 /* FAT: Offset of LFN characters in the directory entry */
-static const BYTE LfnOfs[] = { 1, 3, 5, 7, 9, 14, 16, 18, 20, 22, 24, 28, 30 };
+static const uint8_t LfnOfs[] = { 1, 3, 5, 7, 9, 14, 16, 18, 20, 22, 24, 28, 30 };
 
 /* exFAT: Size of directory entry block scratchpad buffer needed for the name length */
 #define MAXDIRB(nc) ((nc + 44U) / 15 * SZDIRE)
@@ -371,7 +371,7 @@ static const BYTE LfnOfs[] = { 1, 3, 5, 7, 9, 14, 16, 18, 20, 22, 24, 28, 30 };
 //
 #if FF_USE_LFN == 1
 
-static BYTE DirBuf[MAXDIRB(FF_MAX_LFN)]; /* Directory entry block scratchpad buffer */
+static uint8_t DirBuf[MAXDIRB(FF_MAX_LFN)]; /* Directory entry block scratchpad buffer */
 static uint16_t LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 #define DEF_NAMBUF
 #define INIT_NAMBUF(fs)
@@ -386,7 +386,7 @@ static uint16_t LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 /* LFN working buffer and directory entry block scratchpad buffer */
 #define DEF_NAMBUF              \
     uint16_t lbuf[FF_MAX_LFN + 1]; \
-    BYTE dbuf[MAXDIRB(FF_MAX_LFN)];
+    uint8_t dbuf[MAXDIRB(FF_MAX_LFN)];
 #define INIT_NAMBUF(fs)      \
     {                        \
         (fs)->lfnbuf = lbuf; \
@@ -409,7 +409,7 @@ static uint16_t LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
         if (!lfn)                                                      \
             LEAVE_FF(fs, FR_NOT_ENOUGH_CORE);                          \
         (fs)->lfnbuf = lfn;                                            \
-        (fs)->dirbuf = (BYTE *)(lfn + FF_MAX_LFN + 1);                 \
+        (fs)->dirbuf = (uint8_t *)(lfn + FF_MAX_LFN + 1);                 \
     }
 #define FREE_NAMBUF() ff_memfree(lfn)
 #define LEAVE_MKFS(res)      \
@@ -432,7 +432,7 @@ static uint16_t LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 /* Load/Store multi-byte word in the FAT structure                       */
 /*-----------------------------------------------------------------------*/
 
-static uint16_t ld_word(const BYTE *ptr) /*	 Load a 2-byte little-endian word */
+static uint16_t ld_word(const uint8_t *ptr) /*	 Load a 2-byte little-endian word */
 {
     uint16_t rv;
 
@@ -441,7 +441,7 @@ static uint16_t ld_word(const BYTE *ptr) /*	 Load a 2-byte little-endian word */
     return rv;
 }
 
-static uint32_t ld_dword(const BYTE *ptr) /* Load a 4-byte little-endian word */
+static uint32_t ld_dword(const uint8_t *ptr) /* Load a 4-byte little-endian word */
 {
     uint32_t rv;
 
@@ -452,7 +452,7 @@ static uint32_t ld_dword(const BYTE *ptr) /* Load a 4-byte little-endian word */
     return rv;
 }
 
-static uint64_t ld_qword(const BYTE *ptr) /* Load an 8-byte little-endian word */
+static uint64_t ld_qword(const uint8_t *ptr) /* Load an 8-byte little-endian word */
 {
     uint64_t rv;
 
@@ -468,41 +468,41 @@ static uint64_t ld_qword(const BYTE *ptr) /* Load an 8-byte little-endian word *
 }
 
 #if !FF_FS_READONLY
-static void st_word(BYTE *ptr, uint16_t val) /* Store a 2-byte word in little-endian */
+static void st_word(uint8_t *ptr, uint16_t val) /* Store a 2-byte word in little-endian */
 {
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
 }
 
-static void st_dword(BYTE *ptr, uint32_t val) /* Store a 4-byte word in little-endian */
+static void st_dword(uint8_t *ptr, uint32_t val) /* Store a 4-byte word in little-endian */
 {
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
 }
 
-static void st_qword(BYTE *ptr, uint64_t val) /* Store an 8-byte word in little-endian */
+static void st_qword(uint8_t *ptr, uint64_t val) /* Store an 8-byte word in little-endian */
 {
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
     val >>= 8;
-    *ptr++ = (BYTE)val;
+    *ptr++ = (uint8_t)val;
 }
 #endif /* !FF_FS_READONLY */
 
@@ -511,7 +511,7 @@ static void st_qword(BYTE *ptr, uint64_t val) /* Store an 8-byte word in little-
 /*-----------------------------------------------------------------------*/
 
 /* Test if the byte is DBC 1st byte */
-static int dbc_1st(BYTE c)
+static int dbc_1st(uint8_t c)
 {
     if (c != 0)
         return 0; /* Always false */
@@ -519,7 +519,7 @@ static int dbc_1st(BYTE c)
 }
 
 /* Test if the byte is DBC 2nd byte */
-static int dbc_2nd(BYTE c)
+static int dbc_2nd(uint8_t c)
 {
     if (c != 0)
         return 0; /* Always false */
@@ -537,10 +537,10 @@ static uint32_t tchar2uni(const char **str) // Pointer to pointer to char string
     const char *p = *str;
 
     /* UTF-8 input */
-    BYTE b;
+    uint8_t b;
     int nf;
 
-    uc = (BYTE)*p++;               /* Get an encoding unit */
+    uc = (uint8_t)*p++;               /* Get an encoding unit */
     if (uc & 0x80) {               /* Multiple byte code? */
         if ((uc & 0xE0) == 0xC0) { /* 2-byte sequence? */
             uc &= 0x1F;
@@ -555,7 +555,7 @@ static uint32_t tchar2uni(const char **str) // Pointer to pointer to char string
             return 0xFFFFFFFF;
         }
         do { /* Get trailing bytes */
-            b = (BYTE)*p++;
+            b = (uint8_t)*p++;
             if ((b & 0xC0) != 0x80)
                 return 0xFFFFFFFF; /* Wrong sequence? */
             uc = uc << 6 | (b & 0x3F);
@@ -971,7 +971,7 @@ static FRESULT put_fat(FATFS *fs,  /* Corresponding filesystem object */
                        uint32_t val)  /* New value to be set to the entry */
 {
     UINT bc;
-    BYTE *p;
+    uint8_t *p;
     FRESULT res = FR_INT_ERR;
 
     if (clst >= 2 && clst < fs->n_fatent) { /* Check if in valid range */
@@ -983,14 +983,14 @@ static FRESULT put_fat(FATFS *fs,  /* Corresponding filesystem object */
             if (res != FR_OK)
                 break;
             p = fs->win + bc++ % SS(fs);
-            *p = (clst & 1) ? ((*p & 0x0F) | ((BYTE)val << 4)) : (BYTE)val; /* Update 1st byte */
+            *p = (clst & 1) ? ((*p & 0x0F) | ((uint8_t)val << 4)) : (uint8_t)val; /* Update 1st byte */
             fs->wflag = 1;
             res = move_window(fs, fs->fatbase + (bc / SS(fs)));
             if (res != FR_OK)
                 break;
             p = fs->win + bc % SS(fs);
-            *p = (clst & 1) ? (BYTE)(val >> 4)
-                            : ((*p & 0xF0) | ((BYTE)(val >> 8) & 0x0F)); /* Update 2nd byte */
+            *p = (clst & 1) ? (uint8_t)(val >> 4)
+                            : ((*p & 0xF0) | ((uint8_t)(val >> 8) & 0x0F)); /* Update 2nd byte */
             fs->wflag = 1;
             break;
 
@@ -1035,7 +1035,7 @@ static uint32_t find_bitmap(/* 0:Not found, 2..:Cluster block found, 0xFFFFFFFF:
                          uint32_t ncl   /* Number of contiguous clusters to find (1..) */
 )
 {
-    BYTE bm, bv;
+    uint8_t bm, bv;
     UINT i;
     uint32_t val, scl, ctr;
 
@@ -1085,7 +1085,7 @@ static FRESULT change_bitmap(FATFS *fs,  /* Filesystem object */
                              int bv      /* bit value to be set (0 or 1) */
 )
 {
-    BYTE bm;
+    uint8_t bm;
     UINT i;
     LBA_t sect;
 
@@ -1418,7 +1418,7 @@ static FRESULT dir_clear(           /* Returns FR_OK or FR_DISK_ERR */
 {
     LBA_t sect;
     UINT n, szb;
-    BYTE *ibuf;
+    uint8_t *ibuf;
 
     if (sync_window(fs) != FR_OK)
         return FR_DISK_ERR;             /* Flush disk access window */
@@ -1620,7 +1620,7 @@ static FRESULT dir_alloc(           /* FR_OK(0):succeeded, !=0:error */
 
 static uint32_t ld_clust(                /* Returns the top cluster value of the SFN entry */
                       FATFS *fs,      /* Pointer to the fs object */
-                      const BYTE *dir /* Pointer to the key entry */
+                      const uint8_t *dir /* Pointer to the key entry */
 )
 {
     uint32_t cl;
@@ -1635,7 +1635,7 @@ static uint32_t ld_clust(                /* Returns the top cluster value of the
 
 #if !FF_FS_READONLY
 static void st_clust(FATFS *fs, /* Pointer to the fs object */
-                     BYTE *dir, /* Pointer to the key entry */
+                     uint8_t *dir, /* Pointer to the key entry */
                      uint32_t cl   /* Value to be set */
 )
 {
@@ -1653,7 +1653,7 @@ static void st_clust(FATFS *fs, /* Pointer to the fs object */
 static int cmp_lfn(                     /* 1:matched, 0:not matched */
                    const uint16_t *lfnbuf, /* Pointer to the LFN working buffer
                                            to be compared */
-                   BYTE *dir            /* Pointer to the directory entry containing the
+                   uint8_t *dir            /* Pointer to the directory entry containing the
                                            part of LFN */
 )
 {
@@ -1691,7 +1691,7 @@ static int cmp_lfn(                     /* 1:matched, 0:not matched */
 
 static int pick_lfn(               /* 1:succeeded, 0:buffer overflow or invalid LFN entry */
                     uint16_t *lfnbuf, /* Pointer to the LFN working buffer */
-                    BYTE *dir      /* Pointer to the LFN entry */
+                    uint8_t *dir      /* Pointer to the LFN entry */
 )
 {
     UINT i, s;
@@ -1730,9 +1730,9 @@ static int pick_lfn(               /* 1:succeeded, 0:buffer overflow or invalid 
 /*-----------------------------------------*/
 
 static void put_lfn(const uint16_t *lfn, /* Pointer to the LFN */
-                    BYTE *dir,        /* Pointer to the LFN entry to be created */
-                    BYTE ord,         /* LFN order (1-20) */
-                    BYTE sum          /* Checksum of the corresponding SFN */
+                    uint8_t *dir,        /* Pointer to the LFN entry to be created */
+                    uint8_t ord,         /* LFN order (1-20) */
+                    uint8_t sum          /* Checksum of the corresponding SFN */
 )
 {
     UINT i, s;
@@ -1764,13 +1764,13 @@ static void put_lfn(const uint16_t *lfn, /* Pointer to the LFN */
 /* FAT-LFN: Create a Numbered SFN                                        */
 /*-----------------------------------------------------------------------*/
 
-static void gen_numname(BYTE *dst,        /* Pointer to the buffer to store numbered SFN */
-                        const BYTE *src,  /* Pointer to SFN in directory form */
+static void gen_numname(uint8_t *dst,        /* Pointer to the buffer to store numbered SFN */
+                        const uint8_t *src,  /* Pointer to SFN in directory form */
                         const uint16_t *lfn, /* Pointer to LFN */
                         UINT seq          /* Sequence number */
 )
 {
-    BYTE ns[8], c;
+    uint8_t ns[8], c;
     UINT i, j;
     uint16_t wc;
     uint32_t sreg;
@@ -1795,7 +1795,7 @@ static void gen_numname(BYTE *dst,        /* Pointer to the buffer to store numb
     /* Make suffix (~ + hexadecimal) */
     i = 7;
     do {
-        c = (BYTE)((seq % 16) + '0');
+        c = (uint8_t)((seq % 16) + '0');
         seq /= 16;
         if (c > '9')
             c += 7;
@@ -1821,10 +1821,10 @@ static void gen_numname(BYTE *dst,        /* Pointer to the buffer to store numb
 /* FAT-LFN: Calculate checksum of an SFN entry                           */
 /*-----------------------------------------------------------------------*/
 
-static BYTE sum_sfn(const BYTE *dir /* Pointer to the SFN entry */
+static uint8_t sum_sfn(const uint8_t *dir /* Pointer to the SFN entry */
 )
 {
-    BYTE sum = 0;
+    uint8_t sum = 0;
     UINT n = 11;
 
     do {
@@ -1838,7 +1838,7 @@ static BYTE sum_sfn(const BYTE *dir /* Pointer to the SFN entry */
 /*-----------------------------------------------------------------------*/
 
 static uint16_t xdir_sum(                /* Get checksum of the directoly entry block */
-                     const BYTE *dir /* Directory entry block to be calculated */
+                     const uint8_t *dir /* Directory entry block to be calculated */
 )
 {
     UINT i, szblk;
@@ -1872,7 +1872,7 @@ static uint16_t xname_sum(                  /* Get check sum (to be used as hash
 
 #if !FF_FS_READONLY && FF_USE_MKFS
 static uint32_t xsum32(          /* Returns 32-bit checksum */
-                    BYTE dat, /* Byte to be calculated (byte-by-byte processing) */
+                    uint8_t dat, /* Byte to be calculated (byte-by-byte processing) */
                     uint32_t sum /* Previous sum value */
 )
 {
@@ -1892,7 +1892,7 @@ static FRESULT load_xdir(        /* FR_INT_ERR: invalid entry block */
 {
     FRESULT res;
     UINT i, sz_ent;
-    BYTE *dirb = dp->obj.fs->dirbuf; /* Pointer to the on-memory directory
+    uint8_t *dirb = dp->obj.fs->dirbuf; /* Pointer to the on-memory directory
                                         entry block 85+C0+C1s */
 
     /* Load file directory entry */
@@ -1976,7 +1976,7 @@ static FRESULT load_obj_xdir(
     /* Open object containing directory */
     dp->obj.fs = obj->fs;
     dp->obj.sclust = obj->c_scl;
-    dp->obj.stat = (BYTE)obj->c_size;
+    dp->obj.stat = (uint8_t)obj->c_size;
     dp->obj.objsize = obj->c_size & 0xFFFFFF00;
     dp->obj.n_frag = 0;
     dp->blk_ofs = obj->c_ofs;
@@ -1999,7 +1999,7 @@ static FRESULT store_xdir(DIR *dp /* Pointer to the directory object */
 {
     FRESULT res;
     UINT nent;
-    BYTE *dirb = dp->obj.fs->dirbuf; /* Pointer to the directory entry block 85+C0+C1s */
+    uint8_t *dirb = dp->obj.fs->dirbuf; /* Pointer to the directory entry block 85+C0+C1s */
 
     /* Create set sum */
     st_word(dirb + XDIR_SetSum, xdir_sum(dirb));
@@ -2025,12 +2025,12 @@ static FRESULT store_xdir(DIR *dp /* Pointer to the directory object */
 /* exFAT: Create a new directory entry block */
 /*-------------------------------------------*/
 
-static void create_xdir(BYTE *dirb,      /* Pointer to the directory entry block buffer */
+static void create_xdir(uint8_t *dirb,      /* Pointer to the directory entry block buffer */
                         const uint16_t *lfn /* Pointer to the object name */
 )
 {
     UINT i;
-    BYTE nc1, nlen;
+    uint8_t nc1, nlen;
     uint16_t wc;
 
     /* Create file-directory and stream-extension entry */
@@ -2074,8 +2074,8 @@ static FRESULT dir_read(DIR *dp, /* Pointer to the directory object */
 {
     FRESULT res = FR_NO_FILE;
     FATFS *fs = dp->obj.fs;
-    BYTE attr, b;
-    BYTE ord = 0xFF, sum = 0xFF;
+    uint8_t attr, b;
+    uint8_t ord = 0xFF, sum = 0xFF;
 
     while (dp->sect) {
         res = move_window(fs, dp->sect);
@@ -2110,7 +2110,7 @@ static FRESULT dir_read(DIR *dp, /* Pointer to the directory object */
                 if (attr == AM_LFN) { /* An LFN entry is found */
                     if (b & LLEF) {   /* Is it start of an LFN sequence? */
                         sum = dp->dir[LDIR_Chksum];
-                        b &= (BYTE)~LLEF;
+                        b &= (uint8_t)~LLEF;
                         ord = b;
                         dp->blk_ofs = dp->dptr;
                     }
@@ -2146,15 +2146,15 @@ static FRESULT dir_find(        /* FR_OK(0):succeeded, !=0:error */
 {
     FRESULT res;
     FATFS *fs = dp->obj.fs;
-    BYTE c;
-    BYTE a, ord, sum;
+    uint8_t c;
+    uint8_t a, ord, sum;
 
     res = dir_sdi(dp, 0); /* Rewind directory object */
     if (res != FR_OK)
         return res;
 
     if (fs->fs_type == FS_EXFAT) { /* On the exFAT volume */
-        BYTE nc;
+        uint8_t nc;
         UINT di, ni;
         uint16_t hash = xname_sum(fs->lfnbuf); /* Hash value of the name to find */
 
@@ -2199,7 +2199,7 @@ static FRESULT dir_find(        /* FR_OK(0):succeeded, !=0:error */
                 if (!(dp->fn[NSFLAG] & NS_NOLFN)) {
                     if (c & LLEF) { /* Is it start of LFN sequence? */
                         sum = dp->dir[LDIR_Chksum];
-                        c &= (BYTE)~LLEF;
+                        c &= (uint8_t)~LLEF;
                         ord = c;                /* LFN start order */
                         dp->blk_ofs = dp->dptr; /* Start offset of LFN */
                     }
@@ -2237,7 +2237,7 @@ static FRESULT dir_register(        /* FR_OK:succeeded, FR_DENIED:no free entry 
     FRESULT res;
     FATFS *fs = dp->obj.fs;
     UINT n, len, n_ent;
-    BYTE sn[12], sum;
+    uint8_t sn[12], sum;
 
     if (dp->fn[NSFLAG] & (NS_DOT | NS_NONAME))
         return FR_INVALID_NAME; /* Check name validity */
@@ -2312,7 +2312,7 @@ static FRESULT dir_register(        /* FR_OK:succeeded, FR_DENIED:no free entry 
                 res = move_window(fs, dp->sect);
                 if (res != FR_OK)
                     break;
-                put_lfn(fs->lfnbuf, dp->dir, (BYTE)n_ent, sum);
+                put_lfn(fs->lfnbuf, dp->dir, (uint8_t)n_ent, sum);
                 fs->wflag = 1;
                 res = dir_next(dp, 0); /* Next entry */
             } while (res == FR_OK && --n_ent);
@@ -2386,7 +2386,7 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
 )
 {
     UINT si, di;
-    BYTE lcf;
+    uint8_t lcf;
     uint16_t wc, hs;
     FATFS *fs = dp->obj.fs;
     UINT nw;
@@ -2473,7 +2473,7 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
             fno->altname[di++] = '.'; /* Insert a . if extension is exist */
 
         /* Unicode output */
-        if (dbc_1st((BYTE)wc) && si != 8 && si != 11 &&
+        if (dbc_1st((uint8_t)wc) && si != 8 && si != 11 &&
             dbc_2nd(dp->dir[si])) { /* Make a DBC if needed */
             wc = wc << 8 | dp->dir[si++];
         }
@@ -2610,7 +2610,7 @@ static FRESULT create_name(         /* FR_OK: successful, FR_INVALID_NAME: could
                                                  path string */
 )
 {
-    BYTE b, cf;
+    uint8_t b, cf;
     uint16_t wc;
     uint16_t *lfn;
     const char *p;
@@ -2715,7 +2715,7 @@ static FRESULT create_name(         /* FR_OK: successful, FR_INVALID_NAME: could
                 i = ni;
                 continue; /* Next field */
             }
-            dp->fn[i++] = (BYTE)(wc >> 8);              /* Put 1st byte */
+            dp->fn[i++] = (uint8_t)(wc >> 8);              /* Put 1st byte */
         } else {                                        /* SBC */
             if (wc == 0 || strchr("+,;=[]", (int)wc)) { /* Replace illegal characters for SFN */
                 wc = '_';
@@ -2730,7 +2730,7 @@ static FRESULT create_name(         /* FR_OK: successful, FR_INVALID_NAME: could
                 }
             }
         }
-        dp->fn[i++] = (BYTE)wc;
+        dp->fn[i++] = (uint8_t)wc;
     }
 
     if (dp->fn[0] == DDEM)
@@ -2767,7 +2767,7 @@ static FRESULT follow_path(                  /* FR_OK(0): successful, !=0: error
 )
 {
     FRESULT res;
-    BYTE ns;
+    uint8_t ns;
     FATFS *fs = dp->obj.fs;
 
 #if FF_FS_RPATH != 0
@@ -2958,7 +2958,7 @@ static UINT check_fs(           /* 0:FAT/FAT32 VBR, 1:exFAT VBR, 2:Not FAT and v
 )
 {
     uint16_t w, sign;
-    BYTE b;
+    uint8_t b;
 
     fs->wflag = 0;
     fs->winsect = (LBA_t)0 - 1; /* Invaidate window */
@@ -3035,7 +3035,7 @@ static FRESULT mount_volume(                    /* FR_OK(0): successful, !=0: an
                             const char **path, /* Pointer to pointer to the path name
                                                    (drive number) */
                             FATFS **rfs, /* Pointer to pointer to the found filesystem object */
-                            BYTE mode    /* Desiered access mode to check write protection */
+                            uint8_t mode    /* Desiered access mode to check write protection */
 )
 {
     int vol;
@@ -3062,7 +3062,7 @@ static FRESULT mount_volume(                    /* FR_OK(0): successful, !=0: an
 #endif
     *rfs = fs; /* Return pointer to the filesystem object */
 
-    mode &= (BYTE)~FA_READ; /* Desired access mode, write access or not */
+    mode &= (uint8_t)~FA_READ; /* Desired access mode, write access or not */
     if (fs->fs_type != 0) { /* If the volume has been mounted */
         stat = disk_status(fs->pdrv);
         if (!(stat & STA_NOINIT)) { /* and the physical drive is kept initialized */
@@ -3285,7 +3285,7 @@ static FRESULT mount_volume(                    /* FR_OK(0): successful, !=0: an
 #endif /* !FF_FS_READONLY */
     }
 
-    fs->fs_type = (BYTE)fmt; /* FAT sub-type (the filesystem object gets valid) */
+    fs->fs_type = (uint8_t)fmt; /* FAT sub-type (the filesystem object gets valid) */
     fs->id = ++Fsid;         /* Volume mount ID */
 #if FF_USE_LFN == 1
     fs->lfnbuf = LfnBuf; /* Static LFN working buffer */
@@ -3350,7 +3350,7 @@ static FRESULT validate(              /* Returns FR_OK or FR_INVALID_OBJECT */
 FRESULT f_mount(FATFS *fs,         /* Pointer to the filesystem object to be registered
                                       (NULL:unmount)*/
                 const char *path, /* Logical drive number to be mounted/unmounted */
-                BYTE opt           /* Mount option: 0=Do not mount (delayed mount), 1=Mount
+                uint8_t opt           /* Mount option: 0=Do not mount (delayed mount), 1=Mount
                                       immediately */
 )
 {
@@ -3379,7 +3379,7 @@ FRESULT f_mount(FATFS *fs,         /* Pointer to the filesystem object to be reg
     if (fs) {                  /* Register new filesystem object */
         fs->pdrv = LD2PD(vol); /* Volume hosting physical drive */
 #if FF_FS_REENTRANT            /* Create a volume mutex */
-        fs->ldrv = (BYTE)vol;  /* Owner volume ID */
+        fs->ldrv = (uint8_t)vol;  /* Owner volume ID */
         if (!ff_mutex_create(vol))
             return FR_INT_ERR;
 #if FF_FS_LOCK
@@ -3410,7 +3410,7 @@ FRESULT f_mount(FATFS *fs,         /* Pointer to the filesystem object to be reg
 
 FRESULT f_open(FIL *fp,           /* Pointer to the blank file object */
                const char *path, /* Pointer to the file name */
-               BYTE mode          /* Access mode and open mode flags */
+               uint8_t mode          /* Access mode and open mode flags */
 )
 {
     FRESULT res;
@@ -3625,7 +3625,7 @@ FRESULT f_read(FIL *fp,    /* Open file to be read */
     LBA_t sect;
     FSIZE_t remain;
     UINT rcnt, cc, csect;
-    BYTE *rbuff = (BYTE *)buff;
+    uint8_t *rbuff = (uint8_t *)buff;
 
     *br = 0;                       /* Clear read byte counter */
     res = validate(&fp->obj, &fs); /* Check validity of the file object */
@@ -3695,7 +3695,7 @@ FRESULT f_read(FIL *fp,    /* Open file to be read */
                 if (fp->flag & FA_DIRTY) { /* Write-back dirty sector cache */
                     if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK)
                         ABORT(fs, FR_DISK_ERR);
-                    fp->flag &= (BYTE)~FA_DIRTY;
+                    fp->flag &= (uint8_t)~FA_DIRTY;
                 }
 #endif
                 if (disk_read(fs->pdrv, fp->buf, sect, 1) != RES_OK)
@@ -3735,7 +3735,7 @@ FRESULT f_write(FIL *fp,          /* Open file to be written */
     uint32_t clst;
     LBA_t sect;
     UINT wcnt, cc, csect;
-    const BYTE *wbuff = (const BYTE *)buff;
+    const uint8_t *wbuff = (const uint8_t *)buff;
 
     *bw = 0;                       /* Clear write byte counter */
     res = validate(&fp->obj, &fs); /* Check validity of the file object */
@@ -3789,7 +3789,7 @@ FRESULT f_write(FIL *fp,          /* Open file to be written */
             if (fp->flag & FA_DIRTY) { /* Write-back sector cache */
                 if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK)
                     ABORT(fs, FR_DISK_ERR);
-                fp->flag &= (BYTE)~FA_DIRTY;
+                fp->flag &= (uint8_t)~FA_DIRTY;
             }
 #endif
             sect = clst2sect(fs, fp->clust); /* Get current sector */
@@ -3814,7 +3814,7 @@ FRESULT f_write(FIL *fp,          /* Open file to be written */
                 if (fp->sect - sect < cc) { /* Refill sector cache if it gets invalidated by
                                                the direct write */
                     memcpy(fp->buf, wbuff + ((fp->sect - sect) * SS(fs)), SS(fs));
-                    fp->flag &= (BYTE)~FA_DIRTY;
+                    fp->flag &= (uint8_t)~FA_DIRTY;
                 }
 #endif
 #endif
@@ -3865,7 +3865,7 @@ FRESULT f_sync(FIL *fp /* Open file to be synced */
     FRESULT res;
     FATFS *fs;
     uint32_t tm;
-    BYTE *dir;
+    uint8_t *dir;
 
     res = validate(&fp->obj, &fs); /* Check validity of the file object */
     if (res == FR_OK) {
@@ -3874,7 +3874,7 @@ FRESULT f_sync(FIL *fp /* Open file to be synced */
             if (fp->flag & FA_DIRTY) { /* Write-back cached data if needed */
                 if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK)
                     LEAVE_FF(fs, FR_DISK_ERR);
-                fp->flag &= (BYTE)~FA_DIRTY;
+                fp->flag &= (uint8_t)~FA_DIRTY;
             }
 #endif
             /* Update the directory entry */
@@ -3909,7 +3909,7 @@ FRESULT f_sync(FIL *fp /* Open file to be synced */
                         res = store_xdir(&dj); /* Restore it to the directory */
                         if (res == FR_OK) {
                             res = sync_fs(fs);
-                            fp->flag &= (BYTE)~FA_MODIFIED;
+                            fp->flag &= (uint8_t)~FA_MODIFIED;
                         }
                     }
                     FREE_NAMBUF();
@@ -3927,7 +3927,7 @@ FRESULT f_sync(FIL *fp /* Open file to be synced */
                     st_word(dir + DIR_LstAccDate, 0);
                     fs->wflag = 1;
                     res = sync_fs(fs); /* Restore it to the directory */
-                    fp->flag &= (BYTE)~FA_MODIFIED;
+                    fp->flag &= (uint8_t)~FA_MODIFIED;
                 }
             }
         }
@@ -3984,7 +3984,7 @@ FRESULT f_chdrive(const char *path /* Drive number to set */
     vol = get_ldnumber(&path);
     if (vol < 0)
         return FR_INVALID_DRIVE;
-    CurrVol = (BYTE)vol; /* Set it as current volume */
+    CurrVol = (uint8_t)vol; /* Set it as current volume */
 
     return FR_OK;
 }
@@ -4037,7 +4037,7 @@ FRESULT f_chdir(const char *path /* Pointer to the directory path */
         if (res == FR_OK) {
             for (i = FF_VOLUMES - 1; i && fs != FatFs[i]; i--)
                 ; /* Set current drive */
-            CurrVol = (BYTE)i;
+            CurrVol = (uint8_t)i;
         }
 #endif
     }
@@ -4243,7 +4243,7 @@ FRESULT f_lseek(FIL *fp,    /* Pointer to the file object */
                     if (fp->flag & FA_DIRTY) { /* Write-back dirty sector cache */
                         if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK)
                             ABORT(fs, FR_DISK_ERR);
-                        fp->flag &= (BYTE)~FA_DIRTY;
+                        fp->flag &= (uint8_t)~FA_DIRTY;
                     }
 #endif
                     if (disk_read(fs->pdrv, fp->buf, dsc, 1) != RES_OK)
@@ -4338,7 +4338,7 @@ FRESULT f_lseek(FIL *fp,    /* Pointer to the file object */
             if (fp->flag & FA_DIRTY) { /* Write-back dirty sector cache */
                 if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK)
                     ABORT(fs, FR_DISK_ERR);
-                fp->flag &= (BYTE)~FA_DIRTY;
+                fp->flag &= (uint8_t)~FA_DIRTY;
             }
 #endif
             if (disk_read(fs->pdrv, fp->buf, nsect, 1) != RES_OK)
@@ -4601,7 +4601,7 @@ FRESULT f_getfree(const char *path, /* Logical drive number */
                 } while (++clst < fs->n_fatent);
             } else {
                 if (fs->fs_type == FS_EXFAT) { /* exFAT: Scan allocation bitmap */
-                    BYTE bm;
+                    uint8_t bm;
                     UINT b;
 
                     clst = fs->n_fatent - 2; /* Number of clusters */
@@ -4695,7 +4695,7 @@ FRESULT f_truncate(FIL *fp /* Pointer to the file object */
             if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK) {
                 res = FR_DISK_ERR;
             } else {
-                fp->flag &= (BYTE)~FA_DIRTY;
+                fp->flag &= (uint8_t)~FA_DIRTY;
             }
         }
 #endif
@@ -4883,7 +4883,7 @@ FRESULT f_rename(const char *path_old, /* Pointer to the object name to be renam
     FRESULT res;
     FATFS *fs;
     DIR djo, djn;
-    BYTE buf[SZDIRE * 2], *dir;
+    uint8_t buf[SZDIRE * 2], *dir;
     LBA_t sect;
     DEF_NAMBUF
 
@@ -4902,7 +4902,7 @@ FRESULT f_rename(const char *path_old, /* Pointer to the object name to be renam
 #endif
         if (res == FR_OK) { /* Object to be renamed is found */
             if (fs->fs_type == FS_EXFAT) { /* At exFAT volume */
-                BYTE nf, nn;
+                uint8_t nf, nn;
                 uint16_t nh;
 
                 memcpy(buf, fs->dirbuf, SZDIRE * 2); /* Save 85+C0 entry of old object */
@@ -5001,8 +5001,8 @@ FRESULT f_rename(const char *path_old, /* Pointer to the object name to be renam
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_chmod(const char *path, /* Pointer to the file path */
-                BYTE attr,         /* Attribute bits */
-                BYTE mask          /* Attribute mask to change */
+                uint8_t attr,         /* Attribute bits */
+                uint8_t mask          /* Attribute mask to change */
 )
 {
     FRESULT res;
@@ -5021,11 +5021,11 @@ FRESULT f_chmod(const char *path, /* Pointer to the file path */
             mask &= AM_RDO | AM_HID | AM_SYS | AM_ARC; /* Valid attribute mask */
             if (fs->fs_type == FS_EXFAT) {
                 fs->dirbuf[XDIR_Attr] = (attr & mask) | (fs->dirbuf[XDIR_Attr] &
-                                                         (BYTE)~mask); /* Apply attribute change */
+                                                         (uint8_t)~mask); /* Apply attribute change */
                 res = store_xdir(&dj);
             } else {
                 dj.dir[DIR_Attr] =
-                    (attr & mask) | (dj.dir[DIR_Attr] & (BYTE)~mask); /* Apply attribute change */
+                    (attr & mask) | (dj.dir[DIR_Attr] & (uint8_t)~mask); /* Apply attribute change */
                 fs->wflag = 1;
             }
             if (res == FR_OK) {
@@ -5133,7 +5133,7 @@ FRESULT f_getlabel(const char *path, /* Logical drive number */
                         wc = dj.dir[si++];
 
                         /* Unicode output */
-                        if (dbc_1st((BYTE)wc) && si < 11)
+                        if (dbc_1st((uint8_t)wc) && si < 11)
                             wc = wc << 8 | dj.dir[si++]; /* Is it a DBC? */
                         wc = ff_oem2uni(wc, CODEPAGE);   /* Convert it into Unicode */
                         if (wc == 0) {                   /* Invalid char in current code page? */
@@ -5189,7 +5189,7 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
     FRESULT res;
     FATFS *fs;
     DIR dj;
-    BYTE dirvn[22];
+    uint8_t dirvn[22];
     UINT di;
     uint16_t wc;
     static const char badchr[18] =
@@ -5236,8 +5236,8 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
                 LEAVE_FF(fs, FR_INVALID_NAME);
             }
             if (wc >= 0x100)
-                dirvn[di++] = (BYTE)(wc >> 8);
-            dirvn[di++] = (BYTE)wc;
+                dirvn[di++] = (uint8_t)(wc >> 8);
+            dirvn[di++] = (uint8_t)wc;
         }
         if (dirvn[0] == DDEM)
             LEAVE_FF(fs, FR_INVALID_NAME); /* Reject illegal name (heading DDEM) */
@@ -5253,7 +5253,7 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
         res = DIR_READ_LABEL(&dj); /* Get volume label entry */
         if (res == FR_OK) {
             if (fs->fs_type == FS_EXFAT) {
-                dj.dir[XDIR_NumLabel] = (BYTE)di; /* Change the volume label */
+                dj.dir[XDIR_NumLabel] = (uint8_t)di; /* Change the volume label */
                 memcpy(dj.dir + XDIR_Label, dirvn, 22);
             } else {
                 if (di != 0) {
@@ -5273,7 +5273,7 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
                         memset(dj.dir, 0, SZDIRE); /* Clean the entry */
                         if (fs->fs_type == FS_EXFAT) {
                             dj.dir[XDIR_Type] = ET_VLABEL; /* Create volume label entry */
-                            dj.dir[XDIR_NumLabel] = (BYTE)di;
+                            dj.dir[XDIR_NumLabel] = (uint8_t)di;
                             memcpy(dj.dir + XDIR_Label, dirvn, 22);
                         } else {
                             dj.dir[DIR_Attr] = AM_VOL; /* Create volume label entry */
@@ -5300,7 +5300,7 @@ FRESULT f_setlabel(const char *label) // Volume label to set with heading logica
 
 FRESULT f_expand(FIL *fp,     /* Pointer to the file object */
                  FSIZE_t fsz, /* File size to be expanded to */
-                 BYTE opt)    /* Operation mode 0:Find and prepare or 1:Find and allocate */
+                 uint8_t opt)    /* Operation mode 0:Find and prepare or 1:Find and allocate */
 {
     FRESULT res;
     FATFS *fs;
@@ -5401,7 +5401,7 @@ FRESULT f_expand(FIL *fp,     /* Pointer to the file object */
 /*-----------------------------------------------------------------------*/
 
 FRESULT f_forward(FIL *fp,                          /* Pointer to the file object */
-                  UINT (*func)(const BYTE *, UINT), /* Pointer to the streaming function */
+                  UINT (*func)(const uint8_t *, UINT), /* Pointer to the streaming function */
                   UINT btf,                         /* Number of bytes to forward */
                   UINT *bf)                         /* Pointer to number of bytes forwarded */
 {
@@ -5411,7 +5411,7 @@ FRESULT f_forward(FIL *fp,                          /* Pointer to the file objec
     LBA_t sect;
     FSIZE_t remain;
     UINT rcnt, csect;
-    BYTE *dbuf;
+    uint8_t *dbuf;
 
     *bf = 0;                       /* Clear transfer byte counter */
     res = validate(&fp->obj, &fs); /* Check validity of the file object */
@@ -5454,7 +5454,7 @@ FRESULT f_forward(FIL *fp,                          /* Pointer to the file objec
             if (fp->flag & FA_DIRTY) { /* Write-back dirty sector cache */
                 if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK)
                     ABORT(fs, FR_DISK_ERR);
-                fp->flag &= (BYTE)~FA_DIRTY;
+                fp->flag &= (uint8_t)~FA_DIRTY;
             }
 #endif
             if (disk_read(fs->pdrv, fp->buf, sect, 1) != RES_OK)
@@ -5486,16 +5486,16 @@ FRESULT f_forward(FIL *fp,                          /* Pointer to the file objec
 
 /* Create partitions on the physical drive in format of MBR or GPT */
 
-static FRESULT create_partition(BYTE drv,           /* Physical drive number */
+static FRESULT create_partition(uint8_t drv,           /* Physical drive number */
                                 const LBA_t plst[], /* Partition list */
-                                BYTE sys,  /* System ID for each partition (for only MBR) */
-                                BYTE *buf) /* Working buffer for a sector */
+                                uint8_t sys,  /* System ID for each partition (for only MBR) */
+                                uint8_t *buf) /* Working buffer for a sector */
 {
     UINT i, cy;
     LBA_t sz_drv;
     uint32_t sz_drv32, nxt_alloc32, sz_part32;
-    BYTE *pte;
-    BYTE hd, n_hd, sc, n_sc;
+    uint8_t *pte;
+    uint8_t hd, n_hd, sc, n_sc;
 
     /* Get physical drive size */
     if (disk_ioctl(drv, GET_SECTOR_COUNT, &sz_drv) != RES_OK)
@@ -5529,18 +5529,18 @@ static FRESULT create_partition(BYTE drv,           /* Physical drive number */
         pte[PTE_System] = sys;                  /* System type */
 
         cy = (UINT)(nxt_alloc32 / n_sc / n_hd); /* Start cylinder */
-        hd = (BYTE)(nxt_alloc32 / n_sc % n_hd); /* Start head */
-        sc = (BYTE)(nxt_alloc32 % n_sc + 1);    /* Start sector */
+        hd = (uint8_t)(nxt_alloc32 / n_sc % n_hd); /* Start head */
+        sc = (uint8_t)(nxt_alloc32 % n_sc + 1);    /* Start sector */
         pte[PTE_StHead] = hd;
-        pte[PTE_StSec] = (BYTE)((cy >> 2 & 0xC0) | sc);
-        pte[PTE_StCyl] = (BYTE)cy;
+        pte[PTE_StSec] = (uint8_t)((cy >> 2 & 0xC0) | sc);
+        pte[PTE_StCyl] = (uint8_t)cy;
 
         cy = (UINT)((nxt_alloc32 + sz_part32 - 1) / n_sc / n_hd); /* End cylinder */
-        hd = (BYTE)((nxt_alloc32 + sz_part32 - 1) / n_sc % n_hd); /* End head */
-        sc = (BYTE)((nxt_alloc32 + sz_part32 - 1) % n_sc + 1);    /* End sector */
+        hd = (uint8_t)((nxt_alloc32 + sz_part32 - 1) / n_sc % n_hd); /* End head */
+        sc = (uint8_t)((nxt_alloc32 + sz_part32 - 1) % n_sc + 1);    /* End sector */
         pte[PTE_EdHead] = hd;
-        pte[PTE_EdSec] = (BYTE)((cy >> 2 & 0xC0) | sc);
-        pte[PTE_EdCyl] = (BYTE)cy;
+        pte[PTE_EdSec] = (uint8_t)((cy >> 2 & 0xC0) | sc);
+        pte[PTE_EdCyl] = (uint8_t)cy;
 
         pte += SZ_PTE; /* Next entry */
     }
@@ -5565,9 +5565,9 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
         1, 2, 4, 8, 16, 32, 0
     }; /* Cluster size boundary for FAT32 volume (128Ks unit) */
     static const MKFS_PARM defopt = { FM_ANY, 0, 0, 0, 0 }; /* Default parameter */
-    BYTE fsopt, fsty, sys, pdrv, ipart;
-    BYTE *buf;
-    BYTE *pte;
+    uint8_t fsopt, fsty, sys, pdrv, ipart;
+    uint8_t *buf;
+    uint8_t *pte;
     uint16_t ss; /* Sector size */
     uint32_t sz_buf, sz_blk, n_clst, pau, nsect, n, vsn;
     LBA_t sz_vol, b_vol, b_fat, b_data; /* Size of volume, Base LBA of volume, fat, data */
@@ -5626,7 +5626,7 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
     sz_buf = len / ss; /* Size of working buffer [sector] */
     if (sz_buf == 0)
         return FR_NOT_ENOUGH_CORE;
-    buf = (BYTE *)work; /* Working buffer */
+    buf = (uint8_t *)work; /* Working buffer */
 #if FF_USE_LFN == 3
     if (!buf)
         buf = ff_memalloc(sz_buf * ss); /* Use heap memory for working buffer */
@@ -5748,8 +5748,8 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
                 si += (uint16_t)j; /* Number of chars to skip */
                 st = 0;
             }
-            sum = xsum32(buf[i + 0] = (BYTE)ch, sum); /* Put it into the write buffer */
-            sum = xsum32(buf[i + 1] = (BYTE)(ch >> 8), sum);
+            sum = xsum32(buf[i + 0] = (uint8_t)ch, sum); /* Put it into the write buffer */
+            sum = xsum32(buf[i + 1] = (uint8_t)(ch >> 8), sum);
             i += 2;
             szb_case += 2;
             if (si == 0 || i == sz_buf * ss) { /* Write buffered data when buffer full
@@ -5995,9 +5995,9 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
                "MSDOS5.0",
                11);                                  /* Boot jump code (x86), OEM name */
         st_word(buf + BPB_BytsPerSec, ss);           /* Sector size [byte] */
-        buf[BPB_SecPerClus] = (BYTE)pau;             /* Cluster size [sector] */
+        buf[BPB_SecPerClus] = (uint8_t)pau;             /* Cluster size [sector] */
         st_word(buf + BPB_RsvdSecCnt, (uint16_t)sz_rsv); /* Size of reserved area */
-        buf[BPB_NumFATs] = (BYTE)n_fat;              /* Number of FATs */
+        buf[BPB_NumFATs] = (uint8_t)n_fat;              /* Number of FATs */
         st_word(buf + BPB_RootEntCnt,
                 (uint16_t)((fsty == FS_FAT32) ? 0 : n_root)); /* Number of root directory entries */
         if (sz_vol < 0x10000) {
@@ -6128,7 +6128,7 @@ char *f_gets(char *buff, /* Pointer to the buffer to store read string */
 {
     int nc = 0;
     char *p = buff;
-    BYTE s[4];
+    uint8_t s[4];
     UINT rc;
     uint32_t dc;
     UINT ct;
@@ -6220,9 +6220,9 @@ typedef struct {
     FIL *fp;       /* Ptr to the writing file */
     int idx, nchr; /* Write index of buf[] (-1:error), number of encoding
                       units written */
-    BYTE bs[4];
+    uint8_t bs[4];
     UINT wi, ct;
-    BYTE buf[SZ_PUTC_BUF]; /* Write buffer */
+    uint8_t buf[SZ_PUTC_BUF]; /* Write buffer */
 } putbuff;
 
 /* Buffered file write with code conversion */
@@ -6247,22 +6247,22 @@ static void putc_bfd(putbuff *pb, char c)
     /* UTF-8 input */
     for (;;) {
         if (pb->ct == 0) {                /* Out of multi-byte sequence? */
-            pb->bs[pb->wi = 0] = (BYTE)c; /* Save 1st byte */
-            if ((BYTE)c < 0x80)
+            pb->bs[pb->wi = 0] = (uint8_t)c; /* Save 1st byte */
+            if ((uint8_t)c < 0x80)
                 break; /* Single byte code? */
-            if (((BYTE)c & 0xE0) == 0xC0)
+            if (((uint8_t)c & 0xE0) == 0xC0)
                 pb->ct = 1; /* 2-byte sequence? */
-            if (((BYTE)c & 0xF0) == 0xE0)
+            if (((uint8_t)c & 0xF0) == 0xE0)
                 pb->ct = 2; /* 3-byte sequence? */
-            if (((BYTE)c & 0xF8) == 0xF0)
+            if (((uint8_t)c & 0xF8) == 0xF0)
                 pb->ct = 3;                 /* 4-byte sequence? */
             return;                         /* Wrong leading byte (discard it) */
         } else {                            /* In the multi-byte sequence */
-            if (((BYTE)c & 0xC0) != 0x80) { /* Broken sequence? */
+            if (((uint8_t)c & 0xC0) != 0x80) { /* Broken sequence? */
                 pb->ct = 0;
                 continue; /* Discard the sequense */
             }
-            pb->bs[++pb->wi] = (BYTE)c; /* Save the trailing byte */
+            pb->bs[++pb->wi] = (uint8_t)c; /* Save the trailing byte */
             if (--pb->ct == 0)
                 break; /* End of the sequence? */
             return;
@@ -6280,23 +6280,23 @@ static void putc_bfd(putbuff *pb, char c)
     if (hs != 0) { /* 4-byte sequence? */
         nc += 3;
         hs = (hs & 0x3FF) + 0x40;
-        pb->buf[i++] = (BYTE)(0xF0 | hs >> 8);
-        pb->buf[i++] = (BYTE)(0x80 | (hs >> 2 & 0x3F));
-        pb->buf[i++] = (BYTE)(0x80 | (hs & 3) << 4 | (wc >> 6 & 0x0F));
-        pb->buf[i++] = (BYTE)(0x80 | (wc & 0x3F));
+        pb->buf[i++] = (uint8_t)(0xF0 | hs >> 8);
+        pb->buf[i++] = (uint8_t)(0x80 | (hs >> 2 & 0x3F));
+        pb->buf[i++] = (uint8_t)(0x80 | (hs & 3) << 4 | (wc >> 6 & 0x0F));
+        pb->buf[i++] = (uint8_t)(0x80 | (wc & 0x3F));
     } else {
         if (wc < 0x80) { /* Single byte? */
-            pb->buf[i++] = (BYTE)wc;
+            pb->buf[i++] = (uint8_t)wc;
         } else {
             if (wc < 0x800) { /* 2-byte sequence? */
                 nc += 1;
-                pb->buf[i++] = (BYTE)(0xC0 | wc >> 6);
+                pb->buf[i++] = (uint8_t)(0xC0 | wc >> 6);
             } else { /* 3-byte sequence */
                 nc += 2;
-                pb->buf[i++] = (BYTE)(0xE0 | wc >> 12);
-                pb->buf[i++] = (BYTE)(0x80 | (wc >> 6 & 0x3F));
+                pb->buf[i++] = (uint8_t)(0xE0 | wc >> 12);
+                pb->buf[i++] = (uint8_t)(0x80 | (wc >> 6 & 0x3F));
             }
-            pb->buf[i++] = (BYTE)(0x80 | (wc & 0x3F));
+            pb->buf[i++] = (uint8_t)(0x80 | (wc & 0x3F));
         }
     }
 

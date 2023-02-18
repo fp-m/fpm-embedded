@@ -30,12 +30,11 @@ extern "C" {
 
 #include <stdint.h>
 typedef unsigned int UINT;  /* int must be 16-bit or 32-bit */
-typedef uint8_t BYTE;       /* char must be 8-bit */
 
 /* Type of file size and LBA variables */
 
 typedef uint64_t FSIZE_t; // exFAT enabled
-typedef uint32_t LBA_t;      // only LBA-32 is supported
+typedef uint32_t LBA_t;   // only LBA-32 is supported
 
 /* Definitions of volume management */
 
@@ -48,12 +47,12 @@ extern const char *VolumeStr[FF_VOLUMES]; /* User defied volume ID */
 /* Filesystem object structure (FATFS) */
 
 typedef struct {
-    BYTE fs_type;   /* Filesystem type (0:not mounted) */
-    BYTE pdrv;      /* Volume hosting physical drive */
-    BYTE ldrv;      /* Logical drive number (used only when FF_FS_REENTRANT) */
-    BYTE n_fats;    /* Number of FATs (1 or 2) */
-    BYTE wflag;     /* win[] status (b0:dirty) */
-    BYTE fsi_flag;  /* FSINFO status (b7:disabled, b0:dirty) */
+    uint8_t fs_type;   /* Filesystem type (0:not mounted) */
+    uint8_t pdrv;      /* Volume hosting physical drive */
+    uint8_t ldrv;      /* Logical drive number (used only when FF_FS_REENTRANT) */
+    uint8_t n_fats;    /* Number of FATs (1 or 2) */
+    uint8_t wflag;     /* win[] status (b0:dirty) */
+    uint8_t fsi_flag;  /* FSINFO status (b7:disabled, b0:dirty) */
     uint16_t id;        /* Volume mount ID */
     uint16_t n_rootdir; /* Number of root directory entries (FAT12/16) */
     uint16_t csize;     /* Cluster size [sectors] */
@@ -61,7 +60,7 @@ typedef struct {
     uint16_t ssize; /* Sector size (512, 1024, 2048 or 4096) */
 #endif
     uint16_t *lfnbuf; /* LFN working buffer */
-    BYTE *dirbuf; /* Directory entry block scratchpad buffer for exFAT */
+    uint8_t *dirbuf; /* Directory entry block scratchpad buffer for exFAT */
 #if !FF_FS_READONLY
     uint32_t last_clst; /* Last allocated cluster */
     uint32_t free_clst; /* Number of free clusters */
@@ -80,7 +79,7 @@ typedef struct {
     LBA_t database; /* Data base sector */
     LBA_t bitbase; /* Allocation bitmap base sector */
     LBA_t winsect;       /* Current sector appearing in the win[] */
-    BYTE win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
+    uint8_t win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
 } FATFS;
 
 /* Object ID and allocation information (FFOBJID) */
@@ -88,8 +87,8 @@ typedef struct {
 typedef struct {
     FATFS *fs; /* Pointer to the hosting volume of this object */
     uint16_t id;   /* Hosting volume's mount ID */
-    BYTE attr; /* Object attribute */
-    BYTE stat; /* Object chain status (b1-0: =0:not contiguous, =2:contiguous, =3:fragmented in this
+    uint8_t attr; /* Object attribute */
+    uint8_t stat; /* Object chain status (b1-0: =0:not contiguous, =2:contiguous, =3:fragmented in this
                   session, b2:sub-directory stretched) */
     uint32_t sclust;    /* Object data start cluster (0:no cluster or root directory) */
     FSIZE_t objsize; /* Object size (valid when sclust != 0) */
@@ -108,20 +107,20 @@ typedef struct {
 
 typedef struct {
     FFOBJID obj;  /* Object identifier (must be the 1st member to detect invalid object pointer) */
-    BYTE flag;    /* File status flags */
-    BYTE err;     /* Abort flag (error code) */
+    uint8_t flag;    /* File status flags */
+    uint8_t err;     /* Abort flag (error code) */
     FSIZE_t fptr; /* File read/write pointer (Zeroed on file open) */
     uint32_t clust;  /* Current cluster of fpter (invalid when fptr is 0) */
     LBA_t sect;   /* Sector number appearing in buf[] (0:invalid) */
 #if !FF_FS_READONLY
     LBA_t dir_sect; /* Sector number containing the directory entry (not used at exFAT) */
-    BYTE *dir_ptr;  /* Pointer to the directory entry in the win[] (not used at exFAT) */
+    uint8_t *dir_ptr;  /* Pointer to the directory entry in the win[] (not used at exFAT) */
 #endif
 #if FF_USE_FASTSEEK
     uint32_t *cltbl; /* Pointer to the cluster link map table (nulled on open, set by application) */
 #endif
 #if !FF_FS_TINY
-    BYTE buf[FF_MAX_SS]; /* File private data read/write window */
+    uint8_t buf[FF_MAX_SS]; /* File private data read/write window */
 #endif
 } FIL;
 
@@ -132,8 +131,8 @@ typedef struct {
     uint32_t dptr;  /* Current read/write offset */
     uint32_t clust; /* Current cluster */
     LBA_t sect;  /* Current sector (0:Read operation has terminated) */
-    BYTE *dir;   /* Pointer to the directory item in the win[] */
-    BYTE fn[12]; /* SFN (in/out) {body[8],ext[3],status[1]} */
+    uint8_t *dir;   /* Pointer to the directory item in the win[] */
+    uint8_t fn[12]; /* SFN (in/out) {body[8],ext[3],status[1]} */
     uint32_t blk_ofs; /* Offset of current entry block being processed (0xFFFFFFFF:Invalid) */
 #if FF_USE_FIND
     const char *pat; /* Pointer to the name matching pattern */
@@ -146,7 +145,7 @@ typedef struct {
     FSIZE_t fsize; /* File size */
     uint16_t fdate;    /* Modified date */
     uint16_t ftime;    /* Modified time */
-    BYTE fattrib;  /* File attribute */
+    uint8_t fattrib;  /* File attribute */
     char altname[FF_SFN_BUF + 1]; /* Alternative file name */
     char fname[FF_LFN_BUF + 1];   /* Primary file name */
 } FILINFO;
@@ -154,8 +153,8 @@ typedef struct {
 /* Format parameter structure (MKFS_PARM) */
 
 typedef struct {
-    BYTE fmt;      /* Format option (FM_FAT, FM_FAT32, FM_EXFAT and FM_SFD) */
-    BYTE n_fat;    /* Number of FATs */
+    uint8_t fmt;      /* Format option (FM_FAT, FM_FAT32, FM_EXFAT and FM_SFD) */
+    uint8_t n_fat;    /* Number of FATs */
     UINT align;    /* Data area alignment (sector) */
     UINT n_root;   /* Number of root directory entries */
     uint32_t au_size; /* Cluster size (byte) */
