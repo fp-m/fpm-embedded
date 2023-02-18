@@ -12,7 +12,7 @@ int test_raw_speed(uint8_t pdrv,    /* Physical drive number */
                    uint32_t lba,    /* Start LBA for read/write test */
                    uint32_t len,    /* Number of bytes to read/write (must be multiple of sz_buff) */
                    void *buff,   /* Read/write buffer */
-                   UINT sz_buff) /* Size of read/write buffer (must be multiple of FF_MAX_SS) */
+                   unsigned sz_buff) /* Size of read/write buffer (must be multiple of FF_MAX_SS) */
 {
     uint16_t ss;
     uint32_t ofs, tmr;

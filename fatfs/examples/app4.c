@@ -14,7 +14,7 @@
 static uint32_t pn(uint32_t pns) /* 0:Initialize, !0:Read */
 {
     static uint32_t lfsr;
-    UINT n;
+    unsigned n;
 
     if (pns) {
         lfsr = pns;
@@ -32,18 +32,18 @@ static uint32_t pn(uint32_t pns) /* 0:Initialize, !0:Read */
 
 int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                               /* (all data on the drive will be lost) */
-                UINT ncyc,    /* Number of test cycles */
+                unsigned ncyc,    /* Number of test cycles */
                 uint32_t *buff,  /* Pointer to the working buffer */
-                UINT sz_buff) /* Size of the working buffer in unit of byte */
+                unsigned sz_buff) /* Size of the working buffer in unit of byte */
 {
-    UINT n, cc, ns;
+    unsigned n, cc, ns;
     uint32_t sz_drv, lba, lba2, sz_eblk, pns = 1;
     uint16_t sz_sect;
     uint8_t *pbuff = (uint8_t *)buff;
     DSTATUS ds;
     DRESULT dr;
 
-    printf("test_diskio(%u, %u, 0x%08X, 0x%08X)\n", pdrv, ncyc, (UINT)buff, sz_buff);
+    printf("test_diskio(%u, %u, 0x%08X, 0x%08X)\n", pdrv, ncyc, (unsigned)buff, sz_buff);
 
     if (sz_buff < FF_MAX_SS + 8) {
         printf("Insufficient work area to run the program.\n");
@@ -63,7 +63,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
         }
 
         printf("**** Get drive size ****\n");
-        printf(" disk_ioctl(%u, GET_SECTOR_COUNT, 0x%08X)", pdrv, (UINT)&sz_drv);
+        printf(" disk_ioctl(%u, GET_SECTOR_COUNT, 0x%08X)", pdrv, (unsigned)&sz_drv);
         sz_drv = 0;
         dr = disk_ioctl(pdrv, GET_SECTOR_COUNT, &sz_drv);
         if (dr == RES_OK) {
@@ -80,7 +80,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
 
 #if FF_MAX_SS != FF_MIN_SS
         printf("**** Get sector size ****\n");
-        printf(" disk_ioctl(%u, GET_SECTOR_SIZE, 0x%X)", pdrv, (UINT)&sz_sect);
+        printf(" disk_ioctl(%u, GET_SECTOR_SIZE, 0x%X)", pdrv, (unsigned)&sz_sect);
         sz_sect = 0;
         dr = disk_ioctl(pdrv, GET_SECTOR_SIZE, &sz_sect);
         if (dr == RES_OK) {
@@ -95,7 +95,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
 #endif
 
         printf("**** Get block size ****\n");
-        printf(" disk_ioctl(%u, GET_BLOCK_SIZE, 0x%X)", pdrv, (UINT)&sz_eblk);
+        printf(" disk_ioctl(%u, GET_BLOCK_SIZE, 0x%X)", pdrv, (unsigned)&sz_eblk);
         sz_eblk = 0;
         dr = disk_ioctl(pdrv, GET_BLOCK_SIZE, &sz_eblk);
         if (dr == RES_OK) {
@@ -114,7 +114,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
         lba = 0;
         for (n = 0, pn(pns); n < sz_sect; n++)
             pbuff[n] = (uint8_t)pn(0);
-        printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)pbuff, lba);
+        printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (unsigned)pbuff, lba);
         dr = disk_write(pdrv, pbuff, lba, 1);
         if (dr == RES_OK) {
             printf(" - ok.\n");
@@ -131,7 +131,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
             return 7;
         }
         memset(pbuff, 0, sz_sect);
-        printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (UINT)pbuff, lba);
+        printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (unsigned)pbuff, lba);
         dr = disk_read(pdrv, pbuff, lba, 1);
         if (dr == RES_OK) {
             printf(" - ok.\n");
@@ -155,9 +155,9 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
         if (ns > 4)
             ns = 4;
         if (ns > 1) {
-            for (n = 0, pn(pns); n < (UINT)(sz_sect * ns); n++)
+            for (n = 0, pn(pns); n < (unsigned)(sz_sect * ns); n++)
                 pbuff[n] = (uint8_t)pn(0);
-            printf(" disk_write(%u, 0x%X, %lu, %u)", pdrv, (UINT)pbuff, lba, ns);
+            printf(" disk_write(%u, 0x%X, %lu, %u)", pdrv, (unsigned)pbuff, lba, ns);
             dr = disk_write(pdrv, pbuff, lba, ns);
             if (dr == RES_OK) {
                 printf(" - ok.\n");
@@ -174,7 +174,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                 return 12;
             }
             memset(pbuff, 0, sz_sect * ns);
-            printf(" disk_read(%u, 0x%X, %lu, %u)", pdrv, (UINT)pbuff, lba, ns);
+            printf(" disk_read(%u, 0x%X, %lu, %u)", pdrv, (unsigned)pbuff, lba, ns);
             dr = disk_read(pdrv, pbuff, lba, ns);
             if (dr == RES_OK) {
                 printf(" - ok.\n");
@@ -182,9 +182,9 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                 printf(" - failed.\n");
                 return 13;
             }
-            for (n = 0, pn(pns); n < (UINT)(sz_sect * ns) && pbuff[n] == (uint8_t)pn(0); n++)
+            for (n = 0, pn(pns); n < (unsigned)(sz_sect * ns) && pbuff[n] == (uint8_t)pn(0); n++)
                 ;
-            if (n == (UINT)(sz_sect * ns)) {
+            if (n == (unsigned)(sz_sect * ns)) {
                 printf(" Read data matched.\n");
             } else {
                 printf(" Read data differs from the data written.\n");
@@ -199,7 +199,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
         lba = 5;
         for (n = 0, pn(pns); n < sz_sect; n++)
             pbuff[n + 3] = (uint8_t)pn(0);
-        printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)(pbuff + 3), lba);
+        printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (unsigned)(pbuff + 3), lba);
         dr = disk_write(pdrv, pbuff + 3, lba, 1);
         if (dr == RES_OK) {
             printf(" - ok.\n");
@@ -216,7 +216,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
             return 16;
         }
         memset(pbuff + 5, 0, sz_sect);
-        printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (UINT)(pbuff + 5), lba);
+        printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (unsigned)(pbuff + 5), lba);
         dr = disk_read(pdrv, pbuff + 5, lba, 1);
         if (dr == RES_OK) {
             printf(" - ok.\n");
@@ -238,9 +238,9 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
         if (sz_drv >= 128 + 0x80000000 / (sz_sect / 2)) {
             lba = 6;
             lba2 = lba + 0x80000000 / (sz_sect / 2);
-            for (n = 0, pn(pns); n < (UINT)(sz_sect * 2); n++)
+            for (n = 0, pn(pns); n < (unsigned)(sz_sect * 2); n++)
                 pbuff[n] = (uint8_t)pn(0);
-            printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)pbuff, lba);
+            printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (unsigned)pbuff, lba);
             dr = disk_write(pdrv, pbuff, lba, 1);
             if (dr == RES_OK) {
                 printf(" - ok.\n");
@@ -248,7 +248,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                 printf(" - failed.\n");
                 return 19;
             }
-            printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (UINT)(pbuff + sz_sect), lba2);
+            printf(" disk_write(%u, 0x%X, %lu, 1)", pdrv, (unsigned)(pbuff + sz_sect), lba2);
             dr = disk_write(pdrv, pbuff + sz_sect, lba2, 1);
             if (dr == RES_OK) {
                 printf(" - ok.\n");
@@ -265,7 +265,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                 return 21;
             }
             memset(pbuff, 0, sz_sect * 2);
-            printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (UINT)pbuff, lba);
+            printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (unsigned)pbuff, lba);
             dr = disk_read(pdrv, pbuff, lba, 1);
             if (dr == RES_OK) {
                 printf(" - ok.\n");
@@ -273,7 +273,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                 printf(" - failed.\n");
                 return 22;
             }
-            printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (UINT)(pbuff + sz_sect), lba2);
+            printf(" disk_read(%u, 0x%X, %lu, 1)", pdrv, (unsigned)(pbuff + sz_sect), lba2);
             dr = disk_read(pdrv, pbuff + sz_sect, lba2, 1);
             if (dr == RES_OK) {
                 printf(" - ok.\n");
@@ -281,9 +281,9 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
                 printf(" - failed.\n");
                 return 23;
             }
-            for (n = 0, pn(pns); pbuff[n] == (uint8_t)pn(0) && n < (UINT)(sz_sect * 2); n++)
+            for (n = 0, pn(pns); pbuff[n] == (uint8_t)pn(0) && n < (unsigned)(sz_sect * 2); n++)
                 ;
-            if (n == (UINT)(sz_sect * 2)) {
+            if (n == (unsigned)(sz_sect * 2)) {
                 printf(" Read data matched.\n");
             } else {
                 printf(" Read data differs from the data written.\n");

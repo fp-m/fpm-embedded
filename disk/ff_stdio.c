@@ -28,7 +28,7 @@ specific language governing permissions and limitations under the License.
 #define TRACE_PRINTF(fmt, args...)
 // #define TRACE_PRINTF printf
 
-static BYTE posix2mode(const char *pcMode)
+static uint8_t posix2mode(const char *pcMode)
 {
     if (0 == strcmp("r", pcMode))
         return FA_READ;
@@ -100,11 +100,11 @@ int fresult2errno(FRESULT fr)
 FF_FILE *ff_fopen(const char *pcFile, const char *pcMode)
 {
     TRACE_PRINTF("%s\n", __func__);
-    // FRESULT f_open (FIL* fp, const char* path, BYTE mode);
+    // FRESULT f_open (FIL* fp, const char* path, uint8_t mode);
     // /* Open or create a file */ FRESULT f_open (
     //  FIL* fp,           /* [OUT] Pointer to the file object structure */
     //  const char* path, /* [IN] File name */
-    //  BYTE mode          /* [IN] Mode flags */
+    //  uint8_t mode          /* [IN] Mode flags */
     //);
     FIL *fp = malloc(sizeof(FIL));
     if (!fp) {
@@ -164,11 +164,11 @@ size_t ff_fwrite(const void *pvBuffer, size_t xSize, size_t xItems, FF_FILE *pxS
     // FRESULT f_write (
     //  FIL* fp,          /* [IN] Pointer to the file object structure */
     //  const void* buff, /* [IN] Pointer to the data to be written */
-    //  UINT btw,         /* [IN] Number of bytes to write */
-    //  UINT* bw          /* [OUT] Pointer to the variable to return number of
+    //  unsigned btw,         /* [IN] Number of bytes to write */
+    //  unsigned* bw          /* [OUT] Pointer to the variable to return number of
     //  bytes written */
     //);
-    UINT bw = 0;
+    unsigned bw = 0;
     FRESULT fr = f_write(pxStream, pvBuffer, xSize * xItems, &bw);
     if (FR_OK != fr)
         TRACE_PRINTF("%s error: %s (%d)\n", __func__, FRESULT_str(fr), fr);
@@ -182,10 +182,10 @@ size_t ff_fread(void *pvBuffer, size_t xSize, size_t xItems, FF_FILE *pxStream)
     // FRESULT f_read (
     //  FIL* fp,     /* [IN] File object */
     //  void* buff,  /* [OUT] Buffer to store read data */
-    //  UINT btr,    /* [IN] Number of bytes to read */
-    //  UINT* br     /* [OUT] Number of bytes read */
+    //  unsigned btr,    /* [IN] Number of bytes to read */
+    //  unsigned* br     /* [OUT] Number of bytes read */
     //);
-    UINT br = 0;
+    unsigned br = 0;
     FRESULT fr = f_read(pxStream, pvBuffer, xSize * xItems, &br);
     if (FR_OK != fr)
         TRACE_PRINTF("%s error: %s (%d)\n", __func__, FRESULT_str(fr), fr);
@@ -214,7 +214,7 @@ char *ff_getcwd(char *pcBuffer, size_t xBufferLength)
     TRACE_PRINTF("%s\n", __func__);
     // FRESULT f_getcwd (
     //  char* buff, /* [OUT] Buffer to return path name */
-    //  UINT len     /* [IN] The length of the buffer */
+    //  unsigned len     /* [IN] The length of the buffer */
     //);
     char buf[xBufferLength];
     FRESULT fr = f_getcwd(buf, xBufferLength);
@@ -258,11 +258,11 @@ int ff_fputc(int iChar, FF_FILE *pxStream)
     // FRESULT f_write (
     //  FIL* fp,          /* [IN] Pointer to the file object structure */
     //  const void* buff, /* [IN] Pointer to the data to be written */
-    //  UINT btw,         /* [IN] Number of bytes to write */
-    //  UINT* bw          /* [OUT] Pointer to the variable to return number of
+    //  unsigned btw,         /* [IN] Number of bytes to write */
+    //  unsigned* bw          /* [OUT] Pointer to the variable to return number of
     //  bytes written */
     //);
-    UINT bw = 0;
+    unsigned bw = 0;
     uint8_t buff[1];
     buff[0] = iChar;
     FRESULT fr = f_write(pxStream, buff, 1, &bw);
@@ -285,11 +285,11 @@ int ff_fgetc(FF_FILE *pxStream)
     // FRESULT f_read (
     //  FIL* fp,     /* [IN] File object */
     //  void* buff,  /* [OUT] Buffer to store read data */
-    //  UINT btr,    /* [IN] Number of bytes to read */
-    //  UINT* br     /* [OUT] Number of bytes read */
+    //  unsigned btr,    /* [IN] Number of bytes to read */
+    //  unsigned* br     /* [OUT] Number of bytes read */
     //);
     uint8_t buff[1] = { 0 };
-    UINT br;
+    unsigned br;
     FRESULT fr = f_read(pxStream, buff, 1, &br);
     if (FR_OK != fr)
         TRACE_PRINTF("%s error: %s (%d)\n", __func__, FRESULT_str(fr), fr);
@@ -334,10 +334,10 @@ int ff_remove(const char *pcPath)
 long ff_ftell(FF_FILE *pxStream)
 {
     TRACE_PRINTF("%s\n", __func__);
-    // FSIZE_t f_tell (
+    // fs_size_t f_tell (
     //  FIL* fp   /* [IN] File object */
     //);
-    FSIZE_t pos = f_tell(pxStream);
+    fs_size_t pos = f_tell(pxStream);
     myASSERT(pos < LONG_MAX);
     return pos;
 }
@@ -447,8 +447,8 @@ FF_FILE *ff_truncate(const char *pcFileName, long lTruncateSize)
     errno = fresult2errno(fr);
     if (FR_OK != fr)
         return NULL;
-    while (f_tell(fp) < (FSIZE_t)lTruncateSize) {
-        UINT bw = 0;
+    while (f_tell(fp) < (fs_size_t)lTruncateSize) {
+        unsigned bw = 0;
         char c = 0;
         fr = f_write(fp, &c, 1, &bw);
         if (FR_OK != fr)

@@ -25,15 +25,11 @@ extern "C" {
 #endif
 
 #include "ffconf.h" /* FatFs configuration options */
-
-/* Integer types used for FatFs API */
-
 #include <stdint.h>
-typedef unsigned int UINT;  /* int must be 16-bit or 32-bit */
 
 /* Type of file size and LBA variables */
 
-typedef uint64_t FSIZE_t; // exFAT enabled
+typedef uint64_t fs_size_t; // TODO: move to rpm/api.h
 typedef uint32_t LBA_t;   // only LBA-32 is supported
 
 /* Definitions of volume management */
@@ -91,7 +87,7 @@ typedef struct {
     uint8_t stat; /* Object chain status (b1-0: =0:not contiguous, =2:contiguous, =3:fragmented in this
                   session, b2:sub-directory stretched) */
     uint32_t sclust;    /* Object data start cluster (0:no cluster or root directory) */
-    FSIZE_t objsize; /* Object size (valid when sclust != 0) */
+    fs_size_t objsize; /* Object size (valid when sclust != 0) */
     uint32_t n_cont; /* Size of first fragment - 1 (valid when stat == 3) */
     uint32_t n_frag; /* Size of last fragment needs to be written to FAT (valid when not zero) */
     uint32_t c_scl;  /* Containing directory start cluster (valid when sclust != 0) */
@@ -99,7 +95,7 @@ typedef struct {
                      0) */
     uint32_t c_ofs;  /* Offset in the containing directory (valid when file object and sclust != 0) */
 #if FF_FS_LOCK
-    UINT lockid; /* File lock ID origin from 1 (index of file semaphore table Files[]) */
+    unsigned lockid; /* File lock ID origin from 1 (index of file semaphore table Files[]) */
 #endif
 } FFOBJID;
 
@@ -109,7 +105,7 @@ typedef struct {
     FFOBJID obj;  /* Object identifier (must be the 1st member to detect invalid object pointer) */
     uint8_t flag;    /* File status flags */
     uint8_t err;     /* Abort flag (error code) */
-    FSIZE_t fptr; /* File read/write pointer (Zeroed on file open) */
+    fs_size_t fptr; /* File read/write pointer (Zeroed on file open) */
     uint32_t clust;  /* Current cluster of fpter (invalid when fptr is 0) */
     LBA_t sect;   /* Sector number appearing in buf[] (0:invalid) */
 #if !FF_FS_READONLY
@@ -142,7 +138,7 @@ typedef struct {
 /* File information structure (FILINFO) */
 
 typedef struct {
-    FSIZE_t fsize; /* File size */
+    fs_size_t fsize; /* File size */
     uint16_t fdate;    /* Modified date */
     uint16_t ftime;    /* Modified time */
     uint8_t fattrib;  /* File attribute */
@@ -155,8 +151,8 @@ typedef struct {
 typedef struct {
     uint8_t fmt;      /* Format option (FM_FAT, FM_FAT32, FM_EXFAT and FM_SFD) */
     uint8_t n_fat;    /* Number of FATs */
-    UINT align;    /* Data area alignment (sector) */
-    UINT n_root;   /* Number of root directory entries */
+    unsigned align;    /* Data area alignment (sector) */
+    unsigned n_root;   /* Number of root directory entries */
     uint32_t au_size; /* Cluster size (byte) */
 } MKFS_PARM;
 
@@ -203,7 +199,7 @@ uint32_t ff_wtoupper(uint32_t uni);         /* Unicode upper-case conversion */
 /* O/S dependent functions (samples available in ffsystem.c) */
 
 #if FF_USE_LFN == 3            /* Dynamic memory allocation */
-void *ff_memalloc(UINT msize); /* Allocate memory block */
+void *ff_memalloc(unsigned msize); /* Allocate memory block */
 void ff_memfree(void *mblock); /* Free memory block */
 #endif
 #if FF_FS_REENTRANT            /* Sync functions */
@@ -218,7 +214,7 @@ void ff_mutex_give(int vol);   /* Unlock sync object */
 /*--------------------------------------------------------------*/
 
 /* Fast seek controls (2nd argument of f_lseek) */
-#define CREATE_LINKMAP ((FSIZE_t)0 - 1)
+#define CREATE_LINKMAP ((fs_size_t)0 - 1)
 
 /* Format options (2nd argument of f_mkfs) */
 #define FM_FAT 0x01

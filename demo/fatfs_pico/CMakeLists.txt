@@ -24,9 +24,8 @@ pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # Build FatFs library
 add_library(FatFs_SPI STATIC
-    ${CMAKE_SOURCE_DIR}/../../fatfs/ffsystem.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/ffunicode.c
     ${CMAKE_SOURCE_DIR}/../../fatfs/fatfs.c
+    ${CMAKE_SOURCE_DIR}/../../fatfs/unicode.c
     ${CMAKE_SOURCE_DIR}/../../sd_pico/sd_spi.c
     ${CMAKE_SOURCE_DIR}/../../sd_pico/demo_logging.c
     ${CMAKE_SOURCE_DIR}/../../sd_pico/spi.c

@@ -35,7 +35,7 @@ specific language governing permissions and limitations under the License.
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_status(BYTE pdrv) /* Physical drive nmuber to identify the drive */
+DSTATUS disk_status(uint8_t pdrv) /* Physical drive nmuber to identify the drive */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
@@ -49,7 +49,7 @@ DSTATUS disk_status(BYTE pdrv) /* Physical drive nmuber to identify the drive */
 /* Inidialize a Drive                                                    */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_initialize(BYTE pdrv) /* Physical drive nmuber to identify the drive */
+DSTATUS disk_initialize(uint8_t pdrv) /* Physical drive nmuber to identify the drive */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
@@ -86,10 +86,10 @@ static int sdrc2dresult(int sd_rc)
 /* Read Sector(s)                                                        */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_read(BYTE pdrv,    /* Physical drive nmuber to identify the drive */
-                  BYTE *buff,   /* Data buffer to store read data */
+DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the drive */
+                  uint8_t *buff,   /* Data buffer to store read data */
                   LBA_t sector, /* Start sector in LBA */
-                  UINT count)   /* Number of sectors to read */
+                  unsigned count)   /* Number of sectors to read */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
@@ -105,10 +105,10 @@ DRESULT disk_read(BYTE pdrv,    /* Physical drive nmuber to identify the drive *
 
 #if FF_FS_READONLY == 0
 
-DRESULT disk_write(BYTE pdrv,        /* Physical drive nmuber to identify the drive */
-                   const BYTE *buff, /* Data to be written */
+DRESULT disk_write(uint8_t pdrv,        /* Physical drive nmuber to identify the drive */
+                   const uint8_t *buff, /* Data to be written */
                    LBA_t sector,     /* Start sector in LBA */
-                   UINT count)       /* Number of sectors to write */
+                   unsigned count)       /* Number of sectors to write */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
@@ -124,8 +124,8 @@ DRESULT disk_write(BYTE pdrv,        /* Physical drive nmuber to identify the dr
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_ioctl(BYTE pdrv,  /* Physical drive nmuber (0..) */
-                   BYTE cmd,   /* Control code */
+DRESULT disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
+                   uint8_t cmd,   /* Control code */
                    void *buff) /* Buffer to send/receive control data */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
