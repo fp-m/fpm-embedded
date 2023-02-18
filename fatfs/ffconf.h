@@ -48,24 +48,16 @@
 #define FF_USE_STRFUNC 1
 #define FF_PRINT_LLI 1
 #define FF_PRINT_FLOAT 1
-#define FF_STRF_ENCODE 3
 /* FF_USE_STRFUNC switches string functions, f_gets(), f_putc(), f_puts() and
 /  f_printf().
 /
-/   0: Disable. FF_PRINT_LLI, FF_PRINT_FLOAT and FF_STRF_ENCODE have no effect.
+/   0: Disable. FF_PRINT_LLI and FF_PRINT_FLOAT have no effect.
 /   1: Enable without LF-CRLF conversion.
 /   2: Enable with LF-CRLF conversion.
 /
 /  FF_PRINT_LLI = 1 makes f_printf() support long long argument and FF_PRINT_FLOAT = 1/2
 /  makes f_printf() support floating point argument. These features want C99 or later.
-/  When FF_LFN_UNICODE >= 1 with LFN enabled, string functions convert the character
-/  encoding in it. FF_STRF_ENCODE selects assumption of character encoding ON THE FILE
-/  to be read/written via those functions.
-/
-/   0: ANSI/OEM in current CP
-/   1: Unicode in UTF-16LE
-/   2: Unicode in UTF-16BE
-/   3: Unicode in UTF-8
+/  String functions convert the character encoding to/from UTF-8.
 */
 
 /*---------------------------------------------------------------------------/
@@ -104,7 +96,6 @@
 #define FF_MAX_LFN 255
 /* The FF_USE_LFN switches the support for LFN (long file name).
 /
-/   0: Disable LFN. FF_MAX_LFN has no effect.
 /   1: Enable LFN with static  working buffer on the BSS. Always NOT thread-safe.
 /   2: Enable LFN with dynamic working buffer on the STACK.
 /   3: Enable LFN with dynamic working buffer on the HEAP.
@@ -118,17 +109,6 @@
 /  When use stack for the working buffer, take care on stack overflow. When use heap
 /  memory for the working buffer, memory management functions, ff_memalloc() and
 /  ff_memfree() exemplified in ffsystem.c, need to be added to the project. */
-
-#define FF_LFN_UNICODE 2
-/* This option switches the character encoding on the API when LFN is enabled.
-/
-/   0: ANSI/OEM in current CP (TCHAR = char)
-/   1: Unicode in UTF-16 (TCHAR = WCHAR)
-/   2: Unicode in UTF-8 (TCHAR = char)
-/   3: Unicode in UTF-32 (TCHAR = DWORD)
-/
-/  Also behavior of string I/O functions will be affected by this option.
-/  When LFN is not enabled, this option has no effect. */
 
 #define FF_LFN_BUF 255
 #define FF_SFN_BUF 12

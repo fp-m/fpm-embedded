@@ -47,25 +47,9 @@ typedef DWORD LBA_t; // LBA-32
 
 /* Type of path name strings on FatFs API (TCHAR) */
 
-#if FF_USE_LFN && FF_LFN_UNICODE == 1 /* Unicode in UTF-16 encoding */
-typedef WCHAR TCHAR;
-#define _T(x) L##x
-#define _TEXT(x) L##x
-#elif FF_USE_LFN && FF_LFN_UNICODE == 2 /* Unicode in UTF-8 encoding */
 typedef char TCHAR;
 #define _T(x) u8##x
 #define _TEXT(x) u8##x
-#elif FF_USE_LFN && FF_LFN_UNICODE == 3 /* Unicode in UTF-32 encoding */
-typedef DWORD TCHAR;
-#define _T(x) U##x
-#define _TEXT(x) U##x
-#elif FF_USE_LFN && (FF_LFN_UNICODE < 0 || FF_LFN_UNICODE > 3)
-#error Wrong FF_LFN_UNICODE setting
-#else /* ANSI/OEM code in SBCS/DBCS */
-typedef char TCHAR;
-#define _T(x) x
-#define _TEXT(x) x
-#endif
 
 /* Definitions of volume management */
 
@@ -90,9 +74,7 @@ typedef struct {
 #if FF_MAX_SS != FF_MIN_SS
     WORD ssize; /* Sector size (512, 1024, 2048 or 4096) */
 #endif
-#if FF_USE_LFN
     WCHAR *lfnbuf; /* LFN working buffer */
-#endif
 #if FF_FS_EXFAT
     BYTE *dirbuf; /* Directory entry block scratchpad buffer for exFAT */
 #endif
@@ -174,9 +156,7 @@ typedef struct {
     LBA_t sect;  /* Current sector (0:Read operation has terminated) */
     BYTE *dir;   /* Pointer to the directory item in the win[] */
     BYTE fn[12]; /* SFN (in/out) {body[8],ext[3],status[1]} */
-#if FF_USE_LFN
     DWORD blk_ofs; /* Offset of current entry block being processed (0xFFFFFFFF:Invalid) */
-#endif
 #if FF_USE_FIND
     const TCHAR *pat; /* Pointer to the name matching pattern */
 #endif
@@ -189,12 +169,8 @@ typedef struct {
     WORD fdate;    /* Modified date */
     WORD ftime;    /* Modified time */
     BYTE fattrib;  /* File attribute */
-#if FF_USE_LFN
     TCHAR altname[FF_SFN_BUF + 1]; /* Alternative file name */
     TCHAR fname[FF_LFN_BUF + 1];   /* Primary file name */
-#else
-    TCHAR fname[12 + 1]; /* File name */
-#endif
 } FILINFO;
 
 /* Format parameter structure (MKFS_PARM) */
@@ -243,11 +219,9 @@ DWORD get_fattime(void); /* Get current time */
 
 /* LFN support functions (defined in ffunicode.c) */
 
-#if FF_USE_LFN >= 1
 WCHAR ff_oem2uni(WCHAR oem, WORD cp); /* OEM code to Unicode conversion */
 WCHAR ff_uni2oem(DWORD uni, WORD cp); /* Unicode to OEM code conversion */
 DWORD ff_wtoupper(DWORD uni);         /* Unicode upper-case conversion */
-#endif
 
 /* O/S dependent functions (samples available in ffsystem.c) */
 

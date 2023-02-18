@@ -46,7 +46,7 @@
 #define IsLower(c) ((c) >= 'a' && (c) <= 'z')
 #define IsDigit(c) ((c) >= '0' && (c) <= '9')
 #define IsSeparator(c) ((c) == '/' || (c) == '\\')
-#define IsTerminator(c) ((UINT)(c) < (FF_USE_LFN ? ' ' : '!'))
+#define IsTerminator(c) ((UINT)(c) < ' ')
 #define IsSurrogate(c) ((c) >= 0xD800 && (c) <= 0xDFFF)
 #define IsSurrogateH(c) ((c) >= 0xD800 && (c) <= 0xDBFF)
 #define IsSurrogateL(c) ((c) >= 0xDC00 && (c) <= 0xDFFF)
@@ -351,23 +351,13 @@ static const char *const VolumeStr[FF_VOLUMES] = { FF_VOLUME_STRS }; /* Pre-defi
 /*--------------------------------*/
 
 #if FF_USE_LFN == 0 /* Non-LFN configuration */
-#if FF_FS_EXFAT
-#error LFN must be enabled when enable exFAT
+#error LFN must be enabled
 #endif
-#define DEF_NAMBUF
-#define INIT_NAMBUF(fs)
-#define FREE_NAMBUF()
-#define LEAVE_MKFS(res) return res
-
-#else /* LFN configurations */
 #if FF_MAX_LFN < 12 || FF_MAX_LFN > 255
 #error Wrong setting of FF_MAX_LFN
 #endif
 #if FF_LFN_BUF < FF_SFN_BUF || FF_SFN_BUF < 12
 #error Wrong setting of FF_LFN_BUF or FF_SFN_BUF
-#endif
-#if FF_LFN_UNICODE < 0 || FF_LFN_UNICODE > 3
-#error Wrong setting of FF_LFN_UNICODE
 #endif
 
 /* FAT: Offset of LFN characters in the directory entry */
@@ -376,7 +366,11 @@ static const BYTE LfnOfs[] = { 1, 3, 5, 7, 9, 14, 16, 18, 20, 22, 24, 28, 30 };
 /* exFAT: Size of directory entry block scratchpad buffer needed for the name length */
 #define MAXDIRB(nc) ((nc + 44U) / 15 * SZDIRE)
 
-#if FF_USE_LFN == 1 /* LFN enabled with static working buffer */
+//
+// LFN enabled with static working buffer
+//
+#if FF_USE_LFN == 1
+
 #if FF_FS_EXFAT
 static BYTE DirBuf[MAXDIRB(FF_MAX_LFN)]; /* Directory entry block scratchpad buffer */
 #endif
@@ -386,7 +380,11 @@ static WCHAR LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 #define FREE_NAMBUF()
 #define LEAVE_MKFS(res) return res
 
-#elif FF_USE_LFN == 2 /* LFN enabled with dynamic working buffer on the stack */
+//
+// LFN enabled with dynamic working buffer on the stack
+//
+#elif FF_USE_LFN == 2
+
 #if FF_FS_EXFAT
 
 /* LFN working buffer and directory entry block scratchpad buffer */
@@ -409,7 +407,11 @@ static WCHAR LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 #endif
 #define LEAVE_MKFS(res) return res
 
-#elif FF_USE_LFN == 3 /* LFN enabled with dynamic working buffer on the heap */
+//
+// LFN enabled with dynamic working buffer on the heap
+//
+#elif FF_USE_LFN == 3
+
 #if FF_FS_EXFAT
 
 /* Pointer to LFN working buffer and directory entry block scratchpad buffer */
@@ -445,9 +447,7 @@ static WCHAR LfnBuf[FF_MAX_LFN + 1];     /* LFN working buffer */
 
 #else
 #error Wrong setting of FF_USE_LFN
-
 #endif /* FF_USE_LFN == 1 */
-#endif /* FF_USE_LFN == 0 */
 
 //-------------------------------------------------------------------------
 // Module Private Functions
@@ -555,8 +555,6 @@ static int dbc_2nd(BYTE c)
     return 0;
 }
 
-#if FF_USE_LFN
-
 //
 // Get a Unicode code point from the TCHAR string in defined API encodeing.
 // Returns a character in UTF-16 encoding (>=0x10000 on surrogate pair,
@@ -567,18 +565,7 @@ static DWORD tchar2uni(const TCHAR **str) // Pointer to pointer to TCHAR string 
     DWORD uc;
     const TCHAR *p = *str;
 
-#if FF_LFN_UNICODE == 1 /* UTF-16 input */
-    WCHAR wc;
-
-    uc = *p++;             /* Get a unit */
-    if (IsSurrogate(uc)) { /* Surrogate? */
-        wc = *p++;         /* Get low surrogate */
-        if (!IsSurrogateH(uc) || !IsSurrogateL(wc))
-            return 0xFFFFFFFF; /* Wrong surrogate? */
-        uc = uc << 16 | wc;
-    }
-
-#elif FF_LFN_UNICODE == 2 /* UTF-8 input */
+    /* UTF-8 input */
     BYTE b;
     int nf;
 
@@ -609,32 +596,6 @@ static DWORD tchar2uni(const TCHAR **str) // Pointer to pointer to TCHAR string 
                  (uc & 0x3FF); /* Make a surrogate pair if needed */
     }
 
-#elif FF_LFN_UNICODE == 3 /* UTF-32 input */
-    uc = (TCHAR)*p++; /* Get a unit */
-    if (uc >= 0x110000 || IsSurrogate(uc))
-        return 0xFFFFFFFF; /* Wrong code? */
-    if (uc >= 0x010000)
-        uc = 0xD800DC00 | ((uc - 0x10000) << 6 & 0x3FF0000) |
-             (uc & 0x3FF); /* Make a surrogate pair if needed */
-
-#else /* ANSI/OEM input */
-    BYTE b;
-    WCHAR wc;
-
-    wc = (BYTE)*p++;         /* Get a byte */
-    if (dbc_1st((BYTE)wc)) { /* Is it a DBC 1st byte? */
-        b = (BYTE)*p++;      /* Get 2nd byte */
-        if (!dbc_2nd(b))
-            return 0xFFFFFFFF; /* Invalid code? */
-        wc = (wc << 8) + b;    /* Make a DBC */
-    }
-    if (wc != 0) {
-        if (wc == 0)
-            return 0xFFFFFFFF; /* Invalid code? */
-    }
-    uc = wc;
-
-#endif
     *str = p; /* Next read pointer */
     return uc;
 }
@@ -648,24 +609,7 @@ static UINT put_utf(DWORD chr,  // UTF-16 encoded character (Surrogate pair if >
                     TCHAR *buf, // Output buffer
                     UINT szb)   // Size of the buffer
 {
-#if FF_LFN_UNICODE == 1 /* UTF-16 output */
-    WCHAR hs, wc;
-
-    hs = (WCHAR)(chr >> 16);
-    wc = (WCHAR)chr;
-    if (hs == 0) { /* Single encoding unit? */
-        if (szb < 1 || IsSurrogate(wc))
-            return 0; /* Buffer overflow or wrong code? */
-        *buf = wc;
-        return 1;
-    }
-    if (szb < 2 || !IsSurrogateH(hs) || !IsSurrogateL(wc))
-        return 0; /* Buffer overflow or wrong surrogate? */
-    *buf++ = hs;
-    *buf++ = wc;
-    return 2;
-
-#elif FF_LFN_UNICODE == 2 /* UTF-8 output */
+    /* UTF-8 output */
     DWORD hc;
 
     if (chr < 0x80) { /* Single byte code? */
@@ -702,40 +646,7 @@ static UINT put_utf(DWORD chr,  // UTF-16 encoded character (Surrogate pair if >
     *buf++ = (TCHAR)(0x80 | (chr >> 6 & 0x3F));
     *buf++ = (TCHAR)(0x80 | (chr >> 0 & 0x3F));
     return 4;
-
-#elif FF_LFN_UNICODE == 3 /* UTF-32 output */
-    DWORD hc;
-
-    if (szb < 1)
-        return 0;                                    /* Buffer overflow? */
-    if (chr >= 0x10000) {                            /* Out of BMP? */
-        hc = ((chr & 0xFFFF0000) - 0xD8000000) >> 6; /* Get high 10 bits */
-        chr = (chr & 0xFFFF) - 0xDC00;               /* Get low 10 bits */
-        if (hc >= 0x100000 || chr >= 0x400)
-            return 0; /* Wrong surrogate? */
-        chr = (hc | chr) + 0x10000;
-    }
-    *buf++ = (TCHAR)chr;
-    return 1;
-
-#else /* ANSI/OEM output */
-    WCHAR wc;
-
-    wc = chr /*ff_uni2oem(chr, CODEPAGE)*/;
-    if (wc >= 0x100) { /* Is this a DBC? */
-        if (szb < 2)
-            return 0;
-        *buf++ = (char)(wc >> 8); /* Store DBC 1st byte */
-        *buf++ = (TCHAR)wc;       /* Store DBC 2nd byte */
-        return 2;
-    }
-    if (wc == 0 || szb < 1)
-        return 0;       /* Invalid char or buffer overflow? */
-    *buf++ = (TCHAR)wc; /* Store the character */
-    return 1;
-#endif
 }
-#endif /* FF_USE_LFN */
 
 #if FF_FS_REENTRANT
 /*-----------------------------------------------------------------------*/
@@ -1781,7 +1692,6 @@ static void st_clust(FATFS *fs, /* Pointer to the fs object */
 }
 #endif
 
-#if FF_USE_LFN
 /*--------------------------------------------------------*/
 /* FAT-LFN: Compare a part of file name with an LFN entry */
 /*--------------------------------------------------------*/
@@ -1896,9 +1806,8 @@ static void put_lfn(const WCHAR *lfn, /* Pointer to the LFN */
 }
 
 #endif /* !FF_FS_READONLY */
-#endif /* FF_USE_LFN */
 
-#if FF_USE_LFN && !FF_FS_READONLY
+#if !FF_FS_READONLY
 /*-----------------------------------------------------------------------*/
 /* FAT-LFN: Create a Numbered SFN                                        */
 /*-----------------------------------------------------------------------*/
@@ -1954,9 +1863,8 @@ static void gen_numname(BYTE *dst,        /* Pointer to the buffer to store numb
         dst[j++] = (i < 8) ? ns[i++] : ' ';
     } while (j < 8);
 }
-#endif /* FF_USE_LFN && !FF_FS_READONLY */
+#endif /* !FF_FS_READONLY */
 
-#if FF_USE_LFN
 /*-----------------------------------------------------------------------*/
 /* FAT-LFN: Calculate checksum of an SFN entry                           */
 /*-----------------------------------------------------------------------*/
@@ -1972,8 +1880,6 @@ static BYTE sum_sfn(const BYTE *dir /* Pointer to the SFN entry */
     } while (--n);
     return sum;
 }
-
-#endif /* FF_USE_LFN */
 
 #if FF_FS_EXFAT
 /*-----------------------------------------------------------------------*/
@@ -2220,9 +2126,7 @@ static FRESULT dir_read(DIR *dp, /* Pointer to the directory object */
     FRESULT res = FR_NO_FILE;
     FATFS *fs = dp->obj.fs;
     BYTE attr, b;
-#if FF_USE_LFN
     BYTE ord = 0xFF, sum = 0xFF;
-#endif
 
     while (dp->sect) {
         res = move_window(fs, dp->sect);
@@ -2252,7 +2156,6 @@ static FRESULT dir_read(DIR *dp, /* Pointer to the directory object */
 #endif
         {                                                      /* On the FAT/FAT32 volume */
             dp->obj.attr = attr = dp->dir[DIR_Attr] & AM_MASK; /* Get attribute */
-#if FF_USE_LFN                                                 /* LFN configuration */
             if (b == DDEM || b == '.' ||
                 (int)((attr & ~AM_ARC) == AM_VOL) != vol) { /* An entry without valid data */
                 ord = 0xFF;
@@ -2275,12 +2178,6 @@ static FRESULT dir_read(DIR *dp, /* Pointer to the directory object */
                     break;
                 }
             }
-#else /* Non LFN configuration */
-            if (b != DDEM && b != '.' && attr != AM_LFN &&
-                (int)((attr & ~AM_ARC) == AM_VOL) == vol) { /* Is it a valid entry? */
-                break;
-            }
-#endif
         }
         res = dir_next(dp, 0); /* Next entry */
         if (res != FR_OK)
@@ -2305,9 +2202,7 @@ static FRESULT dir_find(        /* FR_OK(0):succeeded, !=0:error */
     FRESULT res;
     FATFS *fs = dp->obj.fs;
     BYTE c;
-#if FF_USE_LFN
     BYTE a, ord, sum;
-#endif
 
     res = dir_sdi(dp, 0); /* Rewind directory object */
     if (res != FR_OK)
@@ -2339,10 +2234,8 @@ static FRESULT dir_find(        /* FR_OK(0):succeeded, !=0:error */
     }
 #endif
     /* On the FAT/FAT32 volume */
-#if FF_USE_LFN
     ord = sum = 0xFF;
     dp->blk_ofs = 0xFFFFFFFF; /* Reset LFN sequence */
-#endif
     do {
         res = move_window(fs, dp->sect);
         if (res != FR_OK)
@@ -2352,7 +2245,6 @@ static FRESULT dir_find(        /* FR_OK(0):succeeded, !=0:error */
             res = FR_NO_FILE;
             break;
         }      /* Reached to end of table */
-#if FF_USE_LFN /* LFN configuration */
         dp->obj.attr = a = dp->dir[DIR_Attr] & AM_MASK;
         if (c == DDEM || ((a & AM_VOL) && a != AM_LFN)) { /* An entry without valid data */
             ord = 0xFF;
@@ -2381,11 +2273,6 @@ static FRESULT dir_find(        /* FR_OK(0):succeeded, !=0:error */
                 dp->blk_ofs = 0xFFFFFFFF; /* Reset LFN sequence */
             }
         }
-#else /* Non LFN configuration */
-        dp->obj.attr = dp->dir[DIR_Attr] & AM_MASK;
-        if (!(dp->dir[DIR_Attr] & AM_VOL) && !memcmp(dp->dir, dp->fn, 11))
-            break; /* Is it a valid entry? */
-#endif
         res = dir_next(dp, 0); /* Next entry */
     } while (res == FR_OK);
 
@@ -2404,7 +2291,6 @@ static FRESULT dir_register(        /* FR_OK:succeeded, FR_DENIED:no free entry 
 {
     FRESULT res;
     FATFS *fs = dp->obj.fs;
-#if FF_USE_LFN /* LFN configuration */
     UINT n, len, n_ent;
     BYTE sn[12], sum;
 
@@ -2489,20 +2375,13 @@ static FRESULT dir_register(        /* FR_OK:succeeded, FR_DENIED:no free entry 
         }
     }
 
-#else /* Non LFN configuration */
-    res = dir_alloc(dp, 1); /* Allocate an entry for SFN */
-
-#endif
-
     /* Set SFN entry */
     if (res == FR_OK) {
         res = move_window(fs, dp->sect);
         if (res == FR_OK) {
             memset(dp->dir, 0, SZDIRE);             /* Clean the entry */
             memcpy(dp->dir + DIR_Name, dp->fn, 11); /* Put SFN */
-#if FF_USE_LFN
             dp->dir[DIR_NTres] = dp->fn[NSFLAG] & (NS_BODY | NS_EXT); /* Put NT flag */
-#endif
             fs->wflag = 1;
         }
     }
@@ -2523,7 +2402,6 @@ static FRESULT dir_remove(        /* FR_OK:Succeeded, FR_DISK_ERR:A disk error *
 {
     FRESULT res;
     FATFS *fs = dp->obj.fs;
-#if FF_USE_LFN /* LFN configuration */
     DWORD last = dp->dptr;
 
     res =
@@ -2548,14 +2426,6 @@ static FRESULT dir_remove(        /* FR_OK:Succeeded, FR_DISK_ERR:A disk error *
         if (res == FR_NO_FILE)
             res = FR_INT_ERR;
     }
-#else /* Non LFN configuration */
-
-    res = move_window(fs, dp->sect);
-    if (res == FR_OK) {
-        dp->dir[DIR_Name] = DDEM; /* Mark the entry 'deleted'.*/
-        fs->wflag = 1;
-    }
-#endif
 
     return res;
 }
@@ -2572,20 +2442,15 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
 )
 {
     UINT si, di;
-#if FF_USE_LFN
     BYTE lcf;
     WCHAR wc, hs;
     FATFS *fs = dp->obj.fs;
     UINT nw;
-#else
-    TCHAR c;
-#endif
 
     fno->fname[0] = 0; /* Invaidate file info */
     if (dp->sect == 0)
         return; /* Exit if read pointer has reached end of directory */
 
-#if FF_USE_LFN /* LFN configuration */
 #if FF_FS_EXFAT
     if (fs->fs_type == FS_EXFAT) { /* exFAT volume */
         UINT nc = 0;
@@ -2664,7 +2529,8 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
             wc = DDEM; /* Restore replaced DDEM character */
         if (si == 9 && di < FF_SFN_BUF)
             fno->altname[di++] = '.'; /* Insert a . if extension is exist */
-#if FF_LFN_UNICODE >= 1               /* Unicode output */
+
+        /* Unicode output */
         if (dbc_1st((BYTE)wc) && si != 8 && si != 11 &&
             dbc_2nd(dp->dir[si])) { /* Make a DBC if needed */
             wc = wc << 8 | dp->dir[si++];
@@ -2680,9 +2546,6 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
             break;
         }
         di += nw;
-#else /* ANSI/OEM output */
-        fno->altname[di++] = (TCHAR)wc;     /* Store it without any conversion */
-#endif
     }
     fno->altname[di] = 0; /* Terminate the SFN  (null string means SFN is invalid) */
 
@@ -2707,21 +2570,6 @@ static void get_fileinfo(DIR *dp,     /* Pointer to the directory object */
                                     case info is exist. */
     }
 
-#else /* Non-LFN configuration */
-    si = di = 0;
-    while (si < 11) { /* Copy name body and extension */
-        c = (TCHAR)dp->dir[si++];
-        if (c == ' ')
-            continue; /* Skip padding spaces */
-        if (c == RDDEM)
-            c = DDEM; /* Restore replaced DDEM character */
-        if (si == 9)
-            fno->fname[di++] = '.'; /* Insert a . if extension is exist */
-        fno->fname[di++] = c;
-    }
-    fno->fname[di] = 0;      /* Terminate the SFN */
-#endif
-
     fno->fattrib = dp->dir[DIR_Attr] & AM_MASK;      /* Attribute */
     fno->fsize = ld_dword(dp->dir + DIR_FileSize);   /* Size */
     fno->ftime = ld_word(dp->dir + DIR_ModTime + 0); /* Time */
@@ -2744,23 +2592,12 @@ static DWORD get_achar(                  /* Get a character and advance ptr */
 {
     DWORD chr;
 
-#if FF_USE_LFN && FF_LFN_UNICODE >= 1 /* Unicode input */
+    /* Unicode input */
     chr = tchar2uni(ptr);
     if (chr == 0xFFFFFFFF)
         chr = 0; /* Wrong UTF encoding is recognized as end of the string */
+
     chr = ff_wtoupper(chr);
-
-#else /* ANSI/OEM input */
-    chr = (BYTE) * (*ptr)++; /* Get a byte */
-    if (IsLower(chr))
-        chr -= 0x20;          /* To upper ASCII char */
-#if FF_CODE_PAGE == 0 || FF_CODE_PAGE >= 900
-    if (dbc_1st((BYTE)chr)) { /* Get DBC 2nd byte if needed */
-        chr = dbc_2nd((BYTE) * *ptr) ? chr << 8 | (BYTE) * (*ptr)++ : 0;
-    }
-#endif
-
-#endif
     return chr;
 }
 
@@ -2831,7 +2668,6 @@ static FRESULT create_name(         /* FR_OK: successful, FR_INVALID_NAME: could
                                                  path string */
 )
 {
-#if FF_USE_LFN /* LFN configuration */
     BYTE b, cf;
     WCHAR wc;
     WCHAR *lfn;
@@ -2975,76 +2811,6 @@ static FRESULT create_name(         /* FR_OK: successful, FR_INVALID_NAME: could
     dp->fn[NSFLAG] = cf; /* SFN is created into dp->fn[] */
 
     return FR_OK;
-
-#else /* FF_USE_LFN : Non-LFN configuration */
-    BYTE c, d;
-    BYTE *sfn;
-    UINT ni, si, i;
-    const char *p;
-
-    /* Create file name in directory form */
-    p = *path;
-    sfn = dp->fn;
-    memset(sfn, ' ', 11);
-    si = i = 0;
-    ni = 8;
-#if FF_FS_RPATH != 0
-    if (p[si] == '.') { /* Is this a dot entry? */
-        for (;;) {
-            c = (BYTE)p[si++];
-            if (c != '.' || si >= 3)
-                break;
-            sfn[i++] = c;
-        }
-        if (!IsSeparator(c) && c > ' ')
-            return FR_INVALID_NAME;
-        *path = p + si; /* Return pointer to the next segment */
-        sfn[NSFLAG] =
-            (c <= ' ') ? NS_LAST | NS_DOT : NS_DOT; /* Set last segment flag if end of the path */
-        return FR_OK;
-    }
-#endif
-    for (;;) {
-        c = (BYTE)p[si++]; /* Get a byte */
-        if (c <= ' ')
-            break;            /* Break if end of the path name */
-        if (IsSeparator(c)) { /* Break if a separator is found */
-            while (IsSeparator(p[si]))
-                si++; /* Skip duplicated separator if exist */
-            break;
-        }
-        if (c == '.' || i >= ni) { /* End of body or field overflow? */
-            if (ni == 11 || c != '.')
-                return FR_INVALID_NAME; /* Field overflow or invalid dot? */
-            i = 8;
-            ni = 11; /* Enter file extension field */
-            continue;
-        }
-        if (dbc_1st(c)) {      /* Check if it is a DBC 1st byte */
-            d = (BYTE)p[si++]; /* Get 2nd byte */
-            if (!dbc_2nd(d) || i >= ni - 1)
-                return FR_INVALID_NAME; /* Reject invalid DBC */
-            sfn[i++] = c;
-            sfn[i++] = d;
-        } else { /* SBC */
-            if (strchr("*+,:;<=>[]|\"\?\x7F", (int)c))
-                return FR_INVALID_NAME; /* Reject illegal chrs for SFN */
-            if (IsLower(c))
-                c -= 0x20; /* To upper */
-            sfn[i++] = c;
-        }
-    }
-    *path = &p[si]; /* Return pointer to the next segment */
-    if (i == 0)
-        return FR_INVALID_NAME; /* Reject nul string */
-
-    if (sfn[0] == DDEM)
-        sfn[0] = RDDEM; /* If the first character collides with DDEM, replace it with RDDEM */
-    sfn[NSFLAG] =
-        (c <= ' ' || p[si] <= ' ') ? NS_LAST : 0; /* Set last segment flag if end of the path */
-
-    return FR_OK;
-#endif /* FF_USE_LFN */
 }
 
 /*-----------------------------------------------------------------------*/
@@ -4813,7 +4579,7 @@ FRESULT f_findnext(DIR *dp,     /* Pointer to the open directory object */
             break; /* Terminate if any error or end of directory */
         if (pattern_match(dp->pat, fno->fname, 0, FIND_RECURS))
             break; /* Test for the file name */
-#if FF_USE_LFN && FF_USE_FIND == 2
+#if FF_USE_FIND == 2
         if (pattern_match(dp->pat, fno->altname, 0, FIND_RECURS))
             break; /* Test for alternative name if exist */
 #endif
@@ -5480,7 +5246,8 @@ FRESULT f_getlabel(const TCHAR *path, /* Logical drive number */
                     si = di = 0; /* Extract volume label from AM_VOL entry */
                     while (si < 11) {
                         wc = dj.dir[si++];
-#if FF_USE_LFN && FF_LFN_UNICODE >= 1 /* Unicode output */
+
+                        /* Unicode output */
                         if (dbc_1st((BYTE)wc) && si < 11)
                             wc = wc << 8 | dj.dir[si++]; /* Is it a DBC? */
                         wc = ff_oem2uni(wc, CODEPAGE);   /* Convert it into Unicode */
@@ -5489,9 +5256,6 @@ FRESULT f_getlabel(const TCHAR *path, /* Logical drive number */
                             break;
                         }
                         di += put_utf(wc, &label[di], 4); /* Store it in Unicode */
-#else                                                     /* ANSI/OEM output */
-                        label[di++] = (TCHAR)wc;
-#endif
                     }
                     do { /* Truncate trailing spaces */
                         label[di] = 0;
@@ -5546,9 +5310,7 @@ FRESULT f_setlabel(const TCHAR *label) // Volume label to set with heading logic
     static const char badchr[18] =
         "+.,;=[]"
         "/*:<>|\\\"\?\x7F"; /* [0..16] for FAT, [7..16] for exFAT */
-#if FF_USE_LFN
     DWORD dc;
-#endif
 
     /* Get logical drive */
     res = mount_volume(&label, &fs, FA_WRITE);
@@ -5582,16 +5344,9 @@ FRESULT f_setlabel(const TCHAR *label) // Volume label to set with heading logic
         memset(dirvn, ' ', 11);
         di = 0;
         while ((UINT)*label >= ' ') { /* Create volume label */
-#if FF_USE_LFN
             dc = tchar2uni(&label);
             wc = (dc < 0x10000) ? ff_uni2oem(ff_wtoupper(dc), CODEPAGE) : 0;
-#else /* ANSI/OEM input */
-            wc = (BYTE)*label++;
-            if (dbc_1st((BYTE)wc))
-                wc = dbc_2nd((BYTE)*label) ? wc << 8 | (BYTE)*label++ : 0;
-            if (IsLower(wc))
-                wc -= 0x20; /* To upper ASCII characters */
-#endif
+
             if (wc == 0 || strchr(&badchr[0], (int)wc) ||
                 di >= (UINT)((wc >= 0x100) ? 10 : 11)) { /* Reject invalid characters for
                                                             volume label */
@@ -6486,9 +6241,7 @@ FRESULT f_mkfs(const TCHAR *path,    /* Logical drive number */
 #endif /* !FF_FS_READONLY && FF_USE_MKFS */
 
 #if FF_USE_STRFUNC
-#if FF_USE_LFN && FF_LFN_UNICODE && (FF_STRF_ENCODE < 0 || FF_STRF_ENCODE > 3)
-#error Wrong FF_STRF_ENCODE setting
-#endif
+
 /*-----------------------------------------------------------------------*/
 /* Get a String from the File                                            */
 /*-----------------------------------------------------------------------*/
@@ -6502,53 +6255,14 @@ TCHAR *f_gets(TCHAR *buff, /* Pointer to the buffer to store read string */
     BYTE s[4];
     UINT rc;
     DWORD dc;
-#if FF_USE_LFN && FF_LFN_UNICODE && FF_STRF_ENCODE <= 2
-    WCHAR wc;
-#endif
-#if FF_USE_LFN && FF_LFN_UNICODE && FF_STRF_ENCODE == 3
     UINT ct;
-#endif
 
-#if FF_USE_LFN && FF_LFN_UNICODE /* With code conversion (Unicode API) */
+    /* With code conversion (Unicode API) */
     /* Make a room for the character and terminator  */
-    if (FF_LFN_UNICODE == 1)
-        len -= (FF_STRF_ENCODE == 0) ? 1 : 2;
-    if (FF_LFN_UNICODE == 2)
-        len -= (FF_STRF_ENCODE == 0) ? 3 : 4;
-    if (FF_LFN_UNICODE == 3)
-        len -= 1;
+    len -= 4;
+
     while (nc < len) {
-#if FF_STRF_ENCODE == 0        /* Read a character in ANSI/OEM */
-        f_read(fp, s, 1, &rc); /* Get a code unit */
-        if (rc != 1)
-            break; /* EOF? */
-        wc = s[0];
-        if (dbc_1st((BYTE)wc)) {   /* DBC 1st byte? */
-            f_read(fp, s, 1, &rc); /* Get 2nd byte */
-            if (rc != 1 || !dbc_2nd(s[0]))
-                continue; /* Wrong code? */
-            wc = wc << 8 | s[0];
-        }
-        dc = ff_oem2uni(wc, CODEPAGE); /* Convert ANSI/OEM into Unicode */
-        if (dc == 0)
-            continue;                            /* Conversion error? */
-#elif FF_STRF_ENCODE == 1 || FF_STRF_ENCODE == 2 /* Read a character in UTF-16LE/BE */
-        f_read(fp, s, 2, &rc); /* Get a code unit */
-        if (rc != 2)
-            break; /* EOF? */
-        dc = (FF_STRF_ENCODE == 1) ? ld_word(s) : s[0] << 8 | s[1];
-        if (IsSurrogateL(dc))
-            continue;              /* Broken surrogate pair? */
-        if (IsSurrogateH(dc)) {    /* High surrogate? */
-            f_read(fp, s, 2, &rc); /* Get low surrogate */
-            if (rc != 2)
-                break; /* EOF? */
-            wc = (FF_STRF_ENCODE == 1) ? ld_word(s) : s[0] << 8 | s[1];
-            if (!IsSurrogateL(wc))
-                continue;                                    /* Broken surrogate pair? */
-            dc = ((dc & 0x3FF) + 0x40) << 10 | (wc & 0x3FF); /* Merge surrogate pair */
-        }
-#else                                            /* Read a character in UTF-8 */
+        /* Read a character in UTF-8 */
         f_read(fp, s, 1, &rc); /* Get a code unit */
         if (rc != 1)
             break; /* EOF? */
@@ -6581,22 +6295,12 @@ TCHAR *f_gets(TCHAR *buff, /* Pointer to the buffer to store read string */
             if (rc != ct || dc < 0x80 || IsSurrogate(dc) || dc >= 0x110000)
                 continue; /* Wrong encoding? */
         }
-#endif
         /* A code point is avaialble in dc to be output */
 
         if (FF_USE_STRFUNC == 2 && dc == '\r')
             continue;                               /* Strip \r off if needed */
-#if FF_LFN_UNICODE == 1 || FF_LFN_UNICODE == 3      /* Output it in UTF-16/32 encoding */
-        if (FF_LFN_UNICODE == 1 && dc >= 0x10000) { /* Out of BMP at UTF-16? */
-            *p++ = (TCHAR)(0xD800 | ((dc >> 10) - 0x40));
-            nc++;                       /* Make and output high surrogate */
-            dc = 0xDC00 | (dc & 0x3FF); /* Make low surrogate */
-        }
-        *p++ = (TCHAR)dc;
-        nc++;
-        if (dc == '\n')
-            break;        /* End of line? */
-#elif FF_LFN_UNICODE == 2 /* Output it in UTF-8 encoding */
+
+        /* Output it in UTF-8 encoding */
         if (dc < 0x80) { /* Single byte? */
             *p++ = (TCHAR)dc;
             nc++;
@@ -6618,24 +6322,7 @@ TCHAR *f_gets(TCHAR *buff, /* Pointer to the buffer to store read string */
             *p++ = (TCHAR)(0x80 | (dc >> 0 & 0x3F));
             nc += 4;
         }
-#endif
     }
-
-#else /* Byte-by-byte read without any conversion (ANSI/OEM API) */
-    len -= 1; /* Make a room for the terminator */
-    while (nc < len) {
-        f_read(fp, s, 1, &rc); /* Get a byte */
-        if (rc != 1)
-            break; /* EOF? */
-        dc = s[0];
-        if (FF_USE_STRFUNC == 2 && dc == '\r')
-            continue;
-        *p++ = (TCHAR)dc;
-        nc++;
-        if (dc == '\n')
-            break;
-    }
-#endif
 
     *p = 0;               /* Terminate the string */
     return nc ? buff : 0; /* When no data read due to EOF or error, return
@@ -6657,12 +6344,8 @@ typedef struct {
     FIL *fp;       /* Ptr to the writing file */
     int idx, nchr; /* Write index of buf[] (-1:error), number of encoding
                       units written */
-#if FF_USE_LFN && FF_LFN_UNICODE == 1
-    WCHAR hs;
-#elif FF_USE_LFN && FF_LFN_UNICODE == 2
     BYTE bs[4];
     UINT wi, ct;
-#endif
     BYTE buf[SZ_PUTC_BUF]; /* Write buffer */
 } putbuff;
 
@@ -6672,13 +6355,9 @@ static void putc_bfd(putbuff *pb, TCHAR c)
 {
     UINT n;
     int i, nc;
-#if FF_USE_LFN && FF_LFN_UNICODE
     WCHAR hs, wc;
-#if FF_LFN_UNICODE == 2
     DWORD dc;
     const TCHAR *tp;
-#endif
-#endif
 
     if (FF_USE_STRFUNC == 2 && c == '\n') { /* LF -> CRLF conversion */
         putc_bfd(pb, '\r');
@@ -6689,23 +6368,7 @@ static void putc_bfd(putbuff *pb, TCHAR c)
         return;    /* In write error? */
     nc = pb->nchr; /* Write unit counter */
 
-#if FF_USE_LFN && FF_LFN_UNICODE
-#if FF_LFN_UNICODE == 1    /* UTF-16 input */
-    if (IsSurrogateH(c)) { /* Is this a high-surrogate? */
-        pb->hs = c;
-        return; /* Save it for next */
-    }
-    hs = pb->hs;
-    pb->hs = 0;
-    if (hs != 0) { /* Is there a leading high-surrogate? */
-        if (!IsSurrogateL(c))
-            hs = 0; /* Discard high-surrogate if not a surrogate pair */
-    } else {
-        if (IsSurrogateL(c))
-            return; /* Discard stray low-surrogate */
-    }
-    wc = c;
-#elif FF_LFN_UNICODE == 2 /* UTF-8 input */
+    /* UTF-8 input */
     for (;;) {
         if (pb->ct == 0) {                /* Out of multi-byte sequence? */
             pb->bs[pb->wi = 0] = (BYTE)c; /* Save 1st byte */
@@ -6735,36 +6398,9 @@ static void putc_bfd(putbuff *pb, TCHAR c)
         return; /* Wrong code? */
     hs = (WCHAR)(dc >> 16);
     wc = (WCHAR)dc;
-#elif FF_LFN_UNICODE == 3 /* UTF-32 input */
-    if (IsSurrogate(c) || c >= 0x110000)
-        return;                                    /* Discard invalid code */
-    if (c >= 0x10000) {                            /* Out of BMP? */
-        hs = (WCHAR)(0xD800 | ((c >> 10) - 0x40)); /* Make high surrogate */
-        wc = 0xDC00 | (c & 0x3FF);                 /* Make low surrogate */
-    } else {
-        hs = 0;
-        wc = (WCHAR)c;
-    }
-#endif
     /* A code point in UTF-16 is available in hs and wc */
 
-#if FF_STRF_ENCODE == 1 /* Write a code point in UTF-16LE */
-    if (hs != 0) {      /* Surrogate pair? */
-        st_word(&pb->buf[i], hs);
-        i += 2;
-        nc++;
-    }
-    st_word(&pb->buf[i], wc);
-    i += 2;
-#elif FF_STRF_ENCODE == 2 /* Write a code point in UTF-16BE */
-    if (hs != 0) { /* Surrogate pair? */
-        pb->buf[i++] = (BYTE)(hs >> 8);
-        pb->buf[i++] = (BYTE)hs;
-        nc++;
-    }
-    pb->buf[i++] = (BYTE)(wc >> 8);
-    pb->buf[i++] = (BYTE)wc;
-#elif FF_STRF_ENCODE == 3 /* Write a code point in UTF-8 */
+    /* Write a code point in UTF-8 */
     if (hs != 0) { /* 4-byte sequence? */
         nc += 3;
         hs = (hs & 0x3FF) + 0x40;
@@ -6787,22 +6423,6 @@ static void putc_bfd(putbuff *pb, TCHAR c)
             pb->buf[i++] = (BYTE)(0x80 | (wc & 0x3F));
         }
     }
-#else                     /* Write a code point in ANSI/OEM */
-    if (hs != 0)
-        return;
-    wc = ff_uni2oem(wc, CODEPAGE); /* UTF-16 ==> ANSI/OEM */
-    if (wc == 0)
-        return;
-    if (wc >= 0x100) {
-        pb->buf[i++] = (BYTE)(wc >> 8);
-        nc++;
-    }
-    pb->buf[i++] = (BYTE)wc;
-#endif
-
-#else /* ANSI/OEM input (without re-encoding) */
-    pb->buf[i++] = (BYTE)c;
-#endif
 
     if (i >= (int)(sizeof pb->buf) - 4) { /* Write buffered characters to the file */
         f_write(pb->fp, pb->buf, (UINT)i, &n);
