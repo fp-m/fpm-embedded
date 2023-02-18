@@ -27,21 +27,21 @@ add_library(FatFs_SPI STATIC
     ${CMAKE_SOURCE_DIR}/../../fatfs/ffsystem.c
     ${CMAKE_SOURCE_DIR}/../../fatfs/ffunicode.c
     ${CMAKE_SOURCE_DIR}/../../fatfs/fatfs.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/sd_spi.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/demo_logging.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/spi.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/sd_card.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver/crc.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/glue.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/f_util.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/ff_stdio.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/my_debug.c
-    ${CMAKE_SOURCE_DIR}/../../fatfs/glue/rtc.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/sd_spi.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/demo_logging.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/spi.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/sd_card.c
+    ${CMAKE_SOURCE_DIR}/../../sd_pico/crc.c
+    ${CMAKE_SOURCE_DIR}/../../disk/diskio.c
+    ${CMAKE_SOURCE_DIR}/../../disk/f_util.c
+    ${CMAKE_SOURCE_DIR}/../../disk/ff_stdio.c
+    ${CMAKE_SOURCE_DIR}/../../disk/my_debug.c
+    ${CMAKE_SOURCE_DIR}/../../disk/rtc.c
 )
 target_include_directories(FatFs_SPI BEFORE PUBLIC
     ${CMAKE_SOURCE_DIR}/../../fatfs
-    ${CMAKE_SOURCE_DIR}/../../fatfs/sd_driver
-    ${CMAKE_SOURCE_DIR}/../../fatfs/glue
+    ${CMAKE_SOURCE_DIR}/../../disk
+    ${CMAKE_SOURCE_DIR}/../../sd_pico
     $ENV{PICO_SDK_PATH}/src/common/pico_stdlib/include
     $ENV{PICO_SDK_PATH}/src/common/pico_base/include
     $ENV{PICO_SDK_PATH}/src/common/pico_sync/include
