@@ -808,7 +808,7 @@ static FRESULT sync_window(FATFS *fs) /* Filesystem object */
 
 /* Returns FR_OK or FR_DISK_ERR */
 static FRESULT move_window(FATFS *fs,  /* Filesystem object */
-                           LBA_t sect) /* Sector LBA to make appearance in the fs->win[] */
+                           fs_lba_t sect) /* Sector LBA to make appearance in the fs->win[] */
 {
     FRESULT res = FR_OK;
 
@@ -818,7 +818,7 @@ static FRESULT move_window(FATFS *fs,  /* Filesystem object */
 #endif
         if (res == FR_OK) { /* Fill sector window with new data */
             if (disk_read(fs->pdrv, fs->win, sect, 1) != RES_OK) {
-                sect = (LBA_t)0 - 1; /* Invalidate window if read data is not valid */
+                sect = (fs_lba_t)0 - 1; /* Invalidate window if read data is not valid */
                 res = FR_DISK_ERR;
             }
             fs->winsect = sect;
@@ -867,13 +867,13 @@ static FRESULT sync_fs(FATFS *fs) /* Filesystem object */
 /*-----------------------------------------------------------------------*/
 
 /* !=0:Sector number, 0:Failed (invalid cluster#) */
-static LBA_t clst2sect(FATFS *fs,  /* Filesystem object */
+static fs_lba_t clst2sect(FATFS *fs,  /* Filesystem object */
                        uint32_t clst) /* Cluster# to be converted */
 {
     clst -= 2; /* Cluster number is origin from 2 */
     if (clst >= fs->n_fatent - 2)
         return 0;                                  /* Is it invalid cluster number? */
-    return fs->database + (LBA_t)fs->csize * clst; /* Start sector number of the cluster */
+    return fs->database + (fs_lba_t)fs->csize * clst; /* Start sector number of the cluster */
 }
 
 /*-----------------------------------------------------------------------*/
@@ -926,7 +926,7 @@ static uint32_t get_fat(FFOBJID *obj, /* Corresponding object */
                 obj->stat == 0) {                /* Object except root dir must have valid
                                                     data length */
                 uint32_t cofs = clst - obj->sclust; /* Offset from start cluster */
-                uint32_t clen = (uint32_t)((LBA_t)((obj->objsize - 1) / SS(fs)) /
+                uint32_t clen = (uint32_t)((fs_lba_t)((obj->objsize - 1) / SS(fs)) /
                                      fs->csize); /* Number of clusters - 1 */
 
                 if (obj->stat == 2 && cofs <= clen) {             /* Is it a contiguous chain? */
@@ -1087,7 +1087,7 @@ static FRESULT change_bitmap(FATFS *fs,  /* Filesystem object */
 {
     uint8_t bm;
     unsigned i;
-    LBA_t sect;
+    fs_lba_t sect;
 
     clst -= 2;                              /* The first bit corresponds to cluster #2 */
     sect = fs->bitbase + clst / 8 / SS(fs); /* Sector address */
@@ -1172,7 +1172,7 @@ static FRESULT remove_chain(              /* FR_OK(0):succeeded, !=0:error */
     FATFS *fs = obj->fs;
     uint32_t scl = clst, ecl = clst;
 #if FF_USE_TRIM
-    LBA_t rt[2];
+    fs_lba_t rt[2];
 #endif
 
     if (clst < 2 || clst >= fs->n_fatent)
@@ -1416,7 +1416,7 @@ static FRESULT dir_clear(           /* Returns FR_OK or FR_DISK_ERR */
                          uint32_t clst /* Directory table to clear */
 )
 {
-    LBA_t sect;
+    fs_lba_t sect;
     unsigned n, szb;
     uint8_t *ibuf;
 
@@ -2954,14 +2954,14 @@ static int get_ldnumber(                   /* Returns logical drive number (-1:i
 static unsigned check_fs(           /* 0:FAT/FAT32 VBR, 1:exFAT VBR, 2:Not FAT and valid BS, 3:Not FAT
                                    and invalid BS, 4:Disk error */
                      FATFS *fs, /* Filesystem object */
-                     LBA_t sect /* Sector to load and check if it is an FAT-VBR or not */
+                     fs_lba_t sect /* Sector to load and check if it is an FAT-VBR or not */
 )
 {
     uint16_t w, sign;
     uint8_t b;
 
     fs->wflag = 0;
-    fs->winsect = (LBA_t)0 - 1; /* Invaidate window */
+    fs->winsect = (fs_lba_t)0 - 1; /* Invaidate window */
     if (move_window(fs, sect) != FR_OK)
         return 4; /* Load the boot sector */
     sign = ld_word(fs->win + BS_55AA);
@@ -3041,7 +3041,7 @@ static FRESULT mount_volume(                    /* FR_OK(0): successful, !=0: an
     int vol;
     FATFS *fs;
     DSTATUS stat;
-    LBA_t bsect;
+    fs_lba_t bsect;
     uint32_t tsect, sysect, fasize, nclst, szbfat;
     uint16_t nrsv;
     unsigned fmt;
@@ -3418,7 +3418,7 @@ FRESULT f_open(FIL *fp,           /* Pointer to the blank file object */
     FATFS *fs;
 #if !FF_FS_READONLY
     uint32_t cl, bcs, clst, tm;
-    LBA_t sc;
+    fs_lba_t sc;
     fs_size_t ofs;
 #endif
     DEF_NAMBUF
@@ -3622,7 +3622,7 @@ FRESULT f_read(FIL *fp,    /* Open file to be read */
     FRESULT res;
     FATFS *fs;
     uint32_t clst;
-    LBA_t sect;
+    fs_lba_t sect;
     fs_size_t remain;
     unsigned rcnt, cc, csect;
     uint8_t *rbuff = (uint8_t *)buff;
@@ -3733,7 +3733,7 @@ FRESULT f_write(FIL *fp,          /* Open file to be written */
     FRESULT res;
     FATFS *fs;
     uint32_t clst;
-    LBA_t sect;
+    fs_lba_t sect;
     unsigned wcnt, cc, csect;
     const uint8_t *wbuff = (const uint8_t *)buff;
 
@@ -4171,12 +4171,12 @@ FRESULT f_lseek(FIL *fp,    /* Pointer to the file object */
     FRESULT res;
     FATFS *fs;
     uint32_t clst, bcs;
-    LBA_t nsect;
+    fs_lba_t nsect;
     fs_size_t ifptr;
 #if FF_USE_FASTSEEK
     uint32_t cl, pcl, ncl, tcl, tlen, ulen;
     uint32_t *tbl;
-    LBA_t dsc;
+    fs_lba_t dsc;
 #endif
 
     res = validate(&fp->obj, &fs); /* Check validity of the file object */
@@ -4569,7 +4569,7 @@ FRESULT f_getfree(const char *path, /* Logical drive number */
     FRESULT res;
     FATFS *fs;
     uint32_t nfree, clst, stat;
-    LBA_t sect;
+    fs_lba_t sect;
     unsigned i;
     FFOBJID obj;
 
@@ -4884,7 +4884,7 @@ FRESULT f_rename(const char *path_old, /* Pointer to the object name to be renam
     FATFS *fs;
     DIR djo, djn;
     uint8_t buf[SZDIRE * 2], *dir;
-    LBA_t sect;
+    fs_lba_t sect;
     DEF_NAMBUF
 
     get_ldnumber(&path_new);                      /* Snip the drive number of new name off */
@@ -5408,7 +5408,7 @@ FRESULT f_forward(FIL *fp,                          /* Pointer to the file objec
     FRESULT res;
     FATFS *fs;
     uint32_t clst;
-    LBA_t sect;
+    fs_lba_t sect;
     fs_size_t remain;
     unsigned rcnt, csect;
     uint8_t *dbuf;
@@ -5487,12 +5487,12 @@ FRESULT f_forward(FIL *fp,                          /* Pointer to the file objec
 /* Create partitions on the physical drive in format of MBR or GPT */
 
 static FRESULT create_partition(uint8_t drv,           /* Physical drive number */
-                                const LBA_t plst[], /* Partition list */
+                                const fs_lba_t plst[], /* Partition list */
                                 uint8_t sys,  /* System ID for each partition (for only MBR) */
                                 uint8_t *buf) /* Working buffer for a sector */
 {
     unsigned i, cy;
-    LBA_t sz_drv;
+    fs_lba_t sz_drv;
     uint32_t sz_drv32, nxt_alloc32, sz_part32;
     uint8_t *pte;
     uint8_t hd, n_hd, sc, n_sc;
@@ -5570,8 +5570,8 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
     uint8_t *pte;
     uint16_t ss; /* Sector size */
     uint32_t sz_buf, sz_blk, n_clst, pau, nsect, n, vsn;
-    LBA_t sz_vol, b_vol, b_fat, b_data; /* Size of volume, Base LBA of volume, fat, data */
-    LBA_t sect, lba[2];
+    fs_lba_t sz_vol, b_vol, b_fat, b_data; /* Size of volume, Base LBA of volume, fat, data */
+    fs_lba_t sect, lba[2];
     uint32_t sz_rsv, sz_fat, sz_dir, sz_au; /* Size of reserved, fat, dir, data, cluster */
     unsigned n_fat, n_root, i;               /* Index, Number of FATs and Number of roor dir entries */
     int vol;
@@ -5698,7 +5698,7 @@ FRESULT f_mkfs(const char *path,    /* Logical drive number */
         b_fat = b_vol + 32;                                       /* FAT start at offset 32 */
         sz_fat = (uint32_t)((sz_vol / sz_au + 2) * 4 + ss - 1) / ss; /* Number of FAT sectors */
         b_data = (b_fat + sz_fat + sz_blk - 1) &
-                 ~((LBA_t)sz_blk - 1); /* Align data area to the erase block boundary */
+                 ~((fs_lba_t)sz_blk - 1); /* Align data area to the erase block boundary */
         if (b_data - b_vol >= sz_vol / 2)
             LEAVE_MKFS(FR_MKFS_ABORTED);                       /* Too small volume? */
         n_clst = (uint32_t)((sz_vol - (b_data - b_vol)) / sz_au); /* Number of clusters */

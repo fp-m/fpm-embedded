@@ -29,8 +29,9 @@ extern "C" {
 
 /* Type of file size and LBA variables */
 
-typedef uint64_t fs_size_t; // TODO: move to rpm/api.h
-typedef uint32_t LBA_t;   // only LBA-32 is supported
+// TODO: move to rpm/api.h
+typedef uint64_t fs_size_t; // Type for file size in bytes.
+typedef uint32_t fs_lba_t;  // only LBA-32 is supported
 
 /* Definitions of volume management */
 
@@ -69,12 +70,12 @@ typedef struct {
 #endif
     uint32_t n_fatent; /* Number of FAT entries (number of clusters + 2) */
     uint32_t fsize;    /* Number of sectors per FAT */
-    LBA_t volbase;  /* Volume base sector */
-    LBA_t fatbase;  /* FAT base sector */
-    LBA_t dirbase;  /* Root directory base sector (FAT12/16) or cluster (FAT32/exFAT) */
-    LBA_t database; /* Data base sector */
-    LBA_t bitbase; /* Allocation bitmap base sector */
-    LBA_t winsect;       /* Current sector appearing in the win[] */
+    fs_lba_t volbase;  /* Volume base sector */
+    fs_lba_t fatbase;  /* FAT base sector */
+    fs_lba_t dirbase;  /* Root directory base sector (FAT12/16) or cluster (FAT32/exFAT) */
+    fs_lba_t database; /* Data base sector */
+    fs_lba_t bitbase; /* Allocation bitmap base sector */
+    fs_lba_t winsect;       /* Current sector appearing in the win[] */
     uint8_t win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
 } FATFS;
 
@@ -107,9 +108,9 @@ typedef struct {
     uint8_t err;     /* Abort flag (error code) */
     fs_size_t fptr; /* File read/write pointer (Zeroed on file open) */
     uint32_t clust;  /* Current cluster of fpter (invalid when fptr is 0) */
-    LBA_t sect;   /* Sector number appearing in buf[] (0:invalid) */
+    fs_lba_t sect;   /* Sector number appearing in buf[] (0:invalid) */
 #if !FF_FS_READONLY
-    LBA_t dir_sect; /* Sector number containing the directory entry (not used at exFAT) */
+    fs_lba_t dir_sect; /* Sector number containing the directory entry (not used at exFAT) */
     uint8_t *dir_ptr;  /* Pointer to the directory entry in the win[] (not used at exFAT) */
 #endif
 #if FF_USE_FASTSEEK
@@ -126,7 +127,7 @@ typedef struct {
     FFOBJID obj; /* Object identifier */
     uint32_t dptr;  /* Current read/write offset */
     uint32_t clust; /* Current cluster */
-    LBA_t sect;  /* Current sector (0:Read operation has terminated) */
+    fs_lba_t sect;  /* Current sector (0:Read operation has terminated) */
     uint8_t *dir;   /* Pointer to the directory item in the win[] */
     uint8_t fn[12]; /* SFN (in/out) {body[8],ext[3],status[1]} */
     uint32_t blk_ofs; /* Offset of current entry block being processed (0xFFFFFFFF:Invalid) */

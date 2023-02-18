@@ -5,6 +5,10 @@
 // Type for file size in bytes.
 //typedef uint64_t fs_size_t;
 
+// Type for logical block address.
+// Disk sizes up to 2 Tbytes are supported (LBA-32).
+//typedef uint32_t fs_lba_t;
+
 //
 // File access functions.
 //

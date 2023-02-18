@@ -88,7 +88,7 @@ static int sdrc2dresult(int sd_rc)
 
 DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the drive */
                   uint8_t *buff,   /* Data buffer to store read data */
-                  LBA_t sector, /* Start sector in LBA */
+                  fs_lba_t sector, /* Start sector in LBA */
                   unsigned count)   /* Number of sectors to read */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
@@ -107,7 +107,7 @@ DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the driv
 
 DRESULT disk_write(uint8_t pdrv,        /* Physical drive nmuber to identify the drive */
                    const uint8_t *buff, /* Data to be written */
-                   LBA_t sector,     /* Start sector in LBA */
+                   fs_lba_t sector,     /* Start sector in LBA */
                    unsigned count)       /* Number of sectors to write */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
@@ -135,14 +135,14 @@ DRESULT disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
     switch (cmd) {
     case GET_SECTOR_COUNT: { // Retrieves number of available sectors, the
                              // largest allowable LBA + 1, on the drive
-                             // into the LBA_t variable pointed by buff.
+                             // into the fs_lba_t variable pointed by buff.
                              // This command is used by f_mkfs and f_fdisk
                              // function to determine the size of
                              // volume/partition to be created. It is
                              // required when FF_USE_MKFS == 1.
-        static LBA_t n;
+        static fs_lba_t n;
         n = sd_sectors(p_sd);
-        *(LBA_t *)buff = n;
+        *(fs_lba_t *)buff = n;
         if (!n)
             return RES_ERROR;
         return RES_OK;
