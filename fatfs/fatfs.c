@@ -19,7 +19,6 @@
 /----------------------------------------------------------------------------*/
 
 #include "fatfs.h" /* Definitions of FatFs structures */
-#include <rpm/fs.h> /* Declarations of FatFs API */
 #include "diskio.h" /* Declarations of device I/O functions */
 #include <string.h>
 
@@ -6675,17 +6674,57 @@ int f_printf(file_t *fp,          /* Pointer to the file object */
 #endif /* !FF_FS_READONLY */
 #endif /* FF_USE_STRFUNC */
 
+//
+// Get size of the file_t structure.
+//
 unsigned f_sizeof_file_t()
 {
     return sizeof(file_t);
 }
 
+//
+// Get size of the directory_t structure.
+//
 unsigned f_sizeof_directory_t()
 {
     return sizeof(directory_t);
 }
 
+//
+// Get size of the filesystem_t structure.
+//
 unsigned f_sizeof_filesystem_t()
 {
     return sizeof(filesystem_t);
+}
+
+//
+// Get the file size in bytes.
+//
+fs_size_t f_size(file_t *fp)
+{
+    return fp->obj.objsize;
+}
+
+//
+// Get the current file position.
+//
+fs_size_t f_tell(file_t *fp)
+{
+    return fp->fptr;
+}
+
+//
+// Return nonzero if the end-of-file indicator is set.
+//
+int f_eof(file_t *fp)
+{
+    return (fp->fptr == fp->obj.objsize);
+}
+//
+// Return nonzero if the error indicator is set.
+//
+int f_error(file_t *fp)
+{
+    return fp->err;
 }

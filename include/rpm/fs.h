@@ -1,18 +1,17 @@
 //
 // Filesystem Application Interface.
 //
+#ifndef RPM_FS_H
+#define RPM_FS_H
+
+#include <stdint.h>
 
 // Type for file size in bytes.
-//typedef uint64_t fs_size_t;
-
-// Type for logical block address.
-// Disk sizes up to 2 Tbytes are supported (LBA-32).
-//typedef uint32_t fs_lba_t;
+typedef uint64_t fs_size_t;
 
 //
 // File function return codes.
 //
-#if 0
 typedef enum {
     FR_OK = 0,                   // Succeeded
     FR_DISK_ERR = 1,             // A hard error occurred in the low level disk I/O layer
@@ -35,7 +34,20 @@ typedef enum {
     FR_TOO_MANY_OPEN_FILES = 18, // Too many open files
     FR_INVALID_PARAMETER = 19,   // Given parameter is invalid
 } fs_result_t;
-#endif
+
+//
+// File access modes.
+// Use as 3rd argument of f_open().
+//
+enum {
+    FA_READ = 0x01,
+    FA_WRITE = 0x02,
+    FA_OPEN_EXISTING = 0x00,
+    FA_CREATE_NEW = 0x04,
+    FA_CREATE_ALWAYS = 0x08,
+    FA_OPEN_ALWAYS = 0x10,
+    FA_OPEN_APPEND = 0x30,
+};
 
 //
 // File information structure.
@@ -51,86 +63,152 @@ typedef struct {
     char fname[FF_LFN_BUF + 1];   // Primary file name
 } file_info_t;
 
-//
+// File attribute bits for directory entry.
+enum {
+    AM_RDO = 0x01, // Read only
+    AM_HID = 0x02, // Hidden
+    AM_SYS = 0x04, // System
+    AM_DIR = 0x10, // Directory
+    AM_ARC = 0x20, // Archive
+};
+
+//---------------------------------------------------------------------
 // File access functions.
 //
 typedef struct _file_t file_t; // Opaque pointer
 unsigned f_sizeof_file_t();
 
-fs_result_t f_open(file_t *fp, const char *path, uint8_t mode);          /* Open or create a file */
-fs_result_t f_close(file_t *fp);                                       /* Close an open file object */
-fs_result_t f_read(file_t *fp, void *buff, unsigned btr, unsigned *br);        /* Read data from the file */
-fs_result_t f_write(file_t *fp, const void *buff, unsigned btw, unsigned *bw); /* Write data to the file */
-fs_result_t f_lseek(file_t *fp, fs_size_t ofs);         /* Move file pointer of the file object */
-fs_result_t f_truncate(file_t *fp);                   /* Truncate the file */
-fs_result_t f_sync(file_t *fp);                       /* Flush cached data of the writing file */
-fs_result_t f_forward(file_t *fp, unsigned (*func)(const uint8_t *, unsigned), unsigned btf,
-                  unsigned *bf);                      /* Forward data to the stream */
-fs_result_t f_expand(file_t *fp, fs_size_t fsz, uint8_t opt); /* Allocate a contiguous block to the file */
+// Open or create a file.
+fs_result_t f_open(file_t *fp, const char *path, uint8_t mode);
 
-char *f_gets(char *buff, int len, file_t *fp); /* Get a string from the file */
-int f_putc(char c, file_t *fp);                 /* Put a character to the file */
-int f_puts(const char *str, file_t *cp);        /* Put a string to the file */
-int f_printf(file_t *fp, const char *str, ...); /* Put a formatted string to the file */
+// Close an open file object.
+fs_result_t f_close(file_t *fp);
 
-#define f_tell(fp) ((fp)->fptr)
-#define f_eof(fp) ((int)((fp)->fptr == (fp)->obj.objsize))
-#define f_size(fp) ((fp)->obj.objsize)
-#define f_error(fp) ((fp)->err)
+// Read data from the file.
+fs_result_t f_read(file_t *fp, void *buff, unsigned btr, unsigned *br);
+
+// Write data to the file.
+fs_result_t f_write(file_t *fp, const void *buff, unsigned btw, unsigned *bw);
+
+// Move file pointer of the file object.
+fs_result_t f_lseek(file_t *fp, fs_size_t ofs);
+
+// Truncate the file.
+fs_result_t f_truncate(file_t *fp);
+
+// Flush cached data of the writing file.
+fs_result_t f_sync(file_t *fp);
+
+// Forward data to the stream.
+fs_result_t f_forward(file_t *fp, unsigned (*func)(const uint8_t *, unsigned), unsigned btf, unsigned *bf);
+
+// Allocate a contiguous block to the file.
+fs_result_t f_expand(file_t *fp, fs_size_t fsz, uint8_t opt);
+
+// Get a string from the file.
+char *f_gets(char *buff, int len, file_t *fp);
+
+// Put a character to the file.
+int f_putc(char c, file_t *fp);
+
+// Put a string to the file.
+int f_puts(const char *str, file_t *cp);
+
+// Put a formatted string to the file.
+int f_printf(file_t *fp, const char *str, ...);
+
+// Get file size in bytes.
+fs_size_t f_size(file_t *fp);
+
+// Get the current file position.
+fs_size_t f_tell(file_t *fp);
+
+// Return nonzero if the end-of-file indicator is set.
+int f_eof(file_t *fp);
+
+// Return nonzero if the error indicator is set.
+int f_error(file_t *fp);
+
+// Set the file position to the beginning of the file.
 #define f_rewind(fp) f_lseek((fp), 0)
 
-//
+//---------------------------------------------------------------------
 // Directory access functions.
 //
 typedef struct _directory_t directory_t; // Opaque pointer
 unsigned f_sizeof_directory_t();
 
-fs_result_t f_opendir(directory_t *dp, const char *path); /* Open a directory */
-fs_result_t f_closedir(directory_t *dp);                   /* Close an open directory */
-fs_result_t f_readdir(directory_t *dp, file_info_t *fno);      /* Read a directory item */
-fs_result_t f_findfirst(directory_t *dp, file_info_t *fno, const char *path,
-                    const char *pattern); /* Find first file */
-fs_result_t f_findnext(directory_t *dp, file_info_t *fno); /* Find next file */
+// Open a directory.
+fs_result_t f_opendir(directory_t *dp, const char *path);
+
+// Close an open directory.
+fs_result_t f_closedir(directory_t *dp);
+
+// Read a directory item.
+fs_result_t f_readdir(directory_t *dp, file_info_t *fno);
+
+// Find first file.
+fs_result_t f_findfirst(directory_t *dp, file_info_t *fno, const char *path, const char *pattern);
+
+// Find next file.
+fs_result_t f_findnext(directory_t *dp, file_info_t *fno);
+
+// Reset the position of the directory to the beginning of the directory.
 #define f_rewinddir(dp) f_readdir((dp), 0)
 
-//
+//---------------------------------------------------------------------
 // File and directory management functions.
 //
-fs_result_t f_stat(const char *path, file_info_t *fno);          /* Get file status */
-fs_result_t f_unlink(const char *path);       /* Delete an existing file or directory */
-fs_result_t f_rename(const char *path_old,
-                 const char *path_new);                  /* Rename/Move a file or directory */
-fs_result_t f_chmod(const char *path, uint8_t attr, uint8_t mask); /* Change attribute of a file/dir */
-fs_result_t f_utime(const char *path, const file_info_t *fno);   /* Change timestamp of a file/dir */
-fs_result_t f_mkdir(const char *path);        /* Create a sub directory */
-fs_result_t f_chdir(const char *path);                       /* Change current directory */
-fs_result_t f_chdrive(const char *path);                     /* Change current drive */
-fs_result_t f_getcwd(char *buff, unsigned len);                  /* Get current directory */
-#define f_rmdir(path) f_unlink(path)
 
-//
+// Get file status.
+fs_result_t f_stat(const char *path, file_info_t *fno);
+
+// Delete an existing file or directory.
+fs_result_t f_unlink(const char *path);
+
+// Rename/Move a file or directory.
+fs_result_t f_rename(const char *path_old, const char *path_new);
+
+// Change attribute of a file/dir.
+fs_result_t f_chmod(const char *path, uint8_t attr, uint8_t mask);
+
+// Change timestamp of a file/dir.
+fs_result_t f_utime(const char *path, const file_info_t *fno);
+
+// Create a sub directory.
+fs_result_t f_mkdir(const char *path);
+
+// Change current directory.
+fs_result_t f_chdir(const char *path);
+
+// Change current drive.
+fs_result_t f_chdrive(const char *path);
+
+// Get current directory.
+fs_result_t f_getcwd(char *buff, unsigned len);
+
+//---------------------------------------------------------------------
 // Volume management functions.
 //
 typedef struct _filesystem_t filesystem_t; // Opaque pointer
 unsigned f_sizeof_filesystem_t();
 
-fs_result_t f_mount(filesystem_t *fs, const char *path, uint8_t opt); /* Mount/Unmount a logical drive */
-fs_result_t f_mkfs(const char *path, void *work, unsigned len); /* Create a FAT volume */
-fs_result_t f_getfree(const char *path, uint32_t *nclst, filesystem_t **fatfs); /* Get number of free clusters on the drive */
-fs_result_t f_getlabel(const char *path, char *label, uint32_t *vsn); /* Get volume label */
-fs_result_t f_setlabel(const char *label);                          /* Set volume label */
+// Mount/Unmount a logical drive.
+fs_result_t f_mount(filesystem_t *fs, const char *path, uint8_t opt);
+
+// Get number of free clusters on the drive.
+fs_result_t f_getfree(const char *path, uint32_t *nclst, filesystem_t **fatfs);
+
+// Get volume label.
+fs_result_t f_getlabel(const char *path, char *label, uint32_t *vsn);
+
+// Set volume label.
+fs_result_t f_setlabel(const char *label);
+
+// Create a FAT volume.
+fs_result_t f_mkfs(const char *path, void *work, unsigned len);
+
+// Unmount a logical drive.
 #define f_unmount(path) f_mount(0, path, 0)
 
-//
-// File access modes.
-// Use as 3rd argument of f_open().
-//
-enum {
-    FA_READ = 0x01,
-    FA_WRITE = 0x02,
-    FA_OPEN_EXISTING = 0x00,
-    FA_CREATE_NEW = 0x04,
-    FA_CREATE_ALWAYS = 0x08,
-    FA_OPEN_ALWAYS = 0x10,
-    FA_OPEN_APPEND = 0x30,
-};
+#endif // RPM_FS_H

@@ -20,21 +20,25 @@
 #ifndef RPM_FATFS_H
 #define RPM_FATFS_H
 
+// Declarations of FatFs API.
+#include <rpm/fs.h>
+
+// FatFs configuration options.
+#include "ffconf.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "ffconf.h" /* FatFs configuration options */
-#include <stdint.h>
+//
+// Type for logical block address.
+// Disk sizes up to 2 Tbytes are supported (LBA-32).
+//
+typedef uint32_t fs_lba_t;
 
-/* Type of file size and LBA variables */
-
-// TODO: move to rpm/api.h
-typedef uint64_t fs_size_t; // Type for file size in bytes.
-typedef uint32_t fs_lba_t;  // only LBA-32 is supported
-
-/* Filesystem object structure (filesystem_t) */
-
+//
+// Filesystem object structure.
+//
 struct _filesystem_t {
     uint8_t fs_type;   /* Filesystem type (0:not mounted) */
     uint8_t pdrv;      /* Volume hosting physical drive */
@@ -71,8 +75,9 @@ struct _filesystem_t {
     uint8_t win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
 };
 
-/* Object ID and allocation information (obj_id_t) */
-
+//
+// Object ID and allocation information.
+//
 typedef struct {
     struct _filesystem_t *fs; /* Pointer to the hosting volume of this object */
     uint16_t id;   /* Hosting volume's mount ID */
@@ -92,8 +97,9 @@ typedef struct {
 #endif
 } obj_id_t;
 
-/* File object structure (file_t) */
-
+//
+// File object structure.
+//
 struct _file_t {
     obj_id_t obj;  /* Object identifier (must be the 1st member to detect invalid object pointer) */
     uint8_t flag;    /* File status flags */
@@ -113,8 +119,9 @@ struct _file_t {
 #endif
 };
 
-/* Directory object structure (directory_t) */
-
+//
+// Directory object structure.
+//
 struct _directory_t {
     obj_id_t obj; /* Object identifier */
     uint32_t dptr;  /* Current read/write offset */
@@ -138,32 +145,6 @@ typedef struct {
     unsigned n_root;  // Number of root directory entries
     uint32_t au_size; // Cluster size (byte)
 } mkfs_parm_t;
-
-/* File function return code (fs_result_t) */
-
-// TODO: move to rpm/api.h
-typedef enum {
-    FR_OK = 0,                   // Succeeded
-    FR_DISK_ERR = 1,             // A hard error occurred in the low level disk I/O layer
-    FR_INT_ERR = 2,              // Assertion failed
-    FR_NOT_READY = 3,            // The physical drive cannot work
-    FR_NO_FILE = 4,              // Could not find the file
-    FR_NO_PATH = 5,              // Could not find the path
-    FR_INVALID_NAME = 6,         // The path name format is invalid
-    FR_DENIED = 7,               // Access denied due to prohibited access or directory full
-    FR_EXIST = 8,                // Access denied due to prohibited access
-    FR_INVALID_OBJECT = 9,       // The file/directory object is invalid
-    FR_WRITE_PROTECTED = 10,     // The physical drive is write protected
-    FR_INVALID_DRIVE = 11,       // The logical drive number is invalid
-    FR_NOT_ENABLED = 12,         // The volume has no work area
-    FR_NO_FILESYSTEM = 13,       // There is no valid FAT volume
-    FR_MKFS_ABORTED = 14,        // The f_mkfs() aborted due to any problem
-    FR_TIMEOUT = 15,             // Could not get a grant to access the volume within defined period
-    FR_LOCKED = 16,              // The operation is rejected according to the file sharing policy
-    FR_NOT_ENOUGH_CORE = 17,     // LFN working buffer could not be allocated
-    FR_TOO_MANY_OPEN_FILES = 18, // Too many open files
-    FR_INVALID_PARAMETER = 19,   // Given parameter is invalid
-} fs_result_t;
 
 /*--------------------------------------------------------------*/
 /* Additional Functions                                         */
@@ -220,13 +201,6 @@ extern const char *VolumeStr[FF_VOLUMES]; /* User defied volume ID */
 #define FS_FAT16 2
 #define FS_FAT32 3
 #define FS_EXFAT 4
-
-/* File attribute bits for directory entry (file_info_t.fattrib) */
-#define AM_RDO 0x01 /* Read only */
-#define AM_HID 0x02 /* Hidden */
-#define AM_SYS 0x04 /* System */
-#define AM_DIR 0x10 /* Directory */
-#define AM_ARC 0x20 /* Archive */
 
 #ifdef __cplusplus
 }
