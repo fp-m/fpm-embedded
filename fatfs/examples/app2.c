@@ -11,9 +11,9 @@ fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory 
 {
     unsigned i, j;
     fs_result_t fr;
-    DIR dir;
+    directory_t *dir = alloca(f_sizeof_directory_t());
 
-    fr = f_opendir(&dir, path); /* Open the sub-directory to make it empty */
+    fr = f_opendir(dir, path); /* Open the sub-directory to make it empty */
     if (fr != FR_OK)
         return fr;
 
@@ -22,7 +22,7 @@ fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory 
     path[i++] = _T('/');
 
     for (;;) {
-        fr = f_readdir(&dir, fno); /* Get a directory item */
+        fr = f_readdir(dir, fno); /* Get a directory item */
         if (fr != FR_OK || !fno->fname[0])
             break; /* End of directory? */
         j = 0;
@@ -43,7 +43,7 @@ fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory 
     }
 
     path[--i] = 0; /* Restore the path name */
-    f_closedir(&dir);
+    f_closedir(dir);
 
     if (fr == FR_OK)
         fr = f_unlink(path); /* Delete the empty sub-directory */

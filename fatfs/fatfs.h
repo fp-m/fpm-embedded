@@ -113,9 +113,9 @@ struct _file_t {
 #endif
 };
 
-/* Directory object structure (DIR) */
+/* Directory object structure (directory_t) */
 
-typedef struct {
+struct _directory_t {
     FFOBJID obj; /* Object identifier */
     uint32_t dptr;  /* Current read/write offset */
     uint32_t clust; /* Current cluster */
@@ -126,7 +126,7 @@ typedef struct {
 #if FF_USE_FIND
     const char *pat; /* Pointer to the name matching pattern */
 #endif
-} DIR;
+};
 
 /* File information structure (FILINFO) */
 
