@@ -64,34 +64,6 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#define FF_CODE_PAGE 0
-/* This option specifies the OEM code page to be used on the target system.
-/  Incorrect code page setting can cause a file open failure.
-/
-/   437 - U.S.
-/   720 - Arabic
-/   737 - Greek
-/   771 - KBL
-/   775 - Baltic
-/   850 - Latin 1
-/   852 - Latin 2
-/   855 - Cyrillic
-/   857 - Turkish
-/   860 - Portuguese
-/   861 - Icelandic
-/   862 - Hebrew
-/   863 - Canadian French
-/   864 - Arabic
-/   865 - Nordic
-/   866 - Russian
-/   869 - Greek 2
-/   932 - Japanese (DBCS)
-/   936 - Simplified Chinese (DBCS)
-/   949 - Korean (DBCS)
-/   950 - Traditional Chinese (DBCS)
-/     0 - Include all code pages above and configured by f_setcp()
-*/
-
 #define FF_USE_LFN 2
 #define FF_MAX_LFN 255
 /* The FF_USE_LFN switches the support for LFN (long file name).

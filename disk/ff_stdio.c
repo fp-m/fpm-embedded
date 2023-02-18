@@ -100,10 +100,10 @@ int fresult2errno(FRESULT fr)
 FF_FILE *ff_fopen(const char *pcFile, const char *pcMode)
 {
     TRACE_PRINTF("%s\n", __func__);
-    // FRESULT f_open (FIL* fp, const TCHAR* path, BYTE mode);
+    // FRESULT f_open (FIL* fp, const char* path, BYTE mode);
     // /* Open or create a file */ FRESULT f_open (
     //  FIL* fp,           /* [OUT] Pointer to the file object structure */
-    //  const TCHAR* path, /* [IN] File name */
+    //  const char* path, /* [IN] File name */
     //  BYTE mode          /* [IN] Mode flags */
     //);
     FIL *fp = malloc(sizeof(FIL));
@@ -142,7 +142,7 @@ int ff_stat(const char *pcFileName, FF_Stat_t *pxStatBuffer)
 {
     TRACE_PRINTF("%s\n", __func__);
     // FRESULT f_stat (
-    //  const TCHAR* path,  /* [IN] Object name */
+    //  const char* path,  /* [IN] Object name */
     //  FILINFO* fno        /* [OUT] FILINFO structure */
     //);
     myASSERT(pxStatBuffer);
@@ -197,7 +197,7 @@ int ff_chdir(const char *pcDirectoryName)
 {
     TRACE_PRINTF("%s\n", __func__);
     // FRESULT f_chdir (
-    //  const TCHAR* path /* [IN] Path name */
+    //  const char* path /* [IN] Path name */
     //);
     FRESULT fr = f_chdir(pcDirectoryName);
     if (FR_OK != fr)
@@ -213,7 +213,7 @@ char *ff_getcwd(char *pcBuffer, size_t xBufferLength)
 {
     TRACE_PRINTF("%s\n", __func__);
     // FRESULT f_getcwd (
-    //  TCHAR* buff, /* [OUT] Buffer to return path name */
+    //  char* buff, /* [OUT] Buffer to return path name */
     //  UINT len     /* [IN] The length of the buffer */
     //);
     char buf[xBufferLength];
@@ -307,7 +307,7 @@ int ff_rmdir(const char *pcDirectory)
 {
     TRACE_PRINTF("%s\n", __func__);
     // FRESULT f_unlink (
-    //  const TCHAR* path  /* [IN] Object name */
+    //  const char* path  /* [IN] Object name */
     //);
     FRESULT fr = f_unlink(pcDirectory);
     // If the directory was removed successfully then zero is returned. If the
@@ -378,8 +378,8 @@ int ff_findfirst(const char *pcDirectory, FF_FindData_t *pxFindData)
     // FRESULT f_findfirst (
     //  DIR* dp,              /* [OUT] Poninter to the directory object */
     //  FILINFO* fno,         /* [OUT] Pointer to the file information structure
-    //  */ const TCHAR* path,    /* [IN] Pointer to the directory name to be
-    //  opened */ const TCHAR* pattern  /* [IN] Pointer to the matching pattern
+    //  */ const char* path,    /* [IN] Pointer to the directory name to be
+    //  opened */ const char* pattern  /* [IN] Pointer to the matching pattern
     //  string */
     //);
     char buf1[ffconfigMAX_FILENAME] = { 0 };
@@ -488,8 +488,8 @@ int ff_rename(const char *pcOldName, const char *pcNewName, int bDeleteIfExists)
 {
     TRACE_PRINTF("%s\n", __func__);
     // FRESULT f_rename (
-    //  const TCHAR* old_name, /* [IN] Old object name */
-    //  const TCHAR* new_name  /* [IN] New object name */
+    //  const char* old_name, /* [IN] Old object name */
+    //  const char* new_name  /* [IN] New object name */
     //);
     // Any object with this path name except old_name must not be exist, or the
     // function fails with FR_EXIST.
@@ -506,7 +506,7 @@ int ff_rename(const char *pcOldName, const char *pcNewName, int bDeleteIfExists)
 char *ff_fgets(char *pcBuffer, size_t xCount, FF_FILE *pxStream)
 {
     TRACE_PRINTF("%s\n", __func__);
-    TCHAR *p = f_gets(pcBuffer, xCount, pxStream);
+    char *p = f_gets(pcBuffer, xCount, pxStream);
     // On success a pointer to pcBuffer is returned. If there is a read error
     // then NULL is returned and the task's errno is set to indicate the reason.
     if (p == pcBuffer)

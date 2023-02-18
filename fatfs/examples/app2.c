@@ -5,7 +5,7 @@
 / It works regardless of FF_FS_RPATH.
 */
 
-FRESULT delete_node(TCHAR *path,  /* Path name buffer with the sub-directory to delete */
+FRESULT delete_node(char *path,  /* Path name buffer with the sub-directory to delete */
                     UINT sz_buff, /* Size of path name buffer (items) */
                     FILINFO *fno) /* Name read buffer */
 {
@@ -54,7 +54,7 @@ int main(void) /* How to use */
 {
     FRESULT fr;
     FATFS fs;
-    TCHAR buff[256];
+    char buff[256];
     FILINFO fno;
 
     f_mount(&fs, _T("5:"), 0);

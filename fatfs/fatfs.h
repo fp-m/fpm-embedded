@@ -41,10 +41,6 @@ typedef WORD WCHAR;         /* UTF-16 character type */
 typedef QWORD FSIZE_t; // exFAT enabled
 typedef DWORD LBA_t;   // only LBA-32 is supported
 
-/* Type of path name strings on FatFs API (TCHAR) */
-
-typedef char TCHAR;
-
 /* Definitions of volume management */
 
 #if FF_STR_VOLUME_ID
@@ -144,7 +140,7 @@ typedef struct {
     BYTE fn[12]; /* SFN (in/out) {body[8],ext[3],status[1]} */
     DWORD blk_ofs; /* Offset of current entry block being processed (0xFFFFFFFF:Invalid) */
 #if FF_USE_FIND
-    const TCHAR *pat; /* Pointer to the name matching pattern */
+    const char *pat; /* Pointer to the name matching pattern */
 #endif
 } DIR;
 
@@ -155,8 +151,8 @@ typedef struct {
     WORD fdate;    /* Modified date */
     WORD ftime;    /* Modified time */
     BYTE fattrib;  /* File attribute */
-    TCHAR altname[FF_SFN_BUF + 1]; /* Alternative file name */
-    TCHAR fname[FF_LFN_BUF + 1];   /* Primary file name */
+    char altname[FF_SFN_BUF + 1]; /* Alternative file name */
+    char fname[FF_LFN_BUF + 1];   /* Primary file name */
 } FILINFO;
 
 /* Format parameter structure (MKFS_PARM) */
