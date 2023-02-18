@@ -2,12 +2,12 @@
 / Test if the file is contiguous                                        /
 /----------------------------------------------------------------------*/
 
-FRESULT test_contiguous_file(FIL *fp,   /* [IN]  Open file object to be checked */
+fs_result_t test_contiguous_file(FIL *fp,   /* [IN]  Open file object to be checked */
                              int *cont) /* [OUT] 1:Contiguous, 0:Fragmented or zero-length */
 {
     uint32_t clst, clsz, step;
     fs_size_t fsz;
-    FRESULT fr;
+    fs_result_t fr;
 
     *cont = 0;
     fr = f_rewind(fp); /* Validates and prepares the file */

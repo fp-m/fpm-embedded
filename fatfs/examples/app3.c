@@ -14,7 +14,7 @@
 /  This is intended to be used for disk checking/fixing or dirty hacks :-) */
 uint32_t clust2sect(FATFS *fs, uint32_t clst);
 uint32_t get_fat(FATFS *fs, uint32_t clst);
-FRESULT put_fat(FATFS *fs, uint32_t clst, uint32_t val);
+fs_result_t put_fat(FATFS *fs, uint32_t clst, uint32_t val);
 
 /* Returns the first sector in LBA (0:error or not contiguous) */
 uint32_t allocate_contiguous_clusters(FIL *fp,   /* Pointer to the open file object */
@@ -84,7 +84,7 @@ uint32_t allocate_contiguous_clusters(FIL *fp,   /* Pointer to the open file obj
 
 int main(void)
 {
-    FRESULT fr;
+    fs_result_t fr;
     DRESULT dr;
     FATFS fs;
     FIL fil;

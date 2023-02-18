@@ -3,10 +3,10 @@
 / (This function was sperseded by FA_OPEN_APPEND flag at FatFs R0.12a)
 /------------------------------------------------------------*/
 
-FRESULT open_append(FIL *fp,          /* [OUT] File object to create */
+fs_result_t open_append(FIL *fp,          /* [OUT] File object to create */
                     const char *path) /* [IN]  File name to be opened */
 {
-    FRESULT fr;
+    fs_result_t fr;
 
     /* Opens an existing file. If not exist, creates a new file. */
     fr = f_open(fp, path, FA_WRITE | FA_OPEN_ALWAYS);
@@ -21,7 +21,7 @@ FRESULT open_append(FIL *fp,          /* [OUT] File object to create */
 
 int main(void)
 {
-    FRESULT fr;
+    fs_result_t fr;
     FATFS fs;
     FIL fil;
 

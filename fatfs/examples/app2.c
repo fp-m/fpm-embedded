@@ -5,12 +5,12 @@
 / It works regardless of FF_FS_RPATH.
 */
 
-FRESULT delete_node(char *path,  /* Path name buffer with the sub-directory to delete */
+fs_result_t delete_node(char *path,  /* Path name buffer with the sub-directory to delete */
                     unsigned sz_buff, /* Size of path name buffer (items) */
                     FILINFO *fno) /* Name read buffer */
 {
     unsigned i, j;
-    FRESULT fr;
+    fs_result_t fr;
     DIR dir;
 
     fr = f_opendir(&dir, path); /* Open the sub-directory to make it empty */
@@ -52,7 +52,7 @@ FRESULT delete_node(char *path,  /* Path name buffer with the sub-directory to d
 
 int main(void) /* How to use */
 {
-    FRESULT fr;
+    fs_result_t fr;
     FATFS fs;
     char buff[256];
     FILINFO fno;

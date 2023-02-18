@@ -5,9 +5,9 @@
 #include "fatfs.h"
 #include <rpm/fs.h>
 
-int main() {
-
-    FRESULT fr;
+int main()
+{
+    fs_result_t fr;
     FATFS fs;
     FIL fil;
     int ret;
