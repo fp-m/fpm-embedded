@@ -16,21 +16,21 @@ typedef uint8_t DSTATUS;
 
 /* Results of Disk Functions */
 typedef enum {
-    RES_OK = 0, /* 0: Successful */
-    RES_ERROR,  /* 1: R/W Error */
-    RES_WRPRT,  /* 2: Write Protected */
-    RES_NOTRDY, /* 3: Not Ready */
-    RES_PARERR  /* 4: Invalid Parameter */
-} DRESULT;
+    DISK_OK = 0, /* 0: Successful */
+    DISK_ERROR,  /* 1: R/W Error */
+    DISK_WRPRT,  /* 2: Write Protected */
+    DISK_NOTRDY, /* 3: Not Ready */
+    DISK_PARERR  /* 4: Invalid Parameter */
+} disk_result_t;
 
 /*---------------------------------------*/
 /* Prototypes for disk control functions */
 
 DSTATUS disk_initialize(uint8_t pdrv);
 DSTATUS disk_status(uint8_t pdrv);
-DRESULT disk_read(uint8_t pdrv, uint8_t *buff, unsigned sector, unsigned count);
-DRESULT disk_write(uint8_t pdrv, const uint8_t *buff, unsigned sector, unsigned count);
-DRESULT disk_ioctl(uint8_t pdrv, uint8_t cmd, void *buff);
+disk_result_t disk_read(uint8_t pdrv, uint8_t *buff, unsigned sector, unsigned count);
+disk_result_t disk_write(uint8_t pdrv, const uint8_t *buff, unsigned sector, unsigned count);
+disk_result_t disk_ioctl(uint8_t pdrv, uint8_t cmd, void *buff);
 
 /* Disk Status Bits (DSTATUS) */
 

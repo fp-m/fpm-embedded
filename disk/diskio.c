@@ -39,7 +39,7 @@ DSTATUS disk_status(uint8_t pdrv) /* Physical drive nmuber to identify the drive
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return RES_PARERR;
+        return DISK_PARERR;
     sd_card_detect(p_sd);  // Fast: just a GPIO read
     return p_sd->m_Status; // See http://elm-chan.org/fsw/ff/doc/dstat.html
 }
@@ -53,7 +53,7 @@ DSTATUS disk_initialize(uint8_t pdrv) /* Physical drive nmuber to identify the d
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return RES_PARERR;
+        return DISK_PARERR;
     return sd_init(p_sd); // See http://elm-chan.org/fsw/ff/doc/dstat.html
 }
 
@@ -61,23 +61,23 @@ static int sdrc2dresult(int sd_rc)
 {
     switch (sd_rc) {
     case SD_BLOCK_DEVICE_ERROR_NONE:
-        return RES_OK;
+        return DISK_OK;
     case SD_BLOCK_DEVICE_ERROR_UNUSABLE:
     case SD_BLOCK_DEVICE_ERROR_NO_RESPONSE:
     case SD_BLOCK_DEVICE_ERROR_NO_INIT:
     case SD_BLOCK_DEVICE_ERROR_NO_DEVICE:
-        return RES_NOTRDY;
+        return DISK_NOTRDY;
     case SD_BLOCK_DEVICE_ERROR_PARAMETER:
     case SD_BLOCK_DEVICE_ERROR_UNSUPPORTED:
-        return RES_PARERR;
+        return DISK_PARERR;
     case SD_BLOCK_DEVICE_ERROR_WRITE_PROTECTED:
-        return RES_WRPRT;
+        return DISK_WRPRT;
     case SD_BLOCK_DEVICE_ERROR_CRC:
     case SD_BLOCK_DEVICE_ERROR_WOULD_BLOCK:
     case SD_BLOCK_DEVICE_ERROR_ERASE:
     case SD_BLOCK_DEVICE_ERROR_WRITE:
     default:
-        return RES_ERROR;
+        return DISK_ERROR;
     }
 }
 
@@ -85,7 +85,7 @@ static int sdrc2dresult(int sd_rc)
 /* Read Sector(s)                                                        */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the drive */
+disk_result_t disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the drive */
                   uint8_t *buff,   /* Data buffer to store read data */
                   unsigned sector, /* Start sector in LBA */
                   unsigned count)  /* Number of sectors to read */
@@ -93,7 +93,7 @@ DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the driv
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return RES_PARERR;
+        return DISK_PARERR;
     int rc = sd_read_blocks(p_sd, buff, sector, count);
     return sdrc2dresult(rc);
 }
@@ -104,7 +104,7 @@ DRESULT disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the driv
 
 #if FF_FS_READONLY == 0
 
-DRESULT disk_write(uint8_t pdrv,        /* Physical drive nmuber to identify the drive */
+disk_result_t disk_write(uint8_t pdrv,        /* Physical drive nmuber to identify the drive */
                    const uint8_t *buff, /* Data to be written */
                    unsigned sector,     /* Start sector in LBA */
                    unsigned count)      /* Number of sectors to write */
@@ -112,7 +112,7 @@ DRESULT disk_write(uint8_t pdrv,        /* Physical drive nmuber to identify the
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return RES_PARERR;
+        return DISK_PARERR;
     int rc = sd_write_blocks(p_sd, buff, sector, count);
     return sdrc2dresult(rc);
 }
@@ -123,14 +123,14 @@ DRESULT disk_write(uint8_t pdrv,        /* Physical drive nmuber to identify the
 /* Miscellaneous Functions                                               */
 /*-----------------------------------------------------------------------*/
 
-DRESULT disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
+disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
                    uint8_t cmd,   /* Control code */
                    void *buff) /* Buffer to send/receive control data */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return RES_PARERR;
+        return DISK_PARERR;
     switch (cmd) {
     case GET_SECTOR_COUNT: { // Retrieves number of available sectors, the
                              // largest allowable LBA + 1, on the drive
@@ -142,8 +142,8 @@ DRESULT disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
         unsigned n = sd_sectors(p_sd);
         *(uint32_t *)buff = n;
         if (!n)
-            return RES_ERROR;
-        return RES_OK;
+            return DISK_ERROR;
+        return DISK_OK;
     }
     case GET_BLOCK_SIZE: { // Retrieves erase block size of the flash
                            // memory media in unit of sector into the uint32_t
@@ -156,11 +156,11 @@ DRESULT disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
                            // required when FF_USE_MKFS == 1.
         static uint32_t bs = 1;
         *(uint32_t *)buff = bs;
-        return RES_OK;
+        return DISK_OK;
     }
     case CTRL_SYNC:
-        return RES_OK;
+        return DISK_OK;
     default:
-        return RES_PARERR;
+        return DISK_PARERR;
     }
 }

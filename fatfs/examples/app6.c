@@ -18,7 +18,7 @@ int test_raw_speed(uint8_t pdrv,    /* Physical drive number */
     uint32_t ofs, tmr;
 
 #if FF_MIN_SS != FF_MAX_SS
-    if (disk_ioctl(pdrv, GET_SECTOR_SIZE, &ss) != RES_OK) {
+    if (disk_ioctl(pdrv, GET_SECTOR_SIZE, &ss) != DISK_OK) {
         printf("\ndisk_ioctl() failed.\n");
         return 0;
     }
@@ -29,12 +29,12 @@ int test_raw_speed(uint8_t pdrv,    /* Physical drive number */
     printf("Starting raw write test at sector %lu in %u bytes of data chunks...", lba, sz_buff);
     tmr = systimer();
     for (ofs = 0; ofs < len / ss; ofs += sz_buff / ss) {
-        if (disk_write(pdrv, buff, lba + ofs, sz_buff / ss) != RES_OK) {
+        if (disk_write(pdrv, buff, lba + ofs, sz_buff / ss) != DISK_OK) {
             printf("\ndisk_write() failed.\n");
             return 0;
         }
     }
-    if (disk_ioctl(pdrv, CTRL_SYNC, 0) != RES_OK) {
+    if (disk_ioctl(pdrv, CTRL_SYNC, 0) != DISK_OK) {
         printf("\ndisk_ioctl() failed.\n");
         return 0;
     }
@@ -44,7 +44,7 @@ int test_raw_speed(uint8_t pdrv,    /* Physical drive number */
     printf("Starting raw read test at sector %lu in %u bytes of data chunks...", lba, sz_buff);
     tmr = systimer();
     for (ofs = 0; ofs < len / ss; ofs += sz_buff / ss) {
-        if (disk_read(pdrv, buff, lba + ofs, sz_buff / ss) != RES_OK) {
+        if (disk_read(pdrv, buff, lba + ofs, sz_buff / ss) != DISK_OK) {
             printf("\ndisk_read() failed.\n");
             return 0;
         }

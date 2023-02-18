@@ -85,7 +85,7 @@ uint32_t allocate_contiguous_clusters(file_t *fp,   /* Pointer to the open file 
 int main(void)
 {
     fs_result_t fr;
-    DRESULT dr;
+    disk_result_t dr;
     filesystem_t *fs = alloca(f_sizeof_filesystem_t());
     file_t *fil = alloca(f_sizeof_file_t());
     uint32_t org;
