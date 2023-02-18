@@ -16,14 +16,12 @@ specific language governing permissions and limitations under the License.
 #include <stdarg.h>
 #include <stdio.h>
 
-void my_printf(const char *pcFormat, ...)
+void my_printf(const char *fmt, ...)
 {
-    char pcBuffer[256] = { 0 };
-    va_list xArgs;
-    va_start(xArgs, pcFormat);
-    vsnprintf(pcBuffer, sizeof(pcBuffer), pcFormat, xArgs);
-    va_end(xArgs);
-    printf("%s", pcBuffer);
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
     fflush(stdout);
 }
 

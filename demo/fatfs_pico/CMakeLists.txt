@@ -33,7 +33,6 @@ add_library(FatFs_SPI STATIC
     ${CMAKE_SOURCE_DIR}/../../sd_pico/crc.c
     ${CMAKE_SOURCE_DIR}/../../disk/diskio.c
     ${CMAKE_SOURCE_DIR}/../../disk/f_util.c
-    ${CMAKE_SOURCE_DIR}/../../disk/ff_stdio.c
     ${CMAKE_SOURCE_DIR}/../../disk/my_debug.c
     ${CMAKE_SOURCE_DIR}/../../disk/rtc.c
 )

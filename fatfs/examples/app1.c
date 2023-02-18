@@ -3,7 +3,7 @@
 / (This function was sperseded by FA_OPEN_APPEND flag at FatFs R0.12a)
 /------------------------------------------------------------*/
 
-fs_result_t open_append(FIL *fp,          /* [OUT] File object to create */
+fs_result_t open_append(file_t *fp,          /* [OUT] File object to create */
                     const char *path) /* [IN]  File name to be opened */
 {
     fs_result_t fr;
@@ -23,19 +23,19 @@ int main(void)
 {
     fs_result_t fr;
     FATFS fs;
-    FIL fil;
+    file_t *fil = alloca(f_sizeof_file_t());
 
     /* Open or create a log file and ready to append */
     f_mount(&fs, "", 0);
-    fr = open_append(&fil, "logfile.txt");
+    fr = open_append(fil, "logfile.txt");
     if (fr != FR_OK)
         return 1;
 
     /* Append a line */
-    f_printf(&fil, "%02u/%02u/%u, %2u:%02u\n", Mday, Mon, Year, Hour, Min);
+    f_printf(fil, "%02u/%02u/%u, %2u:%02u\n", Mday, Mon, Year, Hour, Min);
 
     /* Close the file */
-    f_close(&fil);
+    f_close(fil);
 
     return 0;
 }

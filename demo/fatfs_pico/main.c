@@ -1,5 +1,6 @@
 // From https://www.digikey.com/en/maker/projects/raspberry-pi-pico-rp2040-sd-card-example-with-micropython-and-cc/e472c7f578734bfd96d437e68e670050
 #include <stdio.h>
+#include <alloca.h>
 #include "pico/stdlib.h"
 #include "sd_card.h"
 #include "fatfs.h"
@@ -9,7 +10,7 @@ int main()
 {
     fs_result_t fr;
     FATFS fs;
-    FIL fil;
+    file_t *fil = alloca(f_sizeof_file_t());
     int ret;
     char buf[100];
     char filename[] = "test02.txt";
@@ -43,35 +44,35 @@ int main()
     }
 
     // Open file for writing ()
-    fr = f_open(&fil, filename, FA_WRITE | FA_CREATE_ALWAYS);
+    fr = f_open(fil, filename, FA_WRITE | FA_CREATE_ALWAYS);
     if (fr != FR_OK) {
         printf("ERROR: Could not open file (%d)\r\n", fr);
         while (true);
     }
 
     // Write something to file
-    ret = f_printf(&fil, "This is another test\r\n");
+    ret = f_printf(fil, "This is another test\r\n");
     if (ret < 0) {
         printf("ERROR: Could not write to file (%d)\r\n", ret);
-        f_close(&fil);
+        f_close(fil);
         while (true);
     }
-    ret = f_printf(&fil, "of writing to an SD card.\r\n");
+    ret = f_printf(fil, "of writing to an SD card.\r\n");
     if (ret < 0) {
         printf("ERROR: Could not write to file (%d)\r\n", ret);
-        f_close(&fil);
+        f_close(fil);
         while (true);
     }
 
     // Close file
-    fr = f_close(&fil);
+    fr = f_close(fil);
     if (fr != FR_OK) {
         printf("ERROR: Could not close file (%d)\r\n", fr);
         while (true);
     }
 
     // Open file for reading
-    fr = f_open(&fil, filename, FA_READ);
+    fr = f_open(fil, filename, FA_READ);
     if (fr != FR_OK) {
         printf("ERROR: Could not open file (%d)\r\n", fr);
         while (true);
@@ -80,13 +81,13 @@ int main()
     // Print every line in file over serial
     printf("Reading from file '%s':\r\n", filename);
     printf("---\r\n");
-    while (f_gets(buf, sizeof(buf), &fil)) {
+    while (f_gets(buf, sizeof(buf), fil)) {
         printf(buf);
     }
     printf("\r\n---\r\n");
 
     // Close file
-    fr = f_close(&fil);
+    fr = f_close(fil);
     if (fr != FR_OK) {
         printf("ERROR: Could not close file (%d)\r\n", fr);
         while (true);

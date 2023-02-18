@@ -40,20 +40,25 @@ typedef enum {
 //
 // File access functions.
 //
-fs_result_t f_open(FIL *fp, const char *path, uint8_t mode);          /* Open or create a file */
-fs_result_t f_close(FIL *fp);                                       /* Close an open file object */
-fs_result_t f_read(FIL *fp, void *buff, unsigned btr, unsigned *br);        /* Read data from the file */
-fs_result_t f_write(FIL *fp, const void *buff, unsigned btw, unsigned *bw); /* Write data to the file */
-fs_result_t f_lseek(FIL *fp, fs_size_t ofs);         /* Move file pointer of the file object */
-fs_result_t f_truncate(FIL *fp);                   /* Truncate the file */
-fs_result_t f_sync(FIL *fp);                       /* Flush cached data of the writing file */
-fs_result_t f_forward(FIL *fp, unsigned (*func)(const uint8_t *, unsigned), unsigned btf,
+typedef struct _file_t file_t; // Opaque pointer
+unsigned f_sizeof_file_t();
+
+fs_result_t f_open(file_t *fp, const char *path, uint8_t mode);          /* Open or create a file */
+fs_result_t f_close(file_t *fp);                                       /* Close an open file object */
+fs_result_t f_read(file_t *fp, void *buff, unsigned btr, unsigned *br);        /* Read data from the file */
+fs_result_t f_write(file_t *fp, const void *buff, unsigned btw, unsigned *bw); /* Write data to the file */
+fs_result_t f_lseek(file_t *fp, fs_size_t ofs);         /* Move file pointer of the file object */
+fs_result_t f_truncate(file_t *fp);                   /* Truncate the file */
+fs_result_t f_sync(file_t *fp);                       /* Flush cached data of the writing file */
+fs_result_t f_forward(file_t *fp, unsigned (*func)(const uint8_t *, unsigned), unsigned btf,
                   unsigned *bf);                      /* Forward data to the stream */
-fs_result_t f_expand(FIL *fp, fs_size_t fsz, uint8_t opt); /* Allocate a contiguous block to the file */
-char *f_gets(char *buff, int len, FIL *fp); /* Get a string from the file */
-int f_putc(char c, FIL *fp);                 /* Put a character to the file */
-int f_puts(const char *str, FIL *cp);        /* Put a string to the file */
-int f_printf(FIL *fp, const char *str, ...); /* Put a formatted string to the file */
+fs_result_t f_expand(file_t *fp, fs_size_t fsz, uint8_t opt); /* Allocate a contiguous block to the file */
+
+char *f_gets(char *buff, int len, file_t *fp); /* Get a string from the file */
+int f_putc(char c, file_t *fp);                 /* Put a character to the file */
+int f_puts(const char *str, file_t *cp);        /* Put a string to the file */
+int f_printf(file_t *fp, const char *str, ...); /* Put a formatted string to the file */
+
 #define f_tell(fp) ((fp)->fptr)
 #define f_eof(fp) ((int)((fp)->fptr == (fp)->obj.objsize))
 #define f_size(fp) ((fp)->obj.objsize)
@@ -87,7 +92,7 @@ fs_result_t f_getcwd(char *buff, unsigned len);                  /* Get current 
 #define f_rmdir(path) f_unlink(path)
 
 //
-// Volume management and system configuration functions.
+// Volume management functions.
 //
 fs_result_t f_mount(FATFS *fs, const char *path, uint8_t opt); /* Mount/Unmount a logical drive */
 fs_result_t f_mkfs(const char *path, const MKFS_PARM *opt, void *work,

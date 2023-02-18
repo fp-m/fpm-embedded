@@ -56,7 +56,7 @@
 //
 #define FA_SEEKEND 0x20  /* Seek to end of the file on file open */
 #define FA_MODIFIED 0x40 /* File has been modified */
-#define FA_DIRTY 0x80    /* FIL.buf[] needs to be written-back */
+#define FA_DIRTY 0x80    /* file_t.buf[] needs to be written-back */
 
 //
 // Additional file attribute bits for internal use
@@ -1382,7 +1382,7 @@ static uint32_t create_chain(/* 0:No free cluster, 1:Internal error, 0xFFFFFFFF:
 /*-----------------------------------------------------------------------*/
 
 static uint32_t clmt_clust(            /* <2:Error, >=2:Cluster number */
-                        FIL *fp,    /* Pointer to the file object */
+                        file_t *fp,    /* Pointer to the file object */
                         fs_size_t ofs /* File offset to be converted to cluster# */
 )
 {
@@ -3306,7 +3306,7 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
 
 static fs_result_t validate(              /* Returns FR_OK or FR_INVALID_OBJECT */
                         FFOBJID *obj, /* Pointer to the FFOBJID, the 1st member in the
-                                         FIL/DIR structure, to check validity */
+                                         file_t/DIR structure, to check validity */
                         FATFS **rfs   /* Pointer to pointer to the owner filesystem object to
                                          return */
 )
@@ -3408,7 +3408,7 @@ fs_result_t f_mount(FATFS *fs,         /* Pointer to the filesystem object to be
 /* Open or Create a File                                                 */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_open(FIL *fp,           /* Pointer to the blank file object */
+fs_result_t f_open(file_t *fp,           /* Pointer to the blank file object */
                const char *path, /* Pointer to the file name */
                uint8_t mode          /* Access mode and open mode flags */
 )
@@ -3613,7 +3613,7 @@ fs_result_t f_open(FIL *fp,           /* Pointer to the blank file object */
 /* Read File                                                             */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_read(FIL *fp,    /* Open file to be read */
+fs_result_t f_read(file_t *fp,    /* Open file to be read */
                void *buff, /* Data buffer to store the read data */
                unsigned btr,   /* Number of bytes to read */
                unsigned *br    /* Number of bytes read */
@@ -3724,7 +3724,7 @@ fs_result_t f_read(FIL *fp,    /* Open file to be read */
 /* Write File                                                            */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_write(FIL *fp,          /* Open file to be written */
+fs_result_t f_write(file_t *fp,          /* Open file to be written */
                 const void *buff, /* Data to be written */
                 unsigned btw,         /* Number of bytes to write */
                 unsigned *bw          /* Number of bytes written */
@@ -3859,7 +3859,7 @@ fs_result_t f_write(FIL *fp,          /* Open file to be written */
 /* Synchronize the File                                                  */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_sync(FIL *fp /* Open file to be synced */
+fs_result_t f_sync(file_t *fp /* Open file to be synced */
 )
 {
     fs_result_t res;
@@ -3942,7 +3942,7 @@ fs_result_t f_sync(FIL *fp /* Open file to be synced */
 /* Close File                                                            */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_close(FIL *fp /* Open file to be closed */
+fs_result_t f_close(file_t *fp /* Open file to be closed */
 )
 {
     fs_result_t res;
@@ -4164,7 +4164,7 @@ fs_result_t f_getcwd(char *buff, /* Pointer to the directory path */
 /* Seek File Read/Write Pointer                                          */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_lseek(FIL *fp,    /* Pointer to the file object */
+fs_result_t f_lseek(file_t *fp,    /* Pointer to the file object */
                 fs_size_t ofs /* File pointer from top of file */
 )
 {
@@ -4658,7 +4658,7 @@ fs_result_t f_getfree(const char *path, /* Logical drive number */
 /* Truncate File                                                         */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_truncate(FIL *fp /* Pointer to the file object */
+fs_result_t f_truncate(file_t *fp /* Pointer to the file object */
 )
 {
     fs_result_t res;
@@ -5298,7 +5298,7 @@ fs_result_t f_setlabel(const char *label) // Volume label to set with heading lo
 /* Allocate a Contiguous Blocks to the File                              */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_expand(FIL *fp,     /* Pointer to the file object */
+fs_result_t f_expand(file_t *fp,     /* Pointer to the file object */
                  fs_size_t fsz, /* File size to be expanded to */
                  uint8_t opt)    /* Operation mode 0:Find and prepare or 1:Find and allocate */
 {
@@ -5400,7 +5400,7 @@ fs_result_t f_expand(FIL *fp,     /* Pointer to the file object */
 /* Forward Data to the Stream Directly                                   */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_forward(FIL *fp,                          /* Pointer to the file object */
+fs_result_t f_forward(file_t *fp,                          /* Pointer to the file object */
                   unsigned (*func)(const uint8_t *, unsigned), /* Pointer to the streaming function */
                   unsigned btf,                         /* Number of bytes to forward */
                   unsigned *bf)                         /* Pointer to number of bytes forwarded */
@@ -6124,7 +6124,7 @@ fs_result_t f_mkfs(const char *path,    /* Logical drive number */
 
 char *f_gets(char *buff, /* Pointer to the buffer to store read string */
               int len,     /* Size of string buffer (items) */
-              FIL *fp)     /* Pointer to the file object */
+              file_t *fp)     /* Pointer to the file object */
 {
     int nc = 0;
     char *p = buff;
@@ -6217,7 +6217,7 @@ char *f_gets(char *buff, /* Pointer to the buffer to store read string */
 /* Output buffer and work area */
 
 typedef struct {
-    FIL *fp;       /* Ptr to the writing file */
+    file_t *fp;       /* Ptr to the writing file */
     int idx, nchr; /* Write index of buf[] (-1:error), number of encoding
                       units written */
     uint8_t bs[4];
@@ -6322,14 +6322,14 @@ static int putc_flush(putbuff *pb)
 
 /* Initialize write buffer */
 
-static void putc_init(putbuff *pb, FIL *fp)
+static void putc_init(putbuff *pb, file_t *fp)
 {
     memset(pb, 0, sizeof(putbuff));
     pb->fp = fp;
 }
 
 int f_putc(char c, /* A character to be output */
-           FIL *fp) /* Pointer to the file object */
+           file_t *fp) /* Pointer to the file object */
 {
     putbuff pb;
 
@@ -6343,7 +6343,7 @@ int f_putc(char c, /* A character to be output */
 /*-----------------------------------------------------------------------*/
 
 int f_puts(const char *str, /* Pointer to the string to be output */
-           FIL *fp)          /* Pointer to the file object */
+           file_t *fp)          /* Pointer to the file object */
 {
     putbuff pb;
 
@@ -6492,7 +6492,7 @@ static void ftoa(char *buf,  /* Buffer to output the floating point string */
 }
 #endif /* FF_PRINT_FLOAT */
 
-int f_printf(FIL *fp,          /* Pointer to the file object */
+int f_printf(file_t *fp,          /* Pointer to the file object */
              const char *fmt, /* Pointer to the format string */
              ...)              /* Optional arguments... */
 {
@@ -6677,3 +6677,8 @@ int f_printf(FIL *fp,          /* Pointer to the file object */
 
 #endif /* !FF_FS_READONLY */
 #endif /* FF_USE_STRFUNC */
+
+unsigned f_sizeof_file_t()
+{
+    return sizeof(file_t);
+}

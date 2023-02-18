@@ -17,7 +17,7 @@ uint32_t get_fat(FATFS *fs, uint32_t clst);
 fs_result_t put_fat(FATFS *fs, uint32_t clst, uint32_t val);
 
 /* Returns the first sector in LBA (0:error or not contiguous) */
-uint32_t allocate_contiguous_clusters(FIL *fp,   /* Pointer to the open file object */
+uint32_t allocate_contiguous_clusters(file_t *fp,   /* Pointer to the open file object */
                                    uint32_t len) /* Number of bytes to allocate */
 {
     uint32_t csz, tcl, ncl, ccl, cl;
@@ -87,28 +87,28 @@ int main(void)
     fs_result_t fr;
     DRESULT dr;
     FATFS fs;
-    FIL fil;
+    file_t *fil = alloca(f_sizeof_file_t());
     uint32_t org;
 
     /* Open or create a file to write */
     f_mount(&fs, "", 0);
-    fr = f_open(&fil, "fastrec.log", FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
+    fr = f_open(fil, "fastrec.log", FA_READ | FA_WRITE | FA_OPEN_ALWAYS);
     if (fr)
         return 1;
 
     /* Check if the file is 256MB in size and occupies a contiguous area.
     /  If not, a contiguous area will be re-allocated to the file. */
-    org = allocate_contiguous_clusters(&fil, 0x10000000);
+    org = allocate_contiguous_clusters(fil, 0x10000000);
     if (!org) {
         printf("Function failed due to any error or insufficient contiguous area.\n");
-        f_close(&fil);
+        f_close(fil);
         return 1;
     }
 
     /* Now you can read/write the file without filesystem layer. */
-    ... dr = disk_write(fil.fs->drv, Buff, org, 1024); /* Write 512KiB from top of the file */
+    ... dr = disk_write(fil->fs->drv, Buff, org, 1024); /* Write 512KiB from top of the file */
     ...
 
-        f_close(&fil);
+        f_close(fil);
     return 0;
 }

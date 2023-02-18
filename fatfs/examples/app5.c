@@ -2,7 +2,7 @@
 / Test if the file is contiguous                                        /
 /----------------------------------------------------------------------*/
 
-fs_result_t test_contiguous_file(FIL *fp,   /* [IN]  Open file object to be checked */
+fs_result_t test_contiguous_file(file_t *fp,   /* [IN]  Open file object to be checked */
                              int *cont) /* [OUT] 1:Contiguous, 0:Fragmented or zero-length */
 {
     uint32_t clst, clsz, step;

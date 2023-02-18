@@ -92,9 +92,9 @@ typedef struct {
 #endif
 } FFOBJID;
 
-/* File object structure (FIL) */
+/* File object structure (file_t) */
 
-typedef struct {
+struct _file_t {
     FFOBJID obj;  /* Object identifier (must be the 1st member to detect invalid object pointer) */
     uint8_t flag;    /* File status flags */
     uint8_t err;     /* Abort flag (error code) */
@@ -111,7 +111,7 @@ typedef struct {
 #if !FF_FS_TINY
     uint8_t buf[FF_MAX_SS]; /* File private data read/write window */
 #endif
-} FIL;
+};
 
 /* Directory object structure (DIR) */
 
