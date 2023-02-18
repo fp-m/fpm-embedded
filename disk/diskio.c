@@ -34,27 +34,31 @@ specific language governing permissions and limitations under the License.
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_status(uint8_t pdrv) /* Physical drive nmuber to identify the drive */
+media_status_t disk_status(uint8_t pdrv) /* Physical drive nmuber to identify the drive */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return DISK_PARERR;
-    sd_card_detect(p_sd);  // Fast: just a GPIO read
-    return p_sd->m_Status; // See http://elm-chan.org/fsw/ff/doc/dstat.html
+        return STA_NOINIT;
+
+    sd_card_detect(p_sd); // Fast: just a GPIO read
+    return p_sd->m_Status;
 }
 
 /*-----------------------------------------------------------------------*/
 /* Inidialize a Drive                                                    */
 /*-----------------------------------------------------------------------*/
 
-DSTATUS disk_initialize(uint8_t pdrv) /* Physical drive nmuber to identify the drive */
+media_status_t disk_initialize(uint8_t pdrv) /* Physical drive number to identify the drive */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
-        return DISK_PARERR;
-    return sd_init(p_sd); // See http://elm-chan.org/fsw/ff/doc/dstat.html
+        return STA_NOINIT;
+
+    return sd_init(p_sd);
 }
 
 static int sdrc2dresult(int sd_rc)
@@ -62,16 +66,20 @@ static int sdrc2dresult(int sd_rc)
     switch (sd_rc) {
     case SD_BLOCK_DEVICE_ERROR_NONE:
         return DISK_OK;
+
     case SD_BLOCK_DEVICE_ERROR_UNUSABLE:
     case SD_BLOCK_DEVICE_ERROR_NO_RESPONSE:
     case SD_BLOCK_DEVICE_ERROR_NO_INIT:
     case SD_BLOCK_DEVICE_ERROR_NO_DEVICE:
         return DISK_NOTRDY;
+
     case SD_BLOCK_DEVICE_ERROR_PARAMETER:
     case SD_BLOCK_DEVICE_ERROR_UNSUPPORTED:
         return DISK_PARERR;
+
     case SD_BLOCK_DEVICE_ERROR_WRITE_PROTECTED:
         return DISK_WRPRT;
+
     case SD_BLOCK_DEVICE_ERROR_CRC:
     case SD_BLOCK_DEVICE_ERROR_WOULD_BLOCK:
     case SD_BLOCK_DEVICE_ERROR_ERASE:

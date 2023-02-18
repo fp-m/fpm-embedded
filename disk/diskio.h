@@ -11,32 +11,52 @@
 extern "C" {
 #endif
 
-/* Status of Disk Functions */
-typedef uint8_t DSTATUS;
-
-/* Results of Disk Functions */
+//
+// Bits of SD card status.
+//
 typedef enum {
-    DISK_OK = 0, /* 0: Successful */
-    DISK_ERROR,  /* 1: R/W Error */
-    DISK_WRPRT,  /* 2: Write Protected */
-    DISK_NOTRDY, /* 3: Not Ready */
-    DISK_PARERR  /* 4: Invalid Parameter */
+    STA_NOINIT = 0x01,
+    // Indicates that the device has not been initialized and not
+    // ready to work. This flag is set on system reset, media removal
+    // or failure of disk_initialize function. It is cleared on
+    // disk_initialize function succeeded. Any media change that
+    // occurs asynchronously must be captured and reflect it to the
+    // status flags, or auto-mount function will not work correctly.
+    // If the system does not support media change detection,
+    // application program needs to explicitly re-mount the volume
+    // with f_mount function after each media change.
+
+    STA_NODISK = 0x02,
+    // Indicates that no medium in the drive. This is always
+    // cleared when the drive is non-removable class. Note that FatFs
+    // does not refer this flag.
+
+    STA_PROTECT = 0x04,
+    // Indicates that the medium is write protected. This is always
+    // cleared when the drive has no write protect function. Not valid
+    // if STA_NODISK is set.
+
+} media_status_t;
+
+//
+// Results of Disk Functions.
+//
+typedef enum {
+    DISK_OK = 0, // 0: Successful
+    DISK_ERROR,  // 1: R/W Error
+    DISK_WRPRT,  // 2: Write Protected
+    DISK_NOTRDY, // 3: Not Ready
+    DISK_PARERR, // 4: Invalid Parameter
 } disk_result_t;
 
-/*---------------------------------------*/
-/* Prototypes for disk control functions */
-
-DSTATUS disk_initialize(uint8_t pdrv);
-DSTATUS disk_status(uint8_t pdrv);
+//
+// Disk control functions.
+//
+media_status_t disk_initialize(uint8_t pdrv);
+media_status_t disk_status(uint8_t pdrv);
 disk_result_t disk_read(uint8_t pdrv, uint8_t *buff, unsigned sector, unsigned count);
 disk_result_t disk_write(uint8_t pdrv, const uint8_t *buff, unsigned sector, unsigned count);
 disk_result_t disk_ioctl(uint8_t pdrv, uint8_t cmd, void *buff);
-
-/* Disk Status Bits (DSTATUS) */
-
-#define STA_NOINIT 0x01  /* Drive not initialized */
-#define STA_NODISK 0x02  /* No medium in the drive */
-#define STA_PROTECT 0x04 /* Write protected */
 
 /* Command code for disk_ioctrl fucntion */
 

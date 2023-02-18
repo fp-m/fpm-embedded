@@ -3039,7 +3039,7 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
 {
     int vol;
     filesystem_t *fs;
-    DSTATUS stat;
+    media_status_t stat;
     fs_lba_t bsect;
     uint32_t tsect, sysect, fasize, nclst, szbfat;
     uint16_t nrsv;
@@ -5572,7 +5572,7 @@ fs_result_t f_mkfs(const char *path, /* Logical drive number */
     uint32_t sz_rsv, sz_fat, sz_dir, sz_au; /* Size of reserved, fat, dir, data, cluster */
     unsigned n_fat, n_root, i;               /* Index, Number of FATs and Number of roor dir entries */
     int vol;
-    DSTATUS ds;
+    media_status_t ds;
     fs_result_t res;
 
     /* Check mounted drive and clear work area */

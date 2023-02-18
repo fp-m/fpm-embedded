@@ -58,14 +58,6 @@ typedef struct {
 #define SD_BLOCK_DEVICE_ERROR_ERASE -5010           /*!< Erase error: reset/sequence */
 #define SD_BLOCK_DEVICE_ERROR_WRITE -5011           /*!< SPI Write error: !SPI_DATA_ACCEPTED */
 
-///* Disk Status Bits (DSTATUS) */
-// See diskio.h.
-// enum {
-//    STA_NOINIT = 0x01, /* Drive not initialized */
-//    STA_NODISK = 0x02, /* No medium in the drive */
-//    STA_PROTECT = 0x04 /* Write protected */
-//};
-
 bool sd_init_driver();
 int sd_init(sd_card_t *pSD);
 int sd_write_blocks(sd_card_t *pSD, const uint8_t *buffer, uint64_t ulSectorNumber,

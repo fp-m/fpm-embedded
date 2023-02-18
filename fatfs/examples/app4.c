@@ -40,7 +40,7 @@ int test_diskio(uint8_t pdrv,    /* Physical drive number to be checked */
     uint32_t sz_drv, lba, lba2, sz_eblk, pns = 1;
     uint16_t sz_sect;
     uint8_t *pbuff = (uint8_t *)buff;
-    DSTATUS ds;
+    media_status_t ds;
     disk_result_t dr;
 
     printf("test_diskio(%u, %u, 0x%08X, 0x%08X)\n", pdrv, ncyc, (unsigned)buff, sz_buff);
