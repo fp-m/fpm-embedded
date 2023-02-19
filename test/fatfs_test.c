@@ -155,7 +155,7 @@ static void write_read_delete(void **unused)
     // Create FAT32 volume, non-partitioned.
     const char *filename = "fs.img";
     char buf[4*1024];
-    fs_result_t result = f_mkfs(filename, FM_FAT32 | FM_SFD, buf, sizeof(buf));
+    fs_result_t result = f_mkfs(filename, FM_FAT32, buf, sizeof(buf));
     assert_int_equal(result, FR_OK);
 
     // Mount drive.
@@ -168,7 +168,7 @@ static void write_read_delete(void **unused)
     filesystem_t *that_fs;
     result = f_getfree("", &num_free_clusters, &that_fs);
     assert_int_equal(result, FR_OK);
-    assert_int_equal(num_free_clusters, 81246); // So many free clusters on 40MB drive
+    assert_int_equal(num_free_clusters, 81184); // So many free clusters on 40MB FAT32 drive
     assert_ptr_equal(that_fs, fs);
 
     // Set disk label.
@@ -210,6 +210,12 @@ static void write_read_delete(void **unused)
     assert_string_equal(label, "MYDISKLABEL");
     assert_true(serial_number != 0);
 
+    read_file("Foo.txt", "'Twas brillig, and the slithy toves");
+
+    read_file("Bar/Long-file-name.txt", "Did gyre and gimble in the wabe");
+
+    read_file("Αβρακαδαβρα.txt", "Kαυσπροῦντος ἤδη, γλοῖσχρα διὰ περισκιᾶς");
+
     // Check directory.
     file_info_t info = {};
     result = f_stat("Bar", &info);
@@ -221,11 +227,15 @@ static void write_read_delete(void **unused)
     assert_string_equal(info.fname, "Bar");   // Primary file name
     assert_string_equal(info.altname, "BAR"); // Alternative file name
 
-    read_file("Foo.txt", "'Twas brillig, and the slithy toves");
-
-    read_file("Bar/Long-file-name.txt", "Did gyre and gimble in the wabe");
-
-    read_file("Αβρακαδαβρα.txt", "Kαυσπροῦντος ἤδη, γλοῖσχρα διὰ περισκιᾶς");
+    // Check file with unicode name.
+    result = f_stat("Αβρακαδαβρα.txt", &info);
+    assert_int_equal(result, FR_OK);
+    assert_int_equal(info.fattrib, AM_ARC);             // File attribute
+    assert_int_equal(info.fsize, 79);                   // File size
+    assert_int_equal(info.fdate, 0x5652);               // Modified date
+    assert_int_equal(info.ftime, 0x7c36);               // Modified time
+    assert_string_equal(info.fname, "Αβρακαδαβρα.txt"); // Primary file name
+    assert_string_equal(info.altname, "______~1.TXT");  // Alternative file name
 
     // Delete file.
     result = f_unlink("Foo.txt");

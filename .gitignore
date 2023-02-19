@@ -5,3 +5,4 @@ test/*_test
 *.c-
 *.h-
 *.img
+*.hd

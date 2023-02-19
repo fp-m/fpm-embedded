@@ -2603,11 +2603,9 @@ static int pattern_match(                  /* 0:mismatched, 1:matched */
 /* Pick a top segment and create the object name in directory form       */
 /*-----------------------------------------------------------------------*/
 
-static fs_result_t create_name(         /* FR_OK: successful, FR_INVALID_NAME: could not create */
-                           directory_t *dp, /* Pointer to the directory object */
-                           const char **path /* Pointer to pointer to the segment in the
-                                                 path string */
-)
+/* FR_OK: successful, FR_INVALID_NAME: could not create */
+static fs_result_t create_name(directory_t *dp,   /* Pointer to the directory object */
+                               const char **path) /* Pointer to pointer to the segment in the path string */
 {
     uint8_t b, cf;
     uint16_t wc;
@@ -2703,30 +2701,17 @@ static fs_result_t create_name(         /* FR_OK: successful, FR_INVALID_NAME: c
             continue;
         }
 
-        if (wc >= 0x80) { /* Is this an extended character? */
-            cf |= NS_LFN; /* LFN entry needs to be created */
-            wc = ff_wtoupper(wc);
-        }
-
-        if (wc >= 0x100) {     /* Is this a DBC? */
-            if (i >= ni - 1) { /* Field overflow? */
-                cf |= NS_LOSS | NS_LFN;
-                i = ni;
-                continue; /* Next field */
+        if (wc > '~' || wc == 0 || strchr("+,;=[]", (int)wc)) {
+            /* Replace illegal characters for SFN */
+            wc = '_';
+            cf |= NS_LOSS | NS_LFN; /* Lossy conversion */
+        } else {
+            if (IsUpper(wc)) { /* ASCII upper case? */
+                b |= 2;
             }
-            dp->fn[i++] = (uint8_t)(wc >> 8);              /* Put 1st byte */
-        } else {                                        /* SBC */
-            if (wc == 0 || strchr("+,;=[]", (int)wc)) { /* Replace illegal characters for SFN */
-                wc = '_';
-                cf |= NS_LOSS | NS_LFN; /* Lossy conversion */
-            } else {
-                if (IsUpper(wc)) { /* ASCII upper case? */
-                    b |= 2;
-                }
-                if (IsLower(wc)) { /* ASCII lower case? */
-                    b |= 1;
-                    wc -= 0x20;
-                }
+            if (IsLower(wc)) { /* ASCII lower case? */
+                b |= 1;
+                wc -= 0x20;
             }
         }
         dp->fn[i++] = (uint8_t)wc;

@@ -63,7 +63,7 @@ typedef struct {
     char fname[FF_LFN_BUF + 1];   // Primary file name
 } file_info_t;
 
-// File attribute bits for directory entry.
+// File attribute bits (file_info_t.fattrib)
 enum {
     AM_RDO = 0x01, // Read only
     AM_HID = 0x02, // Hidden
