@@ -37,6 +37,10 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
         *(uint32_t *)buf = 1;
         return DISK_OK;
 
+    case GET_SECTOR_SIZE:
+        *(uint16_t *)buf = 512;
+        return DISK_OK;
+
     case GET_SECTOR_COUNT:
         // Get media size.
         printf("--- %s(unit = %u, cmd = GET_SECTOR_COUNT)\n", __func__, unit);

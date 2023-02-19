@@ -136,38 +136,57 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
                    void *buff) /* Buffer to send/receive control data */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+
     sd_card_t *p_sd = sd_get_by_num(pdrv);
     if (!p_sd)
         return DISK_PARERR;
+
     switch (cmd) {
-    case GET_SECTOR_COUNT: { // Retrieves number of available sectors, the
-                             // largest allowable LBA + 1, on the drive
-                             // into the fs_lba_t variable pointed by buff.
-                             // This command is used by f_mkfs and f_fdisk
-                             // function to determine the size of
-                             // volume/partition to be created. It is
-                             // required when FF_USE_MKFS == 1.
+    case GET_SECTOR_COUNT: {
+        //
+        // Retrieves number of available sectors, the
+        // largest allowable LBA + 1, on the drive
+        // into the fs_lba_t variable pointed by buff.
+        // This command is used by f_mkfs and f_fdisk
+        // function to determine the size of
+        // volume/partition to be created. It is
+        // required when FF_USE_MKFS == 1.
+        //
         unsigned n = sd_sectors(p_sd);
         *(uint32_t *)buff = n;
         if (!n)
             return DISK_ERROR;
         return DISK_OK;
     }
-    case GET_BLOCK_SIZE: { // Retrieves erase block size of the flash
-                           // memory media in unit of sector into the uint32_t
-                           // variable pointed by buff. The allowable value
-                           // is 1 to 32768 in power of 2. Return 1 if the
-                           // erase block size is unknown or non flash
-                           // memory media. This command is used by only
-                           // f_mkfs function and it attempts to align data
-                           // area on the erase block boundary. It is
-                           // required when FF_USE_MKFS == 1.
-        static uint32_t bs = 1;
-        *(uint32_t *)buff = bs;
+    case GET_SECTOR_SIZE:
+        //
+        // Retrieves the sector size on this media (512, 1024, 2048 or 4096).
+        // Always set 512 for most systems, generic memory card and harddisk,
+        // but a larger value may be required for on-board flash memory and some
+        // type of optical media. This command is used by f_mount() and f_mkfs()
+        // functions when FF_MAX_SS is larger than FF_MIN_SS.
+        //
+        *(uint16_t *)buff = 512;
         return DISK_OK;
-    }
+
+    case GET_BLOCK_SIZE:
+        //
+        // Retrieves erase block size of the flash
+        // memory media in unit of sector into the uint32_t
+        // variable pointed by buff. The allowable value
+        // is 1 to 32768 in power of 2. Return 1 if the
+        // erase block size is unknown or non flash
+        // memory media. This command is used by only
+        // f_mkfs function and it attempts to align data
+        // area on the erase block boundary. It is
+        // required when FF_USE_MKFS == 1.
+        //
+        *(uint32_t *)buff = 1;
+        return DISK_OK;
+
     case CTRL_SYNC:
         return DISK_OK;
+
     default:
         return DISK_PARERR;
     }

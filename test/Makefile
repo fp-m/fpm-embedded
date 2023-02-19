@@ -45,7 +45,7 @@ test:           $(TESTS)
 		./fatfs_test
 
 clean:
-		rm -f *_test *.o $(TOP)/kernel/*.o
+		rm -f *_test *.o $(TOP)/kernel/*.o $(TOP)/fatfs/*.o
 
 editline_test:  $(EDITLINE_OBJ)
 		$(CC) $(LDFLAGS) $(EDITLINE_OBJ) $(LIBS) -o $@
