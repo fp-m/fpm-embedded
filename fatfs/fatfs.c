@@ -2853,10 +2853,8 @@ static fs_result_t follow_path(                  /* FR_OK(0): successful, !=0: e
 /* Get logical drive number from path name                               */
 /*-----------------------------------------------------------------------*/
 
-static int get_ldnumber(                   /* Returns logical drive number (-1:invalid drive
-                                              number or null pointer) */
-                        const char **path /* Pointer to pointer to the path name */
-)
+/* Returns logical drive number (-1:invalid drive number or null pointer) */
+static int get_ldnumber(const char **path) /* Pointer to pointer to the path name */
 {
     const char *tp;
     const char *tt;
