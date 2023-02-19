@@ -5695,7 +5695,7 @@ fs_result_t f_mkfs(const char *path, // Logical drive number
         uint16_t ch, si;
         unsigned j, st;
 
-        if (sz_vol < 0x1000)
+        if (sz_vol < 2*128)
             LEAVE_MKFS(FR_MKFS_ABORTED); /* Too small volume for exFAT? */
 #if FF_USE_TRIM
         lba[0] = b_vol;

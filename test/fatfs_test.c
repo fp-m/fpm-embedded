@@ -15,7 +15,13 @@
 
 static const unsigned SECTOR_SIZE = 512;
 
-static char fs_image[40*1024*1024]; // 40 Mbytes
+static unsigned block_size = 1; // or 8 for extFAT (4 kbytes)
+
+//
+// Reserve 40 Mbytes for FS image.
+//
+static char fs_image[40*1024*1024];
+static unsigned fs_nbytes = sizeof(fs_image); // or 1 Mbyte for extFAT
 
 media_status_t disk_status(uint8_t unit)
 {
@@ -35,18 +41,18 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
     case GET_BLOCK_SIZE:
         // Get erase block size.
         //printf("--- %s(unit = %u, cmd = GET_BLOCK_SIZE)\n", __func__, unit);
-        *(uint32_t *)buf = 1;
+        *(uint32_t *)buf = block_size;
         return DISK_OK;
 
     case GET_SECTOR_SIZE:
         //printf("--- %s(unit = %u, cmd = GET_SECTOR_SIZE)\n", __func__, unit);
-        *(uint16_t *)buf = 512;
+        *(uint16_t *)buf = SECTOR_SIZE;
         return DISK_OK;
 
     case GET_SECTOR_COUNT:
         // Get media size.
         //printf("--- %s(unit = %u, cmd = GET_SECTOR_COUNT)\n", __func__, unit);
-        *(uint32_t *)buf = sizeof(fs_image) / SECTOR_SIZE; // number of sectors
+        *(uint32_t *)buf = fs_nbytes / SECTOR_SIZE; // number of sectors
         return DISK_OK;
 
     case CTRL_SYNC:
@@ -64,7 +70,7 @@ disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned co
 {
     //printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
     assert_true(count > 0);
-    assert_true(sector + count <= sizeof(fs_image) / SECTOR_SIZE);
+    assert_true(sector + count <= fs_nbytes / SECTOR_SIZE);
 
     memcpy(buf, &fs_image[sector * SECTOR_SIZE], count * SECTOR_SIZE);
     return DISK_OK;
@@ -74,7 +80,7 @@ disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsi
 {
     //printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
     assert_true(count > 0);
-    assert_true(sector + count <= sizeof(fs_image) / SECTOR_SIZE);
+    assert_true(sector + count <= fs_nbytes / SECTOR_SIZE);
 
     memcpy(&fs_image[sector * SECTOR_SIZE], buf, count * SECTOR_SIZE);
     return DISK_OK;
@@ -150,12 +156,25 @@ static void read_file(const char *filename, const char *contents)
     assert_int_equal(result, FR_OK);
 }
 
-static void write_read_delete(void **unused)
+//
+// Test filesystem in specified format: either FM_FAT32 or FM_EXFAT
+//
+static void test_mkfs_write_read_delete(unsigned fmt)
 {
-    // Create FAT32 volume, non-partitioned.
-    const char *filename = "fs.img";
+    const char *filename = (fmt == FM_FAT32) ? "fat32.img" : "exfat.img";
     char buf[4*1024];
-    fs_result_t result = f_mkfs(filename, FM_FAT32, buf, sizeof(buf));
+
+    // Block size for FAT32 volume is 1 sector, for exFAT - 8 sectors bytes.
+    // We are going to use exFAT for Flash memory,
+    // which typically has erase block size 4 kbytes.
+    block_size = (fmt == FM_FAT32) ? 1 : 8;
+
+    // Create FAT32 volume, non-partitioned.
+    // Minimal size for FAT32 volume is 33 Mbytes,
+    // for exFAT - 128 kbytes.
+    // Let's create 40 Mbytes for FAT32 and 1 Mbyte for exFAT.
+    fs_nbytes = (fmt == FM_FAT32) ? sizeof(fs_image) : 1*1024*1024;
+    fs_result_t result = f_mkfs(filename, fmt, buf, sizeof(buf));
     assert_int_equal(result, FR_OK);
 
     // Mount drive.
@@ -164,11 +183,12 @@ static void write_read_delete(void **unused)
     assert_int_equal(result, FR_OK);
 
     // Check free space on the drive.
+    unsigned const expect_free_clusters = (fmt == FM_FAT32) ? 81184 : 239;
     uint32_t num_free_clusters = 0;
     filesystem_t *that_fs;
     result = f_getfree("", &num_free_clusters, &that_fs);
     assert_int_equal(result, FR_OK);
-    assert_int_equal(num_free_clusters, 81184); // So many free clusters on 40MB FAT32 drive
+    assert_int_equal(num_free_clusters, expect_free_clusters);
     assert_ptr_equal(that_fs, fs);
 
     // Set disk label.
@@ -193,9 +213,9 @@ static void write_read_delete(void **unused)
     // Save FS image to file.
     int fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0664);
     assert_true(fd >= 0);
-    int nbytes = write(fd, fs_image, sizeof(fs_image));
+    int nbytes = write(fd, fs_image, fs_nbytes);
     close(fd);
-    assert_int_equal(nbytes, sizeof(fs_image));
+    assert_int_equal(nbytes, fs_nbytes);
 
     // Mount the drive again.
     result = f_mount(fs, "0:", 1);
@@ -207,7 +227,7 @@ static void write_read_delete(void **unused)
     result = f_getlabel("0:", label, &serial_number);
     assert_int_equal(result, FR_OK);
     //printf("--- %s() volume label = '%s', serial number = %08x\n", __func__, label, serial_number);
-    assert_string_equal(label, "MYDISKLABEL");
+    assert_string_equal(label, (fmt == FM_FAT32) ? "MYDISKLABEL" : "mydisklabel");
     assert_true(serial_number != 0);
 
     read_file("Foo.txt", "'Twas brillig, and the slithy toves");
@@ -225,7 +245,7 @@ static void write_read_delete(void **unused)
     assert_int_equal(info.fdate, 0x5652);     // Modified date
     assert_int_equal(info.ftime, 0x7c36);     // Modified time
     assert_string_equal(info.fname, "Bar");   // Primary file name
-    assert_string_equal(info.altname, "BAR"); // Alternative file name
+    assert_string_equal(info.altname, (fmt == FM_FAT32) ? "BAR" : ""); // Alternative file name
 
     // Check file with unicode name.
     result = f_stat("Αβρακαδαβρα.txt", &info);
@@ -235,7 +255,7 @@ static void write_read_delete(void **unused)
     assert_int_equal(info.fdate, 0x5652);               // Modified date
     assert_int_equal(info.ftime, 0x7c36);               // Modified time
     assert_string_equal(info.fname, "Αβρακαδαβρα.txt"); // Primary file name
-    assert_string_equal(info.altname, "______~1.TXT");  // Alternative file name
+    assert_string_equal(info.altname, (fmt == FM_FAT32) ? "______~1.TXT" : ""); // Alternative file name
 
     // Delete file.
     result = f_unlink("Foo.txt");
@@ -266,13 +286,24 @@ static void write_read_delete(void **unused)
     assert_int_equal(result, FR_OK);
 }
 
+static void fat32(void **unused)
+{
+    test_mkfs_write_read_delete(FM_FAT32);
+}
+
+static void exfat(void **unused)
+{
+    test_mkfs_write_read_delete(FM_EXFAT);
+}
+
 //
 // Run all tests.
 //
 int main()
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(write_read_delete),
+        cmocka_unit_test(fat32),
+        cmocka_unit_test(exfat),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
