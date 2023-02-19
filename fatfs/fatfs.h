@@ -139,7 +139,6 @@ struct _directory_t {
 // Format parameter structure.
 //
 typedef struct {
-    uint8_t fmt;      // Format option (FM_FAT, FM_FAT32, FM_EXFAT and FM_SFD)
     uint8_t n_fat;    // Number of FATs
     unsigned align;   // Data area alignment (sector)
     unsigned n_root;  // Number of root directory entries
@@ -183,13 +182,6 @@ extern const char *VolumeStr[FF_VOLUMES]; /* User defied volume ID */
 
 /* Fast seek controls (2nd argument of f_lseek) */
 #define CREATE_LINKMAP ((fs_size_t)0 - 1)
-
-/* Format options (2nd argument of f_mkfs) */
-#define FM_FAT 0x01
-#define FM_FAT32 0x02
-#define FM_EXFAT 0x04
-#define FM_ANY 0x07
-#define FM_SFD 0x08
 
 /* Filesystem type (filesystem_t.fs_type) */
 #define FS_FAT12 1

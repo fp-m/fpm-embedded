@@ -15,7 +15,7 @@
 
 static const unsigned SECTOR_SIZE = 512;
 
-static char fs_image[1024*1024]; // 1 Mbyte
+static char fs_image[40*1024*1024]; // 40 Mbytes
 
 media_status_t disk_status(uint8_t unit)
 {
@@ -152,10 +152,10 @@ static void read_file(const char *filename, const char *contents)
 
 static void write_read_delete(void **unused)
 {
-    // Create a FAT volume.
+    // Create FAT32 volume, non-partitioned.
     const char *filename = "fs.img";
     char buf[4*1024];
-    fs_result_t result = f_mkfs(filename, buf, sizeof(buf));
+    fs_result_t result = f_mkfs(filename, FM_FAT32 | FM_SFD, buf, sizeof(buf));
     assert_int_equal(result, FR_OK);
 
     // Mount drive.
@@ -168,7 +168,7 @@ static void write_read_delete(void **unused)
     filesystem_t *that_fs;
     result = f_getfree("", &num_free_clusters, &that_fs);
     assert_int_equal(result, FR_OK);
-    assert_int_equal(num_free_clusters, 1946); // So many free clusters on 1Mbyte drive
+    assert_int_equal(num_free_clusters, 81246); // So many free clusters on 40MB drive
     assert_ptr_equal(that_fs, fs);
 
     // Set disk label.

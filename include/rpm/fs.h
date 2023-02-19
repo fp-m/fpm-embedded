@@ -72,6 +72,17 @@ enum {
     AM_ARC = 0x20, // Archive
 };
 
+//
+// Format options (2nd argument of f_mkfs)
+//
+enum {
+    FM_FAT = 0x01,   // Create FAT16 volume
+    FM_FAT32 = 0x02, // Create FAT32 volume
+    FM_EXFAT = 0x04, // Create exFAT volume
+    FM_ANY = 0x07,   // Any of the above, depends on the volume size
+    FM_SFD = 0x08,   // Non-partitioned disk format (Super-Floppy Disk)
+};
+
 //---------------------------------------------------------------------
 // File access functions.
 //
@@ -209,7 +220,7 @@ fs_result_t f_getlabel(const char *path, char *label, uint32_t *vsn);
 fs_result_t f_setlabel(const char *label);
 
 // Create a FAT volume.
-fs_result_t f_mkfs(const char *path, void *work, unsigned len);
+fs_result_t f_mkfs(const char *path, uint8_t fmt, void *work, unsigned len);
 
 // Unmount a logical drive.
 #define f_unmount(path) f_mount(0, path, 0)

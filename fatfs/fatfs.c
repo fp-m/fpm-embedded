@@ -5587,9 +5587,10 @@ static fs_result_t create_partition(uint8_t drv,           /* Physical drive num
     return FR_OK;
 }
 
-fs_result_t f_mkfs(const char *path, /* Logical drive number */
-                   void *work,       /* Pointer to working buffer (null: use len bytes of heap memory) */
-                   unsigned len)     /* Size of working buffer [byte] */
+fs_result_t f_mkfs(const char *path, // Logical drive number
+                   uint8_t fmt,      // Format option (FM_FAT, FM_FAT32, FM_EXFAT and FM_SFD)
+                   void *work,       // Pointer to working buffer (null: use len bytes of heap memory)
+                   unsigned len)     // Size of working buffer [byte]
 {
     static const uint16_t cst[] = {
         1, 4, 16, 64, 256, 512, 0
@@ -5597,7 +5598,7 @@ fs_result_t f_mkfs(const char *path, /* Logical drive number */
     static const uint16_t cst32[] = {
         1, 2, 4, 8, 16, 32, 0
     }; /* Cluster size boundary for FAT32 volume (128Ks unit) */
-    static const mkfs_parm_t defopt = { FM_ANY, 0, 0, 0, 0 }; /* Default parameter */
+    static const mkfs_parm_t defopt = { 0, 0, 0, 0 }; /* Default parameter */
     uint8_t fsopt, fsty, sys, pdrv;
     uint8_t *buf;
     uint16_t ss; /* Sector size */
@@ -5642,7 +5643,7 @@ fs_result_t f_mkfs(const char *path, /* Logical drive number */
 #endif
 
     /* Options for FAT sub-type and FAT parameters */
-    fsopt = opt->fmt & (FM_ANY | FM_SFD);
+    fsopt = fmt & (FM_ANY | FM_SFD);
     n_fat = (opt->n_fat >= 1 && opt->n_fat <= 2) ? opt->n_fat : 1;
     n_root = (opt->n_root >= 1 && opt->n_root <= 32768 && (opt->n_root % (ss / SZDIRE)) == 0)
                  ? opt->n_root
