@@ -85,10 +85,12 @@ fs_result_t f_open(file_t *fp, const char *path, uint8_t mode);
 fs_result_t f_close(file_t *fp);
 
 // Read data from the file.
-fs_result_t f_read(file_t *fp, void *buff, unsigned btr, unsigned *br);
+fs_result_t f_read(file_t *fp, void *buff, unsigned num_bytes_to_read,
+                   unsigned *num_bytes_read);
 
 // Write data to the file.
-fs_result_t f_write(file_t *fp, const void *buff, unsigned btw, unsigned *bw);
+fs_result_t f_write(file_t *fp, const void *buff, unsigned num_bytes_to_write,
+                    unsigned *num_bytes_written);
 
 // Move file pointer of the file object.
 fs_result_t f_lseek(file_t *fp, fs_size_t ofs);
@@ -100,7 +102,8 @@ fs_result_t f_truncate(file_t *fp);
 fs_result_t f_sync(file_t *fp);
 
 // Forward data to the stream.
-fs_result_t f_forward(file_t *fp, unsigned (*func)(const uint8_t *, unsigned), unsigned btf, unsigned *bf);
+fs_result_t f_forward(file_t *fp, unsigned (*func)(const uint8_t *, unsigned),
+                      unsigned num_bytes_to_forward, unsigned *num_bytes_forwarded);
 
 // Allocate a contiguous block to the file.
 fs_result_t f_expand(file_t *fp, fs_size_t fsz, uint8_t opt);
