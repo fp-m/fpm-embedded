@@ -183,7 +183,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(result, FR_OK);
 
     // Check free space on the drive.
-    unsigned const expect_free_clusters = (fmt == FM_FAT32) ? 81184 : 239;
+    unsigned const expect_free_clusters = (fmt == FM_FAT32) ? 81184 : 247;
     uint32_t num_free_clusters = 0;
     filesystem_t *that_fs;
     result = f_getfree("", &num_free_clusters, &that_fs);
@@ -293,7 +293,7 @@ static void fat32(void **unused)
 
 static void exfat(void **unused)
 {
-    test_mkfs_write_read_delete(FM_EXFAT);
+    test_mkfs_write_read_delete(FM_EXFAT | FM_SFD);
 }
 
 //

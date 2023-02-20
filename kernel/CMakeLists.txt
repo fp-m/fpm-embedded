@@ -45,13 +45,27 @@ add_library(rpm_kernel STATIC
     rpm_wputs.c
     rpm_get_dotw.c
 
+    cmd/cmd_cat.c
+    cmd/cmd_cd.c
     cmd/cmd_clear.c
+    cmd/cmd_copy.c
     cmd/cmd_date.c
+    cmd/cmd_dir.c
     cmd/cmd_echo.c
+    cmd/cmd_eject.c
+    cmd/cmd_format.c
     cmd/cmd_help.c
+    cmd/cmd_mkdir.c
+    cmd/cmd_more.c
+    cmd/cmd_mount.c
+    cmd/cmd_pwd.c
     cmd/cmd_reboot.c
+    cmd/cmd_remove.c
+    cmd/cmd_rename.c
+    cmd/cmd_rmdir.c
     cmd/cmd_time.c
     cmd/cmd_ver.c
+    cmd/cmd_vol.c
 )
 target_include_directories(rpm_kernel BEFORE PUBLIC
     ../include
