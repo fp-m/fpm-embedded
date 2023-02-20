@@ -13,9 +13,8 @@
 #include <unistd.h>
 #include <alloca.h>
 
-static const unsigned SECTOR_SIZE = 512;
-
-static unsigned block_size = 1; // or 8 for extFAT (4 kbytes)
+static unsigned sector_size;
+static unsigned block_size = 1;
 
 //
 // Reserve 40 Mbytes for FS image.
@@ -46,13 +45,13 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
 
     case GET_SECTOR_SIZE:
         //printf("--- %s(unit = %u, cmd = GET_SECTOR_SIZE)\n", __func__, unit);
-        *(uint16_t *)buf = SECTOR_SIZE;
+        *(uint16_t *)buf = sector_size;
         return DISK_OK;
 
     case GET_SECTOR_COUNT:
         // Get media size.
         //printf("--- %s(unit = %u, cmd = GET_SECTOR_COUNT)\n", __func__, unit);
-        *(uint32_t *)buf = fs_nbytes / SECTOR_SIZE; // number of sectors
+        *(uint32_t *)buf = fs_nbytes / sector_size; // number of sectors
         return DISK_OK;
 
     case CTRL_SYNC:
@@ -70,9 +69,9 @@ disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned co
 {
     //printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
     assert_true(count > 0);
-    assert_true(sector + count <= fs_nbytes / SECTOR_SIZE);
+    assert_true(sector + count <= fs_nbytes / sector_size);
 
-    memcpy(buf, &fs_image[sector * SECTOR_SIZE], count * SECTOR_SIZE);
+    memcpy(buf, &fs_image[sector * sector_size], count * sector_size);
     return DISK_OK;
 }
 
@@ -80,9 +79,9 @@ disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsi
 {
     //printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
     assert_true(count > 0);
-    assert_true(sector + count <= fs_nbytes / SECTOR_SIZE);
+    assert_true(sector + count <= fs_nbytes / sector_size);
 
-    memcpy(&fs_image[sector * SECTOR_SIZE], buf, count * SECTOR_SIZE);
+    memcpy(&fs_image[sector * sector_size], buf, count * sector_size);
     return DISK_OK;
 }
 
@@ -166,16 +165,17 @@ static void test_mkfs_write_read_delete(unsigned fmt)
                                               "exfat.img";
     char buf[4*1024];
 
-    // Block size for FAT32 volume is 1 sector, for exFAT - 8 sectors bytes.
+    // Use 512 byte sector size for FAT32 volume,
+    // and 4096 bytes for exFAT and FAT16.
     // We are going to use exFAT for Flash memory,
     // which typically has erase block size 4 kbytes.
-    block_size = (fmt == FM_FAT32) ? 1 : 8;
+    sector_size = (fmt & FM_FAT32) ? 512 : 4096;
 
     // Create FAT32 volume, non-partitioned.
     // Minimal size for FAT32 volume is 33 Mbytes,
     // for exFAT - 128 kbytes.
     // Let's create 40 Mbytes for FAT32 and 1 Mbyte for exFAT.
-    fs_nbytes = (fmt == FM_FAT32) ? sizeof(fs_image) : 1*1024*1024;
+    fs_nbytes = (fmt & FM_FAT32) ? sizeof(fs_image) : 1*1024*1024;
     fs_result_t result = f_mkfs(filename, fmt, buf, sizeof(buf));
     assert_int_equal(result, FR_OK);
 
@@ -186,8 +186,8 @@ static void test_mkfs_write_read_delete(unsigned fmt)
 
     // Check free space on the drive.
     unsigned const expect_free_clusters = (fmt & FM_FAT32) ? 81184 :
-                                            (fmt & FM_FAT) ? 2008 :
-                                                              247;
+                                            (fmt & FM_FAT) ? 250 :
+                                                             24;
     uint32_t num_free_clusters = 0;
     filesystem_t *that_fs;
     result = f_getfree("", &num_free_clusters, &that_fs);
