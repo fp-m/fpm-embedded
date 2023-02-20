@@ -5,7 +5,7 @@
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
 
-void rpm_cmd_clear(int argc, char *argv[])
+void rpm_cmd_dir(int argc, char *argv[])
 {
     static const struct rpm_option long_opts[] = {
         { "help", RPM_NO_ARG, NULL, 'h' },
@@ -26,13 +26,18 @@ void rpm_cmd_clear(int argc, char *argv[])
 
         case 'h':
             rpm_puts("Usage:\r\n"
-                     "    clear\r\n"
-                     "    cls\r\n"
+                     "    ls [options] [file ...]\r\n"
+                     "    dir [options] [file ...]\r\n"
+                     "Options:\n"
+                     "    -a      Include hidden files and directories\r\n"
+                     "    -l      List files in the long format\r\n"
+                     "    -R      Recursively list subdirectories encountered\r\n"
+                     "    -r      Reverse the order of the sort\r\n"
+                     "    -1      Force output to be one entry per line\r\n"
                      "\n");
             return;
         }
     }
 
-    // Clear screen.
-    rpm_puts("\33[H\33[J");
+    rpm_puts("Not implemented yet.\r\n\n");
 }

@@ -36,14 +36,13 @@ void rpm_cmd_help(int argc, char *argv[])
     rpm_puts("DATE            Show or change the system date\r\n");
     rpm_puts("ECHO            Copy text directly to the console output\r\n");
     rpm_puts("EJECT           Release removable disk device\r\n");
+    rpm_puts("FORMAT          Create filesystem on a disk device\r\n");
     rpm_puts("HELP or ?       Show all built-in commands\r\n");
     rpm_puts("LS or DIR       List the contents of a directory\r\n");
     rpm_puts("MKDIR           Create a directory\r\n");
     rpm_puts("MORE            Display output in pages\r\n");
     rpm_puts("MOUNT           Engage removable disk device\r\n");
     rpm_puts("MV or RENAME    Rename a file\r\n");
-    rpm_puts("POPD            Restore the directory to the last one saved with PUSHD\r\n");
-    rpm_puts("PUSHD           Change to a new directory, saving the current one\r\n");
     rpm_puts("PWD             Show path of current working directory\r\n");
     rpm_puts("REBOOT          Restart the RP/M kernel\r\n");
     rpm_puts("RM or ERASE     Delete a file or set of files\r\n");

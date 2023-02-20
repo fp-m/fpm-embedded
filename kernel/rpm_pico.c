@@ -201,43 +201,34 @@ static void rpm_print_flash_info()
     uint16_t dev_id;
     rpm_flash_read_mf_dev_id(&mf_id, &dev_id);
 
-    // Manufacturer ID  Chip          ID    Mbytes
-    // -------------------------------------------
-    //   Winbond    ef  W25Q16JV-IQ   4015  2
-    //   Winbond    ef  W25Q128JV-IQ  4018  16
-    //   Winbond    ef  W25Q16JV-IM   7015  2
-    //   Winbond    ef  W25Q128JV-IM  7018  16
-    //   Renesas    1f  AT25SF128A    8901  16
-    //
-    const char *chip = "Unknown";
+    char buf[32];
+    const char *chip = buf;
+    snprintf(buf, sizeof(buf), "mf%02x-dev%04x", mf_id, dev_id);
+
     unsigned megabytes = 0;
     switch (mf_id) {
     case 0xef: // Winbond
         switch (dev_id) {
-        case 0x4015:
-            chip = "W25Q16JV-IQ";
-            megabytes = 2;
-            break;
-        case 0x4018:
-            chip = "W25Q128JV-IQ";
-            megabytes = 16;
-            break;
-        case 0x7015:
-            chip = "W25Q16JV-IM";
-            megabytes = 2;
-            break;
-        case 0x7018:
-            chip = "W25Q128JV-IM";
-            megabytes = 16;
-            break;
+        // clang-format off
+        case 0x4015: chip = "W25Q16JV-IQ";  megabytes = 2;  break;
+        case 0x4016: chip = "W25Q32JV-IQ";  megabytes = 4;  break;
+        case 0x4017: chip = "W25Q64JV-IQ";  megabytes = 8;  break;
+        case 0x4018: chip = "W25Q128JV-IQ"; megabytes = 16; break;
+        case 0x7015: chip = "W25Q16JV-IM";  megabytes = 2;  break;
+        case 0x7016: chip = "W25Q32JV-IM";  megabytes = 4;  break;
+        case 0x7017: chip = "W25Q64JV-IM";  megabytes = 8;  break;
+        case 0x7018: chip = "W25Q128JV-IM"; megabytes = 16; break;
+        // clang-format on
         }
         break;
     case 0x1f: // Renesas
         switch (dev_id) {
-        case 0x8901:
-            chip = "AT25SF128A";
-            megabytes = 16;
-            break;
+        // clang-format off
+        case 0x8601: chip = "AT25SF161B"; megabytes = 2; break;
+        case 0x8701: chip = "AT25SF321B"; megabytes = 4; break;
+        case 0x8801: chip = "AT25SF641B"; megabytes = 8; break;
+        case 0x8901: chip = "AT25SF128A"; megabytes = 16; break;
+        // clang-format on
         }
         break;
     }

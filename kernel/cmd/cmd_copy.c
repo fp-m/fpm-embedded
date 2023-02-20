@@ -5,7 +5,7 @@
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
 
-void rpm_cmd_clear(int argc, char *argv[])
+void rpm_cmd_copy(int argc, char *argv[])
 {
     static const struct rpm_option long_opts[] = {
         { "help", RPM_NO_ARG, NULL, 'h' },
@@ -26,13 +26,16 @@ void rpm_cmd_clear(int argc, char *argv[])
 
         case 'h':
             rpm_puts("Usage:\r\n"
-                     "    clear\r\n"
-                     "    cls\r\n"
+                     "    cp [options] source ... destination\r\n"
+                     "    copy [options] source ... destination\r\n"
+                     "Options:\n"
+                     "    -f      Force, do not ask for confirmation to overwrite\r\n"
+                     "    -r      Recursively copy directories and their contents\r\n"
+                     "    -v      Verbose: show files as they are copied\r\n"
                      "\n");
             return;
         }
     }
 
-    // Clear screen.
-    rpm_puts("\33[H\33[J");
+    rpm_puts("Not implemented yet.\r\n\n");
 }

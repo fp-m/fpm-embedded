@@ -5,7 +5,7 @@
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
 
-void rpm_cmd_clear(int argc, char *argv[])
+void rpm_cmd_remove(int argc, char *argv[])
 {
     static const struct rpm_option long_opts[] = {
         { "help", RPM_NO_ARG, NULL, 'h' },
@@ -26,13 +26,16 @@ void rpm_cmd_clear(int argc, char *argv[])
 
         case 'h':
             rpm_puts("Usage:\r\n"
-                     "    clear\r\n"
-                     "    cls\r\n"
+                     "    rm [options] filename ...\r\n"
+                     "    erase [options] filename ...\r\n"
+                     "Options:\n"
+                     "    -f      Force removing, do not ask for confirmation\r\n"
+                     "    -r      Remove directories and their contents recursively\r\n"
+                     "    -v      Verbose: show files as they are removed\r\n"
                      "\n");
             return;
         }
     }
 
-    // Clear screen.
-    rpm_puts("\33[H\33[J");
+    rpm_puts("Not implemented yet.\r\n\n");
 }

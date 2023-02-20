@@ -15,13 +15,27 @@ OBJ             = main_unix.o \
                   $(TOP)/kernel/rpm_tokenize.o \
                   $(TOP)/kernel/rpm_editline.o \
                   $(TOP)/kernel/rpm_getopt.o \
+                  $(TOP)/kernel/cmd/cmd_cat.o \
+                  $(TOP)/kernel/cmd/cmd_cd.o \
+                  $(TOP)/kernel/cmd/cmd_copy.o \
                   $(TOP)/kernel/cmd/cmd_clear.o \
                   $(TOP)/kernel/cmd/cmd_date.o \
+                  $(TOP)/kernel/cmd/cmd_dir.o \
                   $(TOP)/kernel/cmd/cmd_echo.o \
+                  $(TOP)/kernel/cmd/cmd_eject.o \
+                  $(TOP)/kernel/cmd/cmd_format.o \
                   $(TOP)/kernel/cmd/cmd_help.o \
+                  $(TOP)/kernel/cmd/cmd_mkdir.o \
+                  $(TOP)/kernel/cmd/cmd_more.o \
+                  $(TOP)/kernel/cmd/cmd_mount.o \
+                  $(TOP)/kernel/cmd/cmd_pwd.o \
                   $(TOP)/kernel/cmd/cmd_reboot.o \
+                  $(TOP)/kernel/cmd/cmd_remove.o \
+                  $(TOP)/kernel/cmd/cmd_rename.o \
+                  $(TOP)/kernel/cmd/cmd_rmdir.o \
                   $(TOP)/kernel/cmd/cmd_time.o \
-                  $(TOP)/kernel/cmd/cmd_ver.o
+                  $(TOP)/kernel/cmd/cmd_ver.o \
+                  $(TOP)/kernel/cmd/cmd_vol.o
 
 GIT_REVCOUNT    := $(shell cd $(TOP); git rev-list HEAD --count)
 GIT_COMMIT      := $(shell cd $(TOP); git log -1 --format=%h)

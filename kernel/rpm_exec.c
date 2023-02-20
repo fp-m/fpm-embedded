@@ -20,35 +20,34 @@ void rpm_exec(int argc, char *argv[])
         void (*func)(int argc, char *argv[]);
     } command_table_t;
     static const command_table_t cmd_tab[] = {
-        { "?",      rpm_cmd_help },
-//TODO: { "cat",    rpm_cmd_cat },
-//TODO: { "cd",     rpm_cmd_cd },
-        { "clear",  rpm_cmd_clear },
-        { "cls",    rpm_cmd_clear },
-//TODO: { "copy",   rpm_cmd_copy },
-//TODO: { "cp",     rpm_cmd_copy },
-        { "date",   rpm_cmd_date },
-//TODO: { "dir",    rpm_cmd_dir },
-        { "echo",   rpm_cmd_echo },
-//TODO: { "eject",  rpm_cmd_eject },
-//TODO: { "erase",  rpm_cmd_remove },
-        { "help",   rpm_cmd_help },
-//TODO: { "ls",     rpm_cmd_dir },
-//TODO: { "mkdir",  rpm_cmd_mkdir },
-//TODO: { "more",   rpm_cmd_more },
-//TODO: { "mount",  rpm_cmd_mount },
-//TODO: { "mv",     rpm_cmd_rename },
-//TODO: { "popd",   rpm_cmd_popd },
-//TODO: { "pushd",  rpm_cmd_pushd },
-//TODO: { "pwd",    rpm_cmd_pwd },
-        { "reboot", rpm_cmd_reboot },
-//TODO: { "rename", rpm_cmd_rename },
-//TODO: { "rm",     rpm_cmd_remove },
-//TODO: { "rmdir",  rpm_cmd_rmdir },
-        { "time",   rpm_cmd_time },
-//TODO: { "type",   rpm_cmd_cat },
-        { "ver",    rpm_cmd_ver },
-//TODO: { "vol",    rpm_cmd_vol },
+        { "?",      rpm_cmd_help },   // also HELP
+        { "cat",    rpm_cmd_cat },    // also TYPE
+        { "cd",     rpm_cmd_cd },     //
+        { "clear",  rpm_cmd_clear },  // also CLS
+        { "cls",    rpm_cmd_clear },  // also CLEAR
+        { "copy",   rpm_cmd_copy },   // also CP
+        { "cp",     rpm_cmd_copy },   // also COPY
+        { "date",   rpm_cmd_date },   //
+        { "dir",    rpm_cmd_dir },    // also LS
+        { "echo",   rpm_cmd_echo },   //
+        { "eject",  rpm_cmd_eject },  //
+        { "erase",  rpm_cmd_remove }, // also RM
+        { "format", rpm_cmd_format }, //
+        { "help",   rpm_cmd_help },   // also ?
+        { "ls",     rpm_cmd_dir },    // also DIR
+        { "mkdir",  rpm_cmd_mkdir },  //
+        { "more",   rpm_cmd_more },   //
+        { "mount",  rpm_cmd_mount },  //
+        { "mv",     rpm_cmd_rename }, // also RENAME
+        { "pwd",    rpm_cmd_pwd },    //
+        { "reboot", rpm_cmd_reboot }, //
+        { "rename", rpm_cmd_rename }, // also MV
+        { "rm",     rpm_cmd_remove }, // also ERASE
+        { "rmdir",  rpm_cmd_rmdir },  //
+        { "time",   rpm_cmd_time },   //
+        { "type",   rpm_cmd_cat },    // also CAT
+        { "ver",    rpm_cmd_ver },    //
+        { "vol",    rpm_cmd_vol },    //
         { 0,        0 },
     };
 
