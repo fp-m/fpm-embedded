@@ -161,7 +161,9 @@ static void read_file(const char *filename, const char *contents)
 //
 static void test_mkfs_write_read_delete(unsigned fmt)
 {
-    const char *filename = (fmt == FM_FAT32) ? "fat32.img" : "exfat.img";
+    const char *filename = (fmt & FM_FAT32) ? "fat32.img" :
+                             (fmt & FM_FAT) ? "fat16.img" :
+                                              "exfat.img";
     char buf[4*1024];
 
     // Block size for FAT32 volume is 1 sector, for exFAT - 8 sectors bytes.
@@ -183,7 +185,9 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(result, FR_OK);
 
     // Check free space on the drive.
-    unsigned const expect_free_clusters = (fmt == FM_FAT32) ? 81184 : 247;
+    unsigned const expect_free_clusters = (fmt & FM_FAT32) ? 81184 :
+                                            (fmt & FM_FAT) ? 2008 :
+                                                              247;
     uint32_t num_free_clusters = 0;
     filesystem_t *that_fs;
     result = f_getfree("", &num_free_clusters, &that_fs);
@@ -227,7 +231,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     result = f_getlabel("0:", label, &serial_number);
     assert_int_equal(result, FR_OK);
     //printf("--- %s() volume label = '%s', serial number = %08x\n", __func__, label, serial_number);
-    assert_string_equal(label, (fmt == FM_FAT32) ? "MYDISKLABEL" : "mydisklabel");
+    assert_string_equal(label, (fmt & FM_EXFAT) ? "mydisklabel" : "MYDISKLABEL");
     assert_true(serial_number != 0);
 
     read_file("Foo.txt", "'Twas brillig, and the slithy toves");
@@ -245,7 +249,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(info.fdate, 0x5652);     // Modified date
     assert_int_equal(info.ftime, 0x7c36);     // Modified time
     assert_string_equal(info.fname, "Bar");   // Primary file name
-    assert_string_equal(info.altname, (fmt == FM_FAT32) ? "BAR" : ""); // Alternative file name
+    assert_string_equal(info.altname, (fmt & FM_EXFAT) ? "" : "BAR"); // Alternative file name
 
     // Check file with unicode name.
     result = f_stat("Αβρακαδαβρα.txt", &info);
@@ -255,7 +259,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(info.fdate, 0x5652);               // Modified date
     assert_int_equal(info.ftime, 0x7c36);               // Modified time
     assert_string_equal(info.fname, "Αβρακαδαβρα.txt"); // Primary file name
-    assert_string_equal(info.altname, (fmt == FM_FAT32) ? "______~1.TXT" : ""); // Alternative file name
+    assert_string_equal(info.altname, (fmt & FM_EXFAT) ? "" : "______~1.TXT"); // Alternative file name
 
     // Delete file.
     result = f_unlink("Foo.txt");
@@ -296,6 +300,11 @@ static void exfat(void **unused)
     test_mkfs_write_read_delete(FM_EXFAT | FM_SFD);
 }
 
+static void fat16(void **unused)
+{
+    test_mkfs_write_read_delete(FM_FAT | FM_SFD);
+}
+
 //
 // Run all tests.
 //
@@ -304,6 +313,7 @@ int main()
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(fat32),
         cmocka_unit_test(exfat),
+        cmocka_unit_test(fat16),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }
