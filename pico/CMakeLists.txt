@@ -16,11 +16,22 @@ pico_sdk_init()
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
     main_pico.c
+    rpm_pico.c
+    rtc_pico.c
+    diskio.c
+    sd_pico/crc.c
+    sd_pico/demo_logging.c
+    sd_pico/hw_config.c
+    sd_pico/sd_card.c
+    sd_pico/sd_spi.c
+    sd_pico/spi.c
 )
-add_subdirectory(../../kernel kernel EXCLUDE_FROM_ALL)
+add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
+add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)
 
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
-    ../../include
+    ../include
+    sd_pico
 )
 
 # Create map/bin/hex/uf2 files
@@ -29,9 +40,28 @@ pico_add_extra_outputs(${PROJECT_NAME})
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME}
     rpm_kernel
-    rpm_pico
+    rpm_fatfs
     pico_stdlib
     hardware_rtc
+    hardware_dma
+    hardware_spi
+)
+
+# Get git commit hash and revision count
+execute_process(
+    COMMAND git log -1 --format=%h
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE GIT_COMMIT
+)
+execute_process(
+    COMMAND git rev-list HEAD --count
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE GIT_REVCOUNT
+)
+set_source_files_properties(rpm_pico.c
+    PROPERTIES COMPILE_FLAGS "-DGIT_REVCOUNT=\\\"${GIT_REVCOUNT}\\\" -DGIT_COMMIT=\\\"${GIT_COMMIT}\\\""
 )
 
 # Enable usb output, disable uart output

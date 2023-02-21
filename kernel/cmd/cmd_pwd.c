@@ -4,6 +4,7 @@
 #include <rpm/api.h>
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
+#include <rpm/fs.h>
 
 void rpm_cmd_pwd(int argc, char *argv[])
 {
@@ -32,5 +33,12 @@ void rpm_cmd_pwd(int argc, char *argv[])
         }
     }
 
-    rpm_puts("Not implemented yet.\r\n\n");
+    char path[4096];
+    fs_result_t result = f_getcwd(path, sizeof(path));
+    if (result == FR_OK) {
+        rpm_puts(path);
+    } else {
+        rpm_puts(f_strerror(result));
+    }
+    rpm_puts("\r\n\n");
 }

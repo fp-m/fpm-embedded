@@ -87,7 +87,7 @@ enum {
 // File access functions.
 //
 typedef struct _file_t file_t; // Opaque pointer
-unsigned f_sizeof_file_t();
+unsigned f_sizeof_file_t(void);
 
 // Open or create a file.
 fs_result_t f_open(file_t *fp, const char *path, uint8_t mode);
@@ -150,7 +150,7 @@ int f_error(file_t *fp);
 // Directory access functions.
 //
 typedef struct _directory_t directory_t; // Opaque pointer
-unsigned f_sizeof_directory_t();
+unsigned f_sizeof_directory_t(void);
 
 // Open a directory.
 fs_result_t f_opendir(directory_t *dp, const char *path);
@@ -201,11 +201,14 @@ fs_result_t f_chdrive(const char *path);
 // Get current directory.
 fs_result_t f_getcwd(char *buff, unsigned len);
 
+// Get the error message string corresponding to an error number.
+const char *f_strerror(fs_result_t errnum);
+
 //---------------------------------------------------------------------
 // Volume management functions.
 //
 typedef struct _filesystem_t filesystem_t; // Opaque pointer
-unsigned f_sizeof_filesystem_t();
+unsigned f_sizeof_filesystem_t(void);
 
 // Mount/Unmount a logical drive.
 fs_result_t f_mount(filesystem_t *fs, const char *path, uint8_t opt);

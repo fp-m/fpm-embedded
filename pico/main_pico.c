@@ -33,12 +33,12 @@ int main()
     }
 
     for (;;) {
-        printf("Start shell on Pico\r\n");
+        printf("Start RP/M shell.\r\n");
         printf("Use '?' for help.\r\n\r\n");
 
         // Start interactive dialog.
         rpm_shell();
 
-        printf("Shell has finished\r\n");
+        printf("Shell has finished.\r\n");
     }
 }

@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 
 #pragma once
 
+#include <rpm/api.h>
 #include <stdbool.h>
 
 // Pico includes
@@ -27,7 +28,7 @@ specific language governing permissions and limitations under the License.
 #define SPI_FILL_CHAR (0xFF)
 
 // "Class" representing SPIs
-typedef struct {
+typedef struct _spi_t {
     // SPI HW
     spi_inst_t *hw_inst;
     uint miso_gpio; // SPI MISO GPIO number (not pin number)
@@ -58,6 +59,12 @@ void spi_lock(spi_t *pSPI);
 void spi_unlock(spi_t *pSPI);
 bool my_spi_init(spi_t *pSPI);
 void set_spi_dma_irq_channel(bool useChannel1, bool shared);
+
+#define DBG_PRINTF rpm_printf
+//#define DBG_PRINTF(fmt, args...) /* Don't do anything in release builds */
+
+//#define myASSERT(__e) ((__e) ? (void)0 : my_assert_func(__FILE__, __LINE__, __func__, #__e))
+#define myASSERT(__e)
 
 #ifdef __cplusplus
 }

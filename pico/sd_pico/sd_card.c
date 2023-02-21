@@ -169,7 +169,6 @@ specific language governing permissions and limitations under the License.
 #include "pico/mutex.h"
 
 #include "hw_config.h" // Hardware Configuration of the SPI and SD Card "objects"
-#include "my_debug.h"
 #include "sd_spi.h"
 #include "sd_card.h"
 
@@ -627,7 +626,7 @@ bool sd_card_detect(sd_card_t *pSD)
         // The socket is now empty
         pSD->m_Status |= (MEDIA_NODISK | MEDIA_NOINIT);
         pSD->card_type = SDCARD_NONE;
-        printf("No SD card detected!\r\n");
+        rpm_printf("No SD card detected!\r\n");
         return false;
     }
 }
@@ -907,7 +906,7 @@ static uint8_t sd_write_block(sd_card_t *pSD, const uint8_t *buffer, uint8_t tok
     sd_spi_write(pSD, token);
 
     // write the data
-    bool ret = sd_spi_transfer(pSD, buffer, NULL, length);
+    bool ret __attribute__((unused)) = sd_spi_transfer(pSD, buffer, NULL, length);
     myASSERT(ret);
 
 #if SD_CRC_ENABLED

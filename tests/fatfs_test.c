@@ -176,6 +176,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     // for exFAT - 128 kbytes.
     // Let's create 40 Mbytes for FAT32 and 1 Mbyte for exFAT.
     fs_nbytes = (fmt & FM_FAT32) ? sizeof(fs_image) : 1*1024*1024;
+    memset(fs_image, 0xff, fs_nbytes);
     fs_result_t result = f_mkfs(filename, fmt, buf, sizeof(buf));
     assert_int_equal(result, FR_OK);
 

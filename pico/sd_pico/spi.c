@@ -18,7 +18,6 @@ specific language governing permissions and limitations under the License.
 #include "pico/sem.h"
 #include "pico/stdlib.h"
 
-#include "my_debug.h"
 #include "spi.h"
 
 static bool irqChannel1 = false;
