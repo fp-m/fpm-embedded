@@ -13,6 +13,11 @@
 #include <unistd.h>
 #include <alloca.h>
 
+//
+// Names of disk volumes.
+//
+const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
+
 static unsigned sector_size;
 static unsigned block_size = 1;
 

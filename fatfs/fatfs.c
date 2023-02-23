@@ -321,12 +321,11 @@ typedef struct {
 // File/Volume controls
 //
 
-#if FF_VOLUMES < 1 || FF_VOLUMES > 10
-#error Wrong FF_VOLUMES setting
+#if DISK_VOLUMES < 1 || DISK_VOLUMES > 10
+#error Wrong DISK_VOLUMES setting
 #endif
-static filesystem_t *FatFs[FF_VOLUMES]; /* Pointer to the filesystem objects
-                                    (logical drives) */
-static uint16_t Fsid;                /* Filesystem mount ID */
+static filesystem_t *FatFs[DISK_VOLUMES]; // Pointer to the filesystem objects (logical drives)
+static uint16_t Fsid;                     // Filesystem mount ID
 
 #if FF_FS_RPATH != 0
 static uint8_t CurrVol; /* Current drive set by f_chdrive() */
@@ -336,12 +335,6 @@ static uint8_t CurrVol; /* Current drive set by f_chdrive() */
 static FILESEM Files[FF_FS_LOCK]; /* Open object lock semaphores */
 #if FF_FS_REENTRANT
 static uint8_t SysLock; /* System lock flag (0:no mutex, 1:unlocked, 2:locked) */
-#endif
-#endif
-
-#if FF_STR_VOLUME_ID
-#ifdef FF_VOLUME_STRS
-static const char *const VolumeStr[FF_VOLUMES] = { FF_VOLUME_STRS }; /* Pre-defined volume ID */
 #endif
 #endif
 
@@ -631,7 +624,7 @@ static int lock_volume(filesystem_t *fs,   /* Filesystem object to lock */
 #if FF_FS_LOCK
     rv = ff_mutex_take(fs->ldrv);       /* Lock the volume */
     if (rv && syslock) {                /* System lock reqiered? */
-        rv = ff_mutex_take(FF_VOLUMES); /* Lock the system */
+        rv = ff_mutex_take(DISK_VOLUMES); /* Lock the system */
         if (rv) {
             SysLock = 2; /* System lock succeeded */
         } else {
@@ -653,7 +646,7 @@ static void unlock_volume(filesystem_t *fs,   /* Filesystem object */
 #if FF_FS_LOCK
         if (SysLock == 2) { /* Is the system locked? */
             SysLock = 1;
-            ff_mutex_give(FF_VOLUMES);
+            ff_mutex_give(DISK_VOLUMES);
         }
 #endif
         ff_mutex_give(fs->ldrv); /* Unlock the volume */
@@ -755,7 +748,7 @@ static fs_result_t dec_share(unsigned i) /* Semaphore index (1..) */
         Files[i].ctr = n;
         if (n == 0) {        /* Delete the object semaphore if open count becomes zero */
             Files[i].fs = 0; /* Free the entry <<<If this memory write operation is not
-                                in atomic, FF_FS_REENTRANT == 1 and FF_VOLUMES > 1,
+                                in atomic, FF_FS_REENTRANT == 1 and DISK_VOLUMES > 1,
                                 there is a potential error in this process >>> */
         }
         res = FR_OK;
@@ -2859,7 +2852,7 @@ static int get_ldnumber(const char **path) /* Pointer to pointer to the path nam
     } while (!IsTerminator(tc) && tc != ':');
 
     if (tc == ':') { /* DOS/Windows style volume ID? */
-        i = FF_VOLUMES;
+        i = DISK_VOLUMES;
         if (IsDigit(*tp) && tp + 2 == tt) { /* Is there a numeric volume ID + colon? */
             i = (int)*tp - '0';             /* Get the LD number */
         }
@@ -2867,7 +2860,7 @@ static int get_ldnumber(const char **path) /* Pointer to pointer to the path nam
         else {
             i = 0;
             do {
-                sp = VolumeStr[i];
+                sp = disk_name[i];
                 tp = *path; /* This string volume ID and path name */
                 do {        /* Compare the volume ID with path name */
                     c = *sp++;
@@ -2878,10 +2871,10 @@ static int get_ldnumber(const char **path) /* Pointer to pointer to the path nam
                         tc -= 0x20;
                 } while (c && (char)c == tc);
             } while ((c || tp != tt) &&
-                     ++i < FF_VOLUMES); /* Repeat for each id until pattern match */
+                     ++i < DISK_VOLUMES); /* Repeat for each id until pattern match */
         }
 #endif
-        if (i < FF_VOLUMES) { /* If a volume ID is found, get the drive
+        if (i < DISK_VOLUMES) { /* If a volume ID is found, get the drive
                                  number and strip it */
             vol = i;          /* Drive number */
             *path = tt;       /* Snip the drive prefix off */
@@ -2895,7 +2888,7 @@ static int get_ldnumber(const char **path) /* Pointer to pointer to the path nam
         i = 0;
         do {
             tt = tp;
-            sp = VolumeStr[i]; /* Path name and this string volume ID */
+            sp = disk_name[i]; /* Path name and this string volume ID */
             do {               /* Compare the volume ID with path name */
                 c = *sp++;
                 tc = *(++tt);
@@ -2905,8 +2898,8 @@ static int get_ldnumber(const char **path) /* Pointer to pointer to the path nam
                     tc -= 0x20;
             } while (c && (char)c == tc);
         } while ((c || (tc != '/' && !IsTerminator(tc))) &&
-                 ++i < FF_VOLUMES); /* Repeat for each ID until pattern match */
-        if (i < FF_VOLUMES) {       /* If a volume ID is found, get the drive
+                 ++i < DISK_VOLUMES); /* Repeat for each ID until pattern match */
+        if (i < DISK_VOLUMES) {       /* If a volume ID is found, get the drive
                                        number and strip it */
             vol = i;                /* Drive number */
             *path = tt;             /* Snip the drive prefix off */
@@ -3366,7 +3359,7 @@ fs_result_t f_mount(filesystem_t *fs,         /* Pointer to the filesystem objec
             return FR_INT_ERR;
 #if FF_FS_LOCK
         if (SysLock == 0) { /* Create a system mutex if needed */
-            if (!ff_mutex_create(FF_VOLUMES)) {
+            if (!ff_mutex_create(DISK_VOLUMES)) {
                 ff_mutex_delete(vol);
                 return FR_INT_ERR;
             }
@@ -4055,7 +4048,7 @@ fs_result_t f_chdir(const char *path /* Pointer to the directory path */
             res = FR_NO_PATH;
 #if FF_STR_VOLUME_ID == 2 /* Also current drive is changed if in Unix style volume ID */
         if (res == FR_OK) {
-            for (i = FF_VOLUMES - 1; i && fs != FatFs[i]; i--)
+            for (i = DISK_VOLUMES - 1; i && fs != FatFs[i]; i--)
                 ; /* Set current drive */
             CurrVol = (uint8_t)i;
         }
@@ -4076,7 +4069,7 @@ fs_result_t f_getcwd(char *buff, /* Pointer to the directory path */
     unsigned i, n;
     uint32_t ccl;
     char *tp = buff;
-#if FF_VOLUMES >= 2
+#if DISK_VOLUMES >= 2
     unsigned vl;
 #if FF_STR_VOLUME_ID
     const char *vp;
@@ -4138,10 +4131,10 @@ fs_result_t f_getcwd(char *buff, /* Pointer to the directory path */
         if (res == FR_OK) {
             if (i == len)
                 buff[--i] = '/'; /* Is it the root-directory? */
-#if FF_VOLUMES >= 2              /* Put drive prefix */
+#if DISK_VOLUMES >= 2              /* Put drive prefix */
             vl = 0;
 #if FF_STR_VOLUME_ID >= 1 /* String volume ID */
-            for (n = 0, vp = (const char *)VolumeStr[CurrVol]; vp[n]; n++)
+            for (n = 0, vp = disk_name[CurrVol]; vp[n]; n++)
                 ;
             if (i >= n + 2) {
                 if (FF_STR_VOLUME_ID == 2)

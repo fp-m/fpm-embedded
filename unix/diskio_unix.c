@@ -5,17 +5,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#define NDISKS 2
+//
+// Names of disk volumes.
+//
+const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
 
+//
+// Disk data.
+//
 static char flash_image[40*1024*1024];
 static char sd_image[2*1024*1024];
 
-static const unsigned sector_size[NDISKS] = {
+static const unsigned sector_size[DISK_VOLUMES] = {
     4096, // Flash memory
     512,  // SD card
 };
 
-static const unsigned disk_size[NDISKS] = {
+static const unsigned disk_size[DISK_VOLUMES] = {
     sizeof(flash_image), // Flash memory
     sizeof(sd_image),    // SD card
 };
@@ -26,7 +32,7 @@ static const unsigned disk_size[NDISKS] = {
 media_status_t disk_status(uint8_t unit)
 {
     printf("--- %s(unit = %u)\n", __func__, unit);
-    if (unit >= NDISKS)
+    if (unit >= DISK_VOLUMES)
         return MEDIA_NOINIT;
     return 0;
 }
@@ -37,7 +43,7 @@ media_status_t disk_status(uint8_t unit)
 media_status_t disk_initialize(uint8_t unit)
 {
     printf("--- %s(unit = %u)\n", __func__, unit);
-    if (unit >= NDISKS)
+    if (unit >= DISK_VOLUMES)
         return MEDIA_NOINIT;
     return 0;
 }
@@ -48,7 +54,7 @@ media_status_t disk_initialize(uint8_t unit)
 disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned count)
 {
     printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
-    if (unit >= NDISKS || count == 0)
+    if (unit >= DISK_VOLUMES || count == 0)
         return DISK_PARERR;
 
     unsigned offset = sector * sector_size[unit];
@@ -67,7 +73,7 @@ disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned co
 disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsigned count)
 {
     printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
-    if (unit >= NDISKS || count == 0)
+    if (unit >= DISK_VOLUMES || count == 0)
         return DISK_PARERR;
 
     unsigned offset = sector * sector_size[unit];
@@ -85,7 +91,7 @@ disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsi
 //
 disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
 {
-    if (unit >= NDISKS)
+    if (unit >= DISK_VOLUMES)
         return DISK_PARERR;
 
     switch (cmd) {

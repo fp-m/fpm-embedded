@@ -29,6 +29,11 @@ specific language governing permissions and limitations under the License.
 #define TRACE_PRINTF(fmt, args...)
 // #define TRACE_PRINTF printf  // task_printf
 
+//
+// Names of disk volumes.
+//
+const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
+
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
 /*-----------------------------------------------------------------------*/

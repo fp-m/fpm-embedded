@@ -12,6 +12,16 @@ extern "C" {
 #endif
 
 //
+// Number of volumes (logical drives) to be used, in range 1-10.
+//
+#define DISK_VOLUMES 2
+
+//
+// Names of disk volumes, like "flash" and "sd".
+//
+extern const char *disk_name[DISK_VOLUMES];
+
+//
 // Bits of SD card status.
 //
 typedef int media_status_t;

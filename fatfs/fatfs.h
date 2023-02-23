@@ -168,14 +168,6 @@ int ff_mutex_take(int vol);    /* Lock sync object */
 void ff_mutex_give(int vol);   /* Unlock sync object */
 #endif
 
-/* Definitions of volume management */
-
-#if FF_STR_VOLUME_ID
-#ifndef FF_VOLUME_STRS
-extern const char *VolumeStr[FF_VOLUMES]; /* User defied volume ID */
-#endif
-#endif
-
 /*--------------------------------------------------------------*/
 /* Flags and Offset Address                                     */
 /*--------------------------------------------------------------*/
