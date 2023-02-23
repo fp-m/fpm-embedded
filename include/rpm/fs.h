@@ -201,6 +201,9 @@ fs_result_t f_chdrive(const char *path);
 // Get current directory.
 fs_result_t f_getcwd(char *buff, unsigned len);
 
+// Get current drive.
+int f_drive(void);
+
 // Get the error message string corresponding to an error number.
 const char *f_strerror(fs_result_t errnum);
 

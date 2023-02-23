@@ -3,6 +3,8 @@
 // It must use only routines defined in rpm/api.h.
 //
 #include <rpm/api.h>
+#include <rpm/fs.h>
+#include <rpm/diskio.h>
 #include <rpm/internal.h>
 
 //
@@ -18,10 +20,22 @@ uint16_t rpm_history[RPM_CMDLINE_SIZE];
 static void build_prompt(char *prompt, unsigned max_length)
 {
     prompt[0] = 0;
-    strcat(prompt, "\033[0;31m"); // dim red color
-    strcat(prompt, "c"); // TODO: current disk
-    strcat(prompt, ":");
-    strcat(prompt, "/"); // TODO: current directory
+    strcat(prompt, "\033[0;31m");         // dim red color
+    strcat(prompt, disk_name[f_drive()]); // current disk
+
+    // Get current directory.
+    char path[4096];
+    if (f_getcwd(path, sizeof(path)) == FR_OK) {
+        char *basename = strrchr(path, '/');
+        if (basename) {
+            basename++;
+        } else {
+            basename = path;
+        }
+        strcat(prompt, ":");
+        strcat(prompt, basename);
+    }
+
     strcat(prompt, "\033[1;32m"); // bright green color
     strcat(prompt, " >");
     strcat(prompt, "\033[m"); // default color

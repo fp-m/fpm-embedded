@@ -4002,6 +4002,14 @@ fs_result_t f_chdrive(const char *path /* Drive number to set */
     return FR_OK;
 }
 
+//
+// Get current drive.
+//
+int f_drive()
+{
+    return CurrVol;
+}
+
 fs_result_t f_chdir(const char *path /* Pointer to the directory path */
 )
 {
