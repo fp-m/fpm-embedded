@@ -39,7 +39,7 @@ typedef uint32_t fs_lba_t;
 //
 // Filesystem object structure.
 //
-struct _filesystem_t {
+typedef struct {
     uint8_t fs_type;   /* Filesystem type (0:not mounted) */
     uint8_t pdrv;      /* Volume hosting physical drive */
     uint8_t ldrv;      /* Logical drive number (used only when FF_FS_REENTRANT) */
@@ -73,13 +73,13 @@ struct _filesystem_t {
     fs_lba_t bitbase; /* Allocation bitmap base sector */
     fs_lba_t winsect;       /* Current sector appearing in the win[] */
     uint8_t win[FF_MAX_SS]; /* Disk access window for Directory, FAT (and file data at tiny cfg) */
-};
+} filesystem_t;
 
 //
 // Object ID and allocation information.
 //
 typedef struct {
-    struct _filesystem_t *fs; /* Pointer to the hosting volume of this object */
+    filesystem_t *fs; /* Pointer to the hosting volume of this object */
     uint16_t id;   /* Hosting volume's mount ID */
     uint8_t attr; /* Object attribute */
     uint8_t stat; /* Object chain status (b1-0: =0:not contiguous, =2:contiguous, =3:fragmented in this

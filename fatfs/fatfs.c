@@ -324,8 +324,8 @@ typedef struct {
 #if DISK_VOLUMES < 1 || DISK_VOLUMES > 10
 #error Wrong DISK_VOLUMES setting
 #endif
-static filesystem_t *FatFs[DISK_VOLUMES]; // Pointer to the filesystem objects (logical drives)
-static uint16_t Fsid;                     // Filesystem mount ID
+static filesystem_t FatFs[DISK_VOLUMES]; // Filesystem objects (logical drives)
+static uint16_t Fsid;                    // Filesystem mount ID
 
 #if FF_FS_RPATH != 0
 static uint8_t CurrVol; /* Current drive set by f_chdrive() */
@@ -3028,9 +3028,7 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
         return FR_INVALID_DRIVE;
 
     /* Check if the filesystem object is valid or not */
-    fs = FatFs[vol]; /* Get pointer to the filesystem object */
-    if (!fs)
-        return FR_NOT_ENABLED; /* Is the filesystem object available? */
+    fs = &FatFs[vol]; /* Get pointer to the filesystem object */
 #if FF_FS_REENTRANT
     if (!lock_volume(fs, 1))
         return FR_TIMEOUT; /* Lock the volume, and system if needed */
@@ -3322,61 +3320,83 @@ static fs_result_t validate(              /* Returns FR_OK or FR_INVALID_OBJECT 
 /* Mount/Unmount a Logical Drive                                         */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_mount(filesystem_t *fs,         /* Pointer to the filesystem object to be registered
-                                      (NULL:unmount)*/
-                const char *path, /* Logical drive number to be mounted/unmounted */
-                uint8_t opt           /* Mount option: 0=Do not mount (delayed mount), 1=Mount
-                                      immediately */
-)
+fs_result_t f_mount(const char *path, // Logical drive number to be mounted
+                    uint8_t opt)      // Mount option: 0=Do not mount (delayed mount),
+                                      // 1=Mount immediately
 {
-    filesystem_t *cfs;
-    int vol;
-    fs_result_t res;
     const char *rp = path;
 
-    /* Get volume ID (logical drive number) */
-    vol = get_ldnumber(&rp);
+    // Get volume ID (logical drive number).
+    int vol = get_ldnumber(&rp);
     if (vol < 0)
         return FR_INVALID_DRIVE;
-    cfs = FatFs[vol]; /* Pointer to the filesystem object of the volume */
 
-    if (cfs) { /* Unregister current filesystem object if regsitered */
-        FatFs[vol] = 0;
+    filesystem_t *fs = &FatFs[vol];
+    if (fs->fs_type != 0) {
+        // Unregister current filesystem object if registered.
 #if FF_FS_LOCK
-        clear_share(cfs);
+        clear_share(fs);
 #endif
-#if FF_FS_REENTRANT /* Discard mutex of the current volume */
+#if FF_FS_REENTRANT
+        // Discard mutex of the current volume.
         ff_mutex_delete(vol);
 #endif
-        cfs->fs_type = 0; /* Invalidate the filesystem object to be unregistered */
+        // Invalidate the filesystem object.
+        fs->fs_type = 0;
     }
 
-    if (fs) {                  /* Register new filesystem object */
-        fs->pdrv = LD2PD(vol); /* Volume hosting physical drive */
-#if FF_FS_REENTRANT            /* Create a volume mutex */
-        fs->ldrv = (uint8_t)vol;  /* Owner volume ID */
-        if (!ff_mutex_create(vol))
-            return FR_INT_ERR;
+    // Register new filesystem object.
+    fs->pdrv = LD2PD(vol); // Volume hosting physical drive
+#if FF_FS_REENTRANT
+    // Create a volume mutex.
+    fs->ldrv = (uint8_t)vol;  // Owner volume ID
+    if (!ff_mutex_create(vol))
+        return FR_INT_ERR;
 #if FF_FS_LOCK
-        if (SysLock == 0) { /* Create a system mutex if needed */
-            if (!ff_mutex_create(DISK_VOLUMES)) {
-                ff_mutex_delete(vol);
-                return FR_INT_ERR;
-            }
-            SysLock = 1; /* System mutex is ready */
+    if (SysLock == 0) {
+        // Create a system mutex if needed.
+        if (!ff_mutex_create(DISK_VOLUMES)) {
+            ff_mutex_delete(vol);
+            return FR_INT_ERR;
         }
+        SysLock = 1; // System mutex is ready
+    }
 #endif
 #endif
-        fs->fs_type = 0; /* Invalidate the new filesystem object */
-        FatFs[vol] = fs; /* Register new fs object */
+
+    if (opt == 0) {
+        // Do not mount now, it will be mounted in subsequent file functions.
+        return FR_OK;
     }
 
-    if (opt == 0)
-        return FR_OK; /* Do not mount now, it will be mounted in subsequent
-                         file functions */
-
-    res = mount_volume(&path, &fs, 0); /* Force mounted the volume */
+    // Force mounted the volume.
+    fs_result_t res = mount_volume(&path, &fs, 0);
     LEAVE_FF(fs, res);
+}
+
+fs_result_t f_unmount(const char *path) // Logical drive number to be unmounted
+{
+    const char *rp = path;
+
+    // Get volume ID (logical drive number).
+    int vol = get_ldnumber(&rp);
+    if (vol < 0)
+        return FR_INVALID_DRIVE;
+
+    filesystem_t *fs = &FatFs[vol];
+    if (fs->fs_type != 0) {
+        // Unregister current filesystem object if registered.
+#if FF_FS_LOCK
+        clear_share(fs);
+#endif
+#if FF_FS_REENTRANT
+        // Discard mutex of the current volume.
+        ff_mutex_delete(vol);
+#endif
+        // Invalidate the filesystem object.
+        fs->fs_type = 0;
+    }
+    return FR_OK;
 }
 
 #if !FF_FS_READONLY && !FF_FS_NORTC
@@ -4056,7 +4076,7 @@ fs_result_t f_chdir(const char *path /* Pointer to the directory path */
             res = FR_NO_PATH;
 #if FF_STR_VOLUME_ID == 2 /* Also current drive is changed if in Unix style volume ID */
         if (res == FR_OK) {
-            for (i = DISK_VOLUMES - 1; i && fs != FatFs[i]; i--)
+            for (i = DISK_VOLUMES - 1; i && fs != &FatFs[i]; i--)
                 ; /* Set current drive */
             CurrVol = (uint8_t)i;
         }
@@ -4580,12 +4600,8 @@ fs_result_t f_stat(const char *path, /* Pointer to the file path */
 /* Get Number of Free Clusters                                           */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_getfree(const char *path, /* Logical drive number */
-                  uint32_t *nclst,      /* Pointer to a variable to return number of
-                                        free clusters */
-                  filesystem_t **fatfs      /* Pointer to return pointer to corresponding
-                                        filesystem object */
-)
+fs_result_t f_getfree(const char *path, // Logical drive number *
+                      uint32_t *nclst)  // Pointer to a variable to return number of free clusters
 {
     fs_result_t res;
     filesystem_t *fs;
@@ -4597,7 +4613,6 @@ fs_result_t f_getfree(const char *path, /* Logical drive number */
     /* Get logical drive */
     res = mount_volume(&path, &fs, 0);
     if (res == FR_OK) {
-        *fatfs = fs; /* Return ptr to the fs object */
         /* If free_clst is valid, return it without full FAT scan */
         if (fs->free_clst <= fs->n_fatent - 2) {
             *nclst = fs->free_clst;
@@ -5601,9 +5616,9 @@ fs_result_t f_mkfs(const char *path, // Logical drive number
     vol = get_ldnumber(&path); /* Get target logical drive */
     if (vol < 0)
         return FR_INVALID_DRIVE;
-    if (FatFs[vol])
-        FatFs[vol]->fs_type = 0; /* Clear the fs object if mounted */
-    pdrv = LD2PD(vol);           /* Hosting physical drive */
+
+    FatFs[vol].fs_type = 0; /* Clear the fs object if mounted */
+    pdrv = LD2PD(vol);      /* Hosting physical drive */
 
     /* Initialize the hosting physical drive */
     ds = disk_initialize(pdrv);
@@ -6708,14 +6723,6 @@ unsigned f_sizeof_file_t()
 unsigned f_sizeof_directory_t()
 {
     return sizeof(directory_t);
-}
-
-//
-// Get size of the filesystem_t structure.
-//
-unsigned f_sizeof_filesystem_t()
-{
-    return sizeof(filesystem_t);
 }
 
 //

@@ -32,6 +32,9 @@ static void build_prompt(char *prompt, unsigned max_length)
         } else {
             basename = path;
         }
+        if (*basename == '\0') {
+            basename = "/";
+        }
         strcat(prompt, ":");
         strcat(prompt, basename);
     }

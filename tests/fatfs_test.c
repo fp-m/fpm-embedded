@@ -186,8 +186,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(result, FR_OK);
 
     // Mount drive.
-    filesystem_t *fs = alloca(f_sizeof_filesystem_t());
-    result = f_mount(fs, "0:", 1);
+    result = f_mount("0:", 1);
     assert_int_equal(result, FR_OK);
 
     // Check free space on the drive.
@@ -195,11 +194,9 @@ static void test_mkfs_write_read_delete(unsigned fmt)
                                             (fmt & FM_FAT) ? 250 :
                                                              24;
     uint32_t num_free_clusters = 0;
-    filesystem_t *that_fs;
-    result = f_getfree("", &num_free_clusters, &that_fs);
+    result = f_getfree("", &num_free_clusters);
     assert_int_equal(result, FR_OK);
     assert_int_equal(num_free_clusters, expect_free_clusters);
-    assert_ptr_equal(that_fs, fs);
 
     // Set disk label.
     const char *disk_label = "mydisklabel";
@@ -228,7 +225,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(nbytes, fs_nbytes);
 
     // Mount the drive again.
-    result = f_mount(fs, "0:", 1);
+    result = f_mount("0:", 1);
     assert_int_equal(result, FR_OK);
 
     // Get disk label.

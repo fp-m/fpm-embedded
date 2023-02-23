@@ -199,7 +199,7 @@ fs_result_t f_chdir(const char *path);
 fs_result_t f_chdrive(const char *path);
 
 // Get current directory.
-fs_result_t f_getcwd(char *buff, unsigned len);
+fs_result_t f_getcwd(char *path, unsigned len);
 
 // Get current drive.
 int f_drive(void);
@@ -210,14 +210,14 @@ const char *f_strerror(fs_result_t errnum);
 //---------------------------------------------------------------------
 // Volume management functions.
 //
-typedef struct _filesystem_t filesystem_t; // Opaque pointer
-unsigned f_sizeof_filesystem_t(void);
+// Mount a logical drive.
+fs_result_t f_mount(const char *path, uint8_t opt);
 
-// Mount/Unmount a logical drive.
-fs_result_t f_mount(filesystem_t *fs, const char *path, uint8_t opt);
+// Unmount a logical drive.
+fs_result_t f_unmount(const char *path);
 
 // Get number of free clusters on the drive.
-fs_result_t f_getfree(const char *path, uint32_t *nclst, filesystem_t **fatfs);
+fs_result_t f_getfree(const char *path, uint32_t *nclst);
 
 // Get volume label.
 fs_result_t f_getlabel(const char *path, char *label, uint32_t *vsn);
@@ -227,8 +227,5 @@ fs_result_t f_setlabel(const char *label);
 
 // Create a FAT volume.
 fs_result_t f_mkfs(const char *path, uint8_t fmt, void *work, unsigned len);
-
-// Unmount a logical drive.
-#define f_unmount(path) f_mount(0, path, 0)
 
 #endif // RPM_FS_H
