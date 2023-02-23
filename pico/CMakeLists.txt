@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.12)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 # Set name of project (as PROJECT_NAME) and C/C++ standards
-project(rpm_shell_pico C CXX ASM)
+project(rpm_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Werror)
@@ -73,4 +73,10 @@ add_custom_target(upload
     picotool load -f -x ${PROJECT_NAME}.uf2
     COMMENT "picotool load -f -x ${PROJECT_NAME}.uf2"
     DEPENDS ${PROJECT_NAME}
+)
+
+install(FILES
+    ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.elf
+    ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2
+    DESTINATION share/rp-m
 )

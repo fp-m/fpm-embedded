@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.12)
 project(rpm-demo C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-Wall -Werror -Wmissing-prototypes)
+add_compile_options(-Wall -Werror -Wmissing-prototypes -Wshadow)
 
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
@@ -40,4 +40,9 @@ execute_process(
 )
 set_source_files_properties(rpm_unix.c
     PROPERTIES COMPILE_FLAGS "-DGIT_REVCOUNT=\\\"${GIT_REVCOUNT}\\\" -DGIT_COMMIT=\\\"${GIT_COMMIT}\\\""
+)
+
+install(TARGETS
+    ${PROJECT_NAME}
+    DESTINATION bin
 )
