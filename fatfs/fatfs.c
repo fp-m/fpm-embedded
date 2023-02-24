@@ -4616,92 +4616,104 @@ fs_result_t f_stat(const char *path, /* Pointer to the file path */
 
 #if !FF_FS_READONLY
 //
-// Get Filesystem Status
+// Get status of mounted filesystem.
 //
 fs_result_t f_statfs(const char *path, fs_info_t *info)
 {
-    fs_result_t res;
+    fs_result_t res = FR_OK;
     filesystem_t *fs;
     uint32_t nfree, clst, stat;
     fs_lba_t sect;
     unsigned i;
     obj_id_t obj;
 
-    /* Get logical drive */
-    res = mount_volume(&path, &fs, 0);
-    if (res == FR_OK) {
-        /* If free_clst is valid, return it without full FAT scan */
-        if (fs->free_clst <= fs->n_fatent - 2) {
-            info->f_bfree = (fs_size_t) fs->free_clst; // Free blocks in filesystem
-        } else {
-            /* Scan FAT to obtain number of free clusters */
-            nfree = 0;
-            if (fs->fs_type == FS_FAT12) { /* FAT12: Scan bit field FAT entries */
-                clst = 2;
-                obj.fs = fs;
-                do {
-                    stat = get_fat(&obj, clst);
-                    if (stat == 0xFFFFFFFF) {
-                        res = FR_DISK_ERR;
-                        break;
-                    }
-                    if (stat == 1) {
-                        res = FR_INT_ERR;
-                        break;
-                    }
-                    if (stat == 0)
-                        nfree++;
-                } while (++clst < fs->n_fatent);
-            } else {
-                if (fs->fs_type == FS_EXFAT) { /* exFAT: Scan allocation bitmap */
-                    uint8_t bm;
-                    unsigned b;
+    // Get volume ID (logical drive number).
+    int vol = get_ldnumber(&path);
+    if (vol < 0)
+        return FR_INVALID_DRIVE;
 
-                    clst = fs->n_fatent - 2; /* Number of clusters */
-                    sect = fs->bitbase;      /* Bitmap sector */
-                    i = 0;                   /* Offset in the sector */
-                    do {                     /* Counts numbuer of bits with zero in the bitmap */
-                        if (i == 0) {        /* New sector? */
-                            res = move_window(fs, sect++);
-                            if (res != FR_OK)
-                                break;
-                        }
-                        for (b = 8, bm = ~fs->win[i]; b && clst; b--, clst--) {
-                            nfree += bm & 1;
-                            bm >>= 1;
-                        }
-                        i = (i + 1) % SS(fs);
-                    } while (clst);
-                } else {
-                    /* FAT16/32: Scan uint16_t/uint32_t FAT entries */
-                    clst = fs->n_fatent; /* Number of entries */
-                    sect = fs->fatbase;  /* Top of the FAT */
-                    i = 0;               /* Offset in the sector */
-                    do {                 /* Counts numbuer of entries with zero in the FAT */
-                        if (i == 0) {    /* New sector? */
-                            res = move_window(fs, sect++);
-                            if (res != FR_OK)
-                                break;
-                        }
-                        if (fs->fs_type == FS_FAT16) {
-                            if (ld_word(fs->win + i) == 0)
-                                nfree++;
-                            i += 2;
-                        } else {
-                            if ((ld_dword(fs->win + i) & 0x0FFFFFFF) == 0)
-                                nfree++;
-                            i += 4;
-                        }
-                        i %= SS(fs);
-                    } while (--clst);
+    fs = &FatFs[vol];
+    if (fs->fs_type == 0) {
+        return FR_NO_FILESYSTEM;
+    }
+
+    stat = disk_status(fs->pdrv);
+    if (stat & MEDIA_NOINIT) {
+        // The physical media is not present.
+        return FR_NO_FILESYSTEM;
+    }
+
+    /* If free_clst is valid, return it without full FAT scan */
+    if (fs->free_clst <= fs->n_fatent - 2) {
+        info->f_bfree = (fs_size_t) fs->free_clst; // Free blocks in filesystem
+    } else {
+        /* Scan FAT to obtain number of free clusters */
+        nfree = 0;
+        if (fs->fs_type == FS_FAT12) { /* FAT12: Scan bit field FAT entries */
+            clst = 2;
+            obj.fs = fs;
+            do {
+                stat = get_fat(&obj, clst);
+                if (stat == 0xFFFFFFFF) {
+                    res = FR_DISK_ERR;
+                    break;
                 }
+                if (stat == 1) {
+                    res = FR_INT_ERR;
+                    break;
+                }
+                if (stat == 0)
+                    nfree++;
+            } while (++clst < fs->n_fatent);
+        } else {
+            if (fs->fs_type == FS_EXFAT) { /* exFAT: Scan allocation bitmap */
+                uint8_t bm;
+                unsigned b;
+
+                clst = fs->n_fatent - 2; /* Number of clusters */
+                sect = fs->bitbase;      /* Bitmap sector */
+                i = 0;                   /* Offset in the sector */
+                do {                     /* Counts numbuer of bits with zero in the bitmap */
+                    if (i == 0) {        /* New sector? */
+                        res = move_window(fs, sect++);
+                        if (res != FR_OK)
+                            break;
+                    }
+                    for (b = 8, bm = ~fs->win[i]; b && clst; b--, clst--) {
+                        nfree += bm & 1;
+                        bm >>= 1;
+                    }
+                    i = (i + 1) % SS(fs);
+                } while (clst);
+            } else {
+                /* FAT16/32: Scan uint16_t/uint32_t FAT entries */
+                clst = fs->n_fatent; /* Number of entries */
+                sect = fs->fatbase;  /* Top of the FAT */
+                i = 0;               /* Offset in the sector */
+                do {                 /* Counts numbuer of entries with zero in the FAT */
+                    if (i == 0) {    /* New sector? */
+                        res = move_window(fs, sect++);
+                        if (res != FR_OK)
+                            break;
+                    }
+                    if (fs->fs_type == FS_FAT16) {
+                        if (ld_word(fs->win + i) == 0)
+                            nfree++;
+                        i += 2;
+                    } else {
+                        if ((ld_dword(fs->win + i) & 0x0FFFFFFF) == 0)
+                            nfree++;
+                        i += 4;
+                    }
+                    i %= SS(fs);
+                } while (--clst);
             }
-            if (res == FR_OK) {        /* Update parameters if succeeded */
-                // Return the free bytes.
-                info->f_bfree = (fs_size_t) nfree;
-                fs->free_clst = nfree; /* Now free_clst is valid */
-                fs->fsi_flag |= 1;     /* FAT32: FSInfo is to be updated */
-            }
+        }
+        if (res == FR_OK) {        /* Update parameters if succeeded */
+            // Return the free bytes.
+            info->f_bfree = (fs_size_t) nfree;
+            fs->free_clst = nfree; /* Now free_clst is valid */
+            fs->fsi_flag |= 1;     /* FAT32: FSInfo is to be updated */
         }
     }
     if (res == FR_OK) {
