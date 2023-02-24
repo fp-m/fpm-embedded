@@ -39,12 +39,14 @@ static void show(int i)
 
     fs_info_t info;
     fs_result_t result = f_statfs(path, &info);
+
+    rpm_printf("%5s:  ", disk_name[i]);
     if (result != FR_OK) {
         // Drive not mounted.
+        rpm_puts("   ---\r\n");
         return;
     }
 
-    rpm_printf("%5s:  ", disk_name[info.f_pdrv]);
     switch (info.f_type) {
     case FS_FAT12: rpm_puts("FAT-12"); break;
     case FS_FAT16: rpm_puts("FAT-16"); break;
