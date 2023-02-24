@@ -26,17 +26,16 @@ static void build_prompt(char *prompt, unsigned max_length)
     // Get current directory.
     char path[4096];
     if (f_getcwd(path, sizeof(path)) == FR_OK) {
-        char *basename = strrchr(path, '/');
-        if (basename) {
-            basename++;
-        } else {
-            basename = path;
-        }
-        if (*basename == '\0') {
-            basename = "/";
-        }
         strcat(prompt, ":");
-        strcat(prompt, basename);
+
+        char *basename = strrchr(path, '/');
+        if (basename == 0) {
+            strcat(prompt, "?"); // cannot happen
+        } else if (basename[-1] != ':') {
+            strcat(prompt, basename + 1); // only basename
+        } else {
+            strcat(prompt, basename); // full path
+        }
     }
 
     strcat(prompt, "\033[1;32m"); // bright green color
