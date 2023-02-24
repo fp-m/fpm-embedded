@@ -30,7 +30,7 @@ void rpm_cmd_help(int argc, char *argv[])
 
     rpm_puts("RP/M built-in commands are:\r\n");
     rpm_puts("CAT or TYPE     Display the contents of a text file\r\n");
-    rpm_puts("CD              Change current directory\r\n");
+    rpm_puts("CD              Show or change current directory\r\n");
     rpm_puts("CLEAR or CLS    Clear the console screen\r\n");
     rpm_puts("CP or COPY      Copy files or directories\r\n");
     rpm_puts("DATE            Show or change the system date\r\n");
@@ -43,7 +43,6 @@ void rpm_cmd_help(int argc, char *argv[])
     rpm_puts("MORE            Display output in pages\r\n");
     rpm_puts("MOUNT           Engage removable disk device\r\n");
     rpm_puts("MV or RENAME    Rename a file\r\n");
-    rpm_puts("PWD             Show path of current working directory\r\n");
     rpm_puts("REBOOT          Restart the RP/M kernel\r\n");
     rpm_puts("RM or ERASE     Delete a file or set of files\r\n");
     rpm_puts("RMDIR           Remove a directory\r\n");

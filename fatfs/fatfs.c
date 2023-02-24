@@ -4049,8 +4049,7 @@ int f_drive()
     return CurrVol;
 }
 
-fs_result_t f_chdir(const char *path /* Pointer to the directory path */
-)
+fs_result_t f_chdir(const char *path) /* Pointer to the directory path */
 {
 #if FF_STR_VOLUME_ID == 2
     unsigned i;

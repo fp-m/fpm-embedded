@@ -40,7 +40,6 @@ void rpm_exec(int argc, char *argv[])
         { "more",   rpm_cmd_more },   //
         { "mount",  rpm_cmd_mount },  //
         { "mv",     rpm_cmd_rename }, // also RENAME
-        { "pwd",    rpm_cmd_pwd },    //
         { "reboot", rpm_cmd_reboot }, //
         { "rename", rpm_cmd_rename }, // also MV
         { "rm",     rpm_cmd_remove }, // also ERASE
