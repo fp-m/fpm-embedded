@@ -4600,8 +4600,8 @@ fs_result_t f_stat(const char *path, /* Pointer to the file path */
 /* Get Number of Free Clusters                                           */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_getfree(const char *path, // Logical drive number *
-                      uint32_t *nclst)  // Pointer to a variable to return number of free clusters
+fs_result_t f_getfree(const char *path,       // Logical drive number
+                      fs_size_t *nbytes_free) // Return number of free bytes
 {
     fs_result_t res;
     filesystem_t *fs;
@@ -4615,7 +4615,7 @@ fs_result_t f_getfree(const char *path, // Logical drive number *
     if (res == FR_OK) {
         /* If free_clst is valid, return it without full FAT scan */
         if (fs->free_clst <= fs->n_fatent - 2) {
-            *nclst = fs->free_clst;
+            *nbytes_free = (fs_size_t) fs->free_clst * SS(fs) * fs->csize;
         } else {
             /* Scan FAT to obtain number of free clusters */
             nfree = 0;
@@ -4680,7 +4680,8 @@ fs_result_t f_getfree(const char *path, // Logical drive number *
                 }
             }
             if (res == FR_OK) {        /* Update parameters if succeeded */
-                *nclst = nfree;        /* Return the free clusters */
+                // Return the free bytes.
+                *nbytes_free = (fs_size_t) nfree * SS(fs) * fs->csize;
                 fs->free_clst = nfree; /* Now free_clst is valid */
                 fs->fsi_flag |= 1;     /* FAT32: FSInfo is to be updated */
             }

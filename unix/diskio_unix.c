@@ -101,7 +101,7 @@ void disk_setup()
 //
 media_status_t disk_status(uint8_t unit)
 {
-    printf("--- %s(unit = %u)\r\n", __func__, unit);
+    //printf("--- %s(unit = %u)\r\n", __func__, unit);
     if (unit >= DISK_VOLUMES)
         return MEDIA_NOINIT;
     return 0;
@@ -112,7 +112,7 @@ media_status_t disk_status(uint8_t unit)
 //
 media_status_t disk_initialize(uint8_t unit)
 {
-    printf("--- %s(unit = %u)\r\n", __func__, unit);
+    //printf("--- %s(unit = %u)\r\n", __func__, unit);
     if (unit >= DISK_VOLUMES)
         return MEDIA_NOINIT;
     return 0;
@@ -123,7 +123,7 @@ media_status_t disk_initialize(uint8_t unit)
 //
 disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned count)
 {
-    printf("--- %s(unit = %u, sector = %u, count = %u)\r\n", __func__, unit, sector, count);
+    //printf("--- %s(unit = %u, sector = %u, count = %u)\r\n", __func__, unit, sector, count);
     if (unit >= DISK_VOLUMES || count == 0)
         return DISK_PARERR;
 
@@ -144,7 +144,7 @@ disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned co
 //
 disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsigned count)
 {
-    printf("--- %s(unit = %u, sector = %u, count = %u)\r\n", __func__, unit, sector, count);
+    //printf("--- %s(unit = %u, sector = %u, count = %u)\r\n", __func__, unit, sector, count);
     if (unit >= DISK_VOLUMES || count == 0)
         return DISK_PARERR;
 
@@ -170,22 +170,22 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
 
     switch (cmd) {
     case GET_SECTOR_COUNT: {
-        printf("--- %s(unit = %u, cmd = GET_SECTOR_COUNT)\r\n", __func__, unit);
+        //printf("--- %s(unit = %u, cmd = GET_SECTOR_COUNT)\r\n", __func__, unit);
         *(uint32_t *)buf = disk_size[unit] / sector_size[unit];
         return DISK_OK;
     }
     case GET_SECTOR_SIZE:
-        printf("--- %s(unit = %u, cmd = GET_SECTOR_SIZE)\r\n", __func__, unit);
+        //printf("--- %s(unit = %u, cmd = GET_SECTOR_SIZE)\r\n", __func__, unit);
         *(uint16_t *)buf = sector_size[unit];
         return DISK_OK;
 
     case GET_BLOCK_SIZE:
-        printf("--- %s(unit = %u, cmd = GET_BLOCK_SIZE)\r\n", __func__, unit);
+        //printf("--- %s(unit = %u, cmd = GET_BLOCK_SIZE)\r\n", __func__, unit);
         *(uint32_t *)buf = 1;
         return DISK_OK;
 
     case CTRL_SYNC:
-        printf("--- %s(unit = %u, cmd = CTRL_SYNC)\r\n", __func__, unit);
+        //printf("--- %s(unit = %u, cmd = CTRL_SYNC)\r\n", __func__, unit);
         return DISK_OK;
 
     default:

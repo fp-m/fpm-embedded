@@ -217,7 +217,7 @@ fs_result_t f_mount(const char *path, uint8_t opt);
 fs_result_t f_unmount(const char *path);
 
 // Get number of free clusters on the drive.
-fs_result_t f_getfree(const char *path, uint32_t *nclst);
+fs_result_t f_getfree(const char *path, fs_size_t *nbytes_free);
 
 // Get volume label.
 fs_result_t f_getlabel(const char *path, char *label, uint32_t *vsn);
