@@ -42,8 +42,8 @@ int main()
     // Switch stdin to the raw mode (no line buffering and editing).
     init();
     disk_setup();
-    f_mount("flash:", 0);
-    f_mount("sd:", 0);
+    f_mount("flash:");
+    f_mount("sd:");
 
     printf("Start RP/M on Unix\r\n");
     printf("Use '?' for help or 'exit' to quit.\r\n\r\n");

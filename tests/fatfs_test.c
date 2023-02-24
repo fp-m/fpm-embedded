@@ -186,7 +186,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(result, FR_OK);
 
     // Mount drive.
-    result = f_mount("0:", 1);
+    result = f_mount("0:");
     assert_int_equal(result, FR_OK);
 
     // Check free space on the drive.
@@ -225,7 +225,7 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     assert_int_equal(nbytes, fs_nbytes);
 
     // Mount the drive again.
-    result = f_mount("0:", 1);
+    result = f_mount("0:");
     assert_int_equal(result, FR_OK);
 
     // Get disk label.

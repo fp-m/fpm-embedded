@@ -232,7 +232,7 @@ const char *f_strerror(fs_result_t errnum);
 // Volume management functions.
 //
 // Mount a logical drive.
-fs_result_t f_mount(const char *path, uint8_t opt);
+fs_result_t f_mount(const char *path);
 
 // Unmount a logical drive.
 fs_result_t f_unmount(const char *path);

@@ -3322,9 +3322,7 @@ static fs_result_t validate(              /* Returns FR_OK or FR_INVALID_OBJECT 
 /* Mount/Unmount a Logical Drive                                         */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_mount(const char *path, // Logical drive number to be mounted
-                    uint8_t opt)      // Mount option: 0=Do not mount (delayed mount),
-                                      // 1=Mount immediately
+fs_result_t f_mount(const char *path)
 {
     const char *rp = path;
 
@@ -3356,11 +3354,6 @@ fs_result_t f_mount(const char *path, // Logical drive number to be mounted
     }
 #endif
 #endif
-
-    if (opt == 0) {
-        // Do not mount now, it will be mounted in subsequent file functions.
-        return FR_OK;
-    }
 
     // Force mounted the volume.
     fs_result_t res = mount_volume(&path, &fs, 0);

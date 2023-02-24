@@ -24,7 +24,7 @@ static unsigned long blk_to_kbytes(unsigned long num, unsigned bsize)
 
 static void mount(const char *path)
 {
-    fs_result_t result = f_mount(path, 1);
+    fs_result_t result = f_mount(path);
     if (result != FR_OK) {
         rpm_puts(f_strerror(result));
         rpm_puts("\r\n\n");
