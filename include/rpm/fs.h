@@ -63,6 +63,18 @@ typedef struct {
     char fname[FF_LFN_BUF + 1];   // Primary file name
 } file_info_t;
 
+//
+// Filesystem information structure.
+//
+typedef struct {
+    uint8_t  f_type;   // Type of filesystem
+    uint8_t  f_pdrv;   // Physical drive
+    uint32_t f_bsize;  // Block size in bytes
+    uint32_t f_blocks; // Total data blocks in filesystem
+    uint32_t f_bfree;  // Free blocks in filesystem
+    uint32_t f_bavail; // Free blocks available to unprivileged user
+} fs_info_t;
+
 // File attribute bits (file_info_t.fattrib)
 enum {
     AM_RDO = 0x01, // Read only
@@ -81,6 +93,15 @@ enum {
     FM_EXFAT = 0x04, // Create exFAT volume
     FM_ANY = 0x07,   // Any of the above, depends on the volume size
     FM_SFD = 0x08,   // Non-partitioned disk format (Super-Floppy Disk)
+};
+
+//
+// Filesystem type (fs_info_t.f_type)
+enum {
+    FS_FAT12 = 1,
+    FS_FAT16 = 2,
+    FS_FAT32 = 3,
+    FS_EXFAT = 4,
 };
 
 //---------------------------------------------------------------------
@@ -216,8 +237,8 @@ fs_result_t f_mount(const char *path, uint8_t opt);
 // Unmount a logical drive.
 fs_result_t f_unmount(const char *path);
 
-// Get number of free clusters on the drive.
-fs_result_t f_getfree(const char *path, fs_size_t *nbytes_free);
+// Get filesystem status.
+fs_result_t f_statfs(const char *path, fs_info_t *fsinfo);
 
 // Get volume label.
 fs_result_t f_getlabel(const char *path, char *label, uint32_t *vsn);

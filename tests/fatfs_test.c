@@ -193,10 +193,10 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     unsigned const expect_free_clusters = (fmt & FM_FAT32) ? 81184 :
                                             (fmt & FM_FAT) ? 250 :
                                                              24;
-    uint32_t num_free_clusters = 0;
-    result = f_getfree("", &num_free_clusters);
+    fs_info_t fsinfo;
+    result = f_statfs("", &fsinfo);
     assert_int_equal(result, FR_OK);
-    assert_int_equal(num_free_clusters, expect_free_clusters);
+    assert_int_equal(fsinfo.f_bavail, expect_free_clusters);
 
     // Set disk label.
     const char *disk_label = "mydisklabel";

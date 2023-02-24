@@ -7,6 +7,21 @@
 #include <rpm/fs.h>
 #include <rpm/diskio.h>
 
+//
+// Convert statfs returned filesystem size into 1-kbyte units.
+// Attempts to avoid overflow for large filesystems.
+//
+static unsigned long blk_to_kbytes(unsigned long num, unsigned bsize)
+{
+    if (bsize == 0) {
+        return num;
+    } else if (bsize < 1024) {
+        return num / (1024 / bsize);
+    } else {
+        return num * (bsize / 1024);
+    }
+}
+
 static void mount(const char *path)
 {
     fs_result_t result = f_mount(path, 1);
@@ -22,15 +37,32 @@ static void show(int i)
     strcpy(path, disk_name[i]);
     strcat(path, ":");
 
-    fs_size_t free_bytes = 0;
-    fs_result_t result = f_getfree(path, &free_bytes);
+    fs_info_t info;
+    fs_result_t result = f_statfs(path, &info);
+    if (result != FR_OK) {
+        // Drive not mounted.
+        return;
+    }
 
-    rpm_puts(path);
-    if (result == FR_OK) {
-        rpm_printf(" Available %u kbytes", free_bytes / 1024);
+    rpm_printf("%5s:  ", disk_name[info.f_pdrv]);
+    switch (info.f_type) {
+    case FS_FAT12: rpm_puts("FAT-12"); break;
+    case FS_FAT16: rpm_puts("FAT-16"); break;
+    case FS_FAT32: rpm_puts("FAT-32"); break;
+    case FS_EXFAT: rpm_puts(" exFAT"); break;
+    default:       rpm_puts("Unknwn"); break;
+    }
+
+    unsigned used = info.f_blocks - info.f_bfree;
+    unsigned avail = info.f_bavail + used;
+    rpm_printf(" %10lu", blk_to_kbytes(info.f_blocks, info.f_bsize));
+    rpm_printf(" %9lu", blk_to_kbytes(used, info.f_bsize));
+    rpm_printf(" %9lu", blk_to_kbytes(info.f_bavail, info.f_bsize));
+
+    if (avail == 0) {
+        rpm_puts("   100%");
     } else {
-        rpm_puts(" ");
-        rpm_puts(f_strerror(result));
+        rpm_printf(" %5u%%", (used * 200 + avail) / avail / 2);
     }
     rpm_puts("\r\n");
 }
@@ -67,9 +99,11 @@ usage:
         }
     }
 
+    //
     // Show mounted volumes.
+    //
+    rpm_printf(" Drive    Type  1k-blocks      Used Available Capacity\r\n");
     for (int i = 0; i < DISK_VOLUMES; i++) {
-        extern const char *disk_name[DISK_VOLUMES];
         show(i);
     }
     rpm_puts("\n");

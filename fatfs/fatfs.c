@@ -3097,7 +3097,8 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
             return FR_NO_FILESYSTEM;
         }
 
-        maxlba = ld_qword(fs->win + BPB_TotSecEx) + bsect; /* Last LBA of the volume + 1 */
+        fs->totsec = ld_qword(fs->win + BPB_TotSecEx);
+        maxlba = fs->totsec + bsect; /* Last LBA of the volume + 1 */
         if (maxlba >= 0x100000000) {
             // This volume cannot be accessed in 32-bit LBA.
             // No LBA64, sorry.
@@ -3188,6 +3189,7 @@ static fs_result_t mount_volume(                    /* FR_OK(0): successful, !=0
         tsect = ld_word(fs->win + BPB_TotSec16); /* Number of sectors on the volume */
         if (tsect == 0)
             tsect = ld_dword(fs->win + BPB_TotSec32);
+        fs->totsec = tsect;
 
         nrsv = ld_word(fs->win + BPB_RsvdSecCnt); /* Number of reserved sectors */
         if (nrsv == 0)
@@ -4596,12 +4598,10 @@ fs_result_t f_stat(const char *path, /* Pointer to the file path */
 }
 
 #if !FF_FS_READONLY
-/*-----------------------------------------------------------------------*/
-/* Get Number of Free Clusters                                           */
-/*-----------------------------------------------------------------------*/
-
-fs_result_t f_getfree(const char *path,       // Logical drive number
-                      fs_size_t *nbytes_free) // Return number of free bytes
+//
+// Get Filesystem Status
+//
+fs_result_t f_statfs(const char *path, fs_info_t *info)
 {
     fs_result_t res;
     filesystem_t *fs;
@@ -4615,7 +4615,7 @@ fs_result_t f_getfree(const char *path,       // Logical drive number
     if (res == FR_OK) {
         /* If free_clst is valid, return it without full FAT scan */
         if (fs->free_clst <= fs->n_fatent - 2) {
-            *nbytes_free = (fs_size_t) fs->free_clst * SS(fs) * fs->csize;
+            info->f_bfree = (fs_size_t) fs->free_clst; // Free blocks in filesystem
         } else {
             /* Scan FAT to obtain number of free clusters */
             nfree = 0;
@@ -4681,13 +4681,19 @@ fs_result_t f_getfree(const char *path,       // Logical drive number
             }
             if (res == FR_OK) {        /* Update parameters if succeeded */
                 // Return the free bytes.
-                *nbytes_free = (fs_size_t) nfree * SS(fs) * fs->csize;
+                info->f_bfree = (fs_size_t) nfree;
                 fs->free_clst = nfree; /* Now free_clst is valid */
                 fs->fsi_flag |= 1;     /* FAT32: FSInfo is to be updated */
             }
         }
     }
-
+    if (res == FR_OK) {
+        info->f_type = fs->fs_type;         // Type of filesystem
+        info->f_pdrv = fs->pdrv;            // Volume hosting physical drive
+        info->f_bsize = SS(fs) * fs->csize; // Optimal transfer block size
+        info->f_blocks = fs->totsec;        // Total data blocks in filesystem
+        info->f_bavail = info->f_bfree;     // Free blocks available to unprivileged user
+    }
     LEAVE_FF(fs, res);
 }
 

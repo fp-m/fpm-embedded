@@ -66,6 +66,7 @@ typedef struct {
 #endif
     uint32_t n_fatent; /* Number of FAT entries (number of clusters + 2) */
     uint32_t fsize;    /* Number of sectors per FAT */
+    fs_lba_t totsec;   /* Total sectors in filesystem */
     fs_lba_t volbase;  /* Volume base sector */
     fs_lba_t fatbase;  /* FAT base sector */
     fs_lba_t dirbase;  /* Root directory base sector (FAT12/16) or cluster (FAT32/exFAT) */
@@ -174,12 +175,6 @@ void ff_mutex_give(int vol);   /* Unlock sync object */
 
 /* Fast seek controls (2nd argument of f_lseek) */
 #define CREATE_LINKMAP ((fs_size_t)0 - 1)
-
-/* Filesystem type (filesystem_t.fs_type) */
-#define FS_FAT12 1
-#define FS_FAT16 2
-#define FS_FAT32 3
-#define FS_EXFAT 4
 
 #ifdef __cplusplus
 }
