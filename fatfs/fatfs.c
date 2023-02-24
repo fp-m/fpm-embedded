@@ -3335,16 +3335,7 @@ fs_result_t f_mount(const char *path, // Logical drive number to be mounted
 
     filesystem_t *fs = &FatFs[vol];
     if (fs->fs_type != 0) {
-        // Unregister current filesystem object if registered.
-#if FF_FS_LOCK
-        clear_share(fs);
-#endif
-#if FF_FS_REENTRANT
-        // Discard mutex of the current volume.
-        ff_mutex_delete(vol);
-#endif
-        // Invalidate the filesystem object.
-        fs->fs_type = 0;
+        return FR_OK;
     }
 
     // Register new filesystem object.
