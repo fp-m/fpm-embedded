@@ -4106,15 +4106,18 @@ fs_result_t f_chdir(const char *path /* Pointer to the directory path */
 }
 
 #if FF_FS_RPATH >= 2
-fs_result_t f_getcwd(char *buff, /* Pointer to the directory path */
-                 unsigned len     /* Size of buff in unit of char */
-)
+//
+// Get current directory.
+// If the filesystem is not mounted - don't mount it, just return error code.
+//
+fs_result_t f_getcwd(char *buff,   /* Pointer to the directory path */
+                     unsigned len) /* Size of buff in unit of char */
 {
-    fs_result_t res;
+    fs_result_t res = FR_OK;
     directory_t dj;
     filesystem_t *fs;
     unsigned i, n;
-    uint32_t ccl;
+    uint32_t ccl, stat;
     char *tp = buff;
 #if DISK_VOLUMES >= 2
     unsigned vl;
@@ -4125,92 +4128,99 @@ fs_result_t f_getcwd(char *buff, /* Pointer to the directory path */
     file_info_t fno;
     DEF_NAMBUF
 
-    /* Get logical drive */
-    buff[0] = 0;                                       /* Set null string to get current volume */
-    res = mount_volume((const char **)&buff, &fs, 0); /* Get current volume */
-    if (res == FR_OK) {
-        dj.obj.fs = fs;
-        INIT_NAMBUF(fs);
-
-        /* Follow parent directories and create the path */
-        i = len;                                       /* Bottom of buffer (directory stack base) */
-        if (fs->fs_type != FS_EXFAT) { /* (Cannot do getcwd on exFAT and
-                                                          returns root path) */
-            dj.obj.sclust = fs->cdir;                  /* Start to follow upper directory from
-                                                          current directory */
-            while ((ccl = dj.obj.sclust) !=
-                   0) { /* Repeat while current directory is a sub-directory */
-                res = dir_sdi(&dj, 1 * SZDIRE); /* Get parent directory */
-                if (res != FR_OK)
-                    break;
-                res = move_window(fs, dj.sect);
-                if (res != FR_OK)
-                    break;
-                dj.obj.sclust = ld_clust(fs, dj.dir); /* Goto parent directory */
-                res = dir_sdi(&dj, 0);
-                if (res != FR_OK)
-                    break;
-                do { /* Find the entry links to the child directory */
-                    res = DIR_READ_FILE(&dj);
-                    if (res != FR_OK)
-                        break;
-                    if (ccl == ld_clust(fs, dj.dir))
-                        break; /* Found the entry */
-                    res = dir_next(&dj, 0);
-                } while (res == FR_OK);
-                if (res == FR_NO_FILE)
-                    res = FR_INT_ERR; /* It cannot be 'not found'. */
-                if (res != FR_OK)
-                    break;
-                get_fileinfo(&dj, &fno); /* Get the directory name and push
-                                            it to the buffer */
-                for (n = 0; fno.fname[n]; n++)
-                    ;            /* Name length */
-                if (i < n + 1) { /* Insufficient space to store the path name? */
-                    res = FR_NOT_ENOUGH_CORE;
-                    break;
-                }
-                while (n)
-                    buff[--i] = fno.fname[--n]; /* Stack the name */
-                buff[--i] = '/';
-            }
-        }
-        if (res == FR_OK) {
-            if (i == len)
-                buff[--i] = '/'; /* Is it the root-directory? */
-#if DISK_VOLUMES >= 2              /* Put drive prefix */
-            vl = 0;
-#if FF_STR_VOLUME_ID >= 1 /* String volume ID */
-            for (n = 0, vp = disk_name[CurrVol]; vp[n]; n++)
-                ;
-            if (i >= n + 2) {
-                if (FF_STR_VOLUME_ID == 2)
-                    *tp++ = (char)'/';
-                for (vl = 0; vl < n; *tp++ = (char)vp[vl], vl++)
-                    ;
-                if (FF_STR_VOLUME_ID == 1)
-                    *tp++ = (char)':';
-                vl++;
-            }
-#else /* Numeric volume ID */
-            if (i >= 3) {
-                *tp++ = (char)'0' + CurrVol;
-                *tp++ = (char)':';
-                vl = 2;
-            }
-#endif
-            if (vl == 0)
-                res = FR_NOT_ENOUGH_CORE;
-#endif
-            /* Add current directory path */
-            if (res == FR_OK) {
-                do { /* Copy stacked path string */
-                    *tp++ = buff[i++];
-                } while (i < len);
-            }
-        }
-        FREE_NAMBUF();
+    fs = &FatFs[CurrVol];
+    if (fs->fs_type == 0) {
+        return FR_NO_FILESYSTEM;
     }
+
+    stat = disk_status(fs->pdrv);
+    if (stat & MEDIA_NOINIT) {
+        // The physical media is not present.
+        return FR_NO_FILESYSTEM;
+    }
+
+    // Set null string to get current volume.
+    buff[0] = 0;
+
+    dj.obj.fs = fs;
+    INIT_NAMBUF(fs);
+
+    /* Follow parent directories and create the path */
+    i = len;                       /* Bottom of buffer (directory stack base) */
+    if (fs->fs_type != FS_EXFAT) { /* (Cannot do getcwd on exFAT and returns root path) */
+        dj.obj.sclust = fs->cdir;  /* Start to follow upper directory from current directory */
+        while ((ccl = dj.obj.sclust) !=  0) {
+            // Repeat while current directory is a sub-directory.
+            res = dir_sdi(&dj, 1 * SZDIRE); /* Get parent directory */
+            if (res != FR_OK)
+                break;
+            res = move_window(fs, dj.sect);
+            if (res != FR_OK)
+                break;
+            dj.obj.sclust = ld_clust(fs, dj.dir); /* Goto parent directory */
+            res = dir_sdi(&dj, 0);
+            if (res != FR_OK)
+                break;
+            do { /* Find the entry links to the child directory */
+                res = DIR_READ_FILE(&dj);
+                if (res != FR_OK)
+                    break;
+                if (ccl == ld_clust(fs, dj.dir))
+                    break; /* Found the entry */
+                res = dir_next(&dj, 0);
+            } while (res == FR_OK);
+            if (res == FR_NO_FILE)
+                res = FR_INT_ERR; /* It cannot be 'not found'. */
+            if (res != FR_OK)
+                break;
+            get_fileinfo(&dj, &fno); /* Get the directory name and push
+                                        it to the buffer */
+            for (n = 0; fno.fname[n]; n++)
+                ;            /* Name length */
+            if (i < n + 1) { /* Insufficient space to store the path name? */
+                res = FR_NOT_ENOUGH_CORE;
+                break;
+            }
+            while (n)
+                buff[--i] = fno.fname[--n]; /* Stack the name */
+            buff[--i] = '/';
+        }
+    }
+    if (res == FR_OK) {
+        if (i == len)
+            buff[--i] = '/'; /* Is it the root-directory? */
+#if DISK_VOLUMES >= 2              /* Put drive prefix */
+        vl = 0;
+#if FF_STR_VOLUME_ID >= 1 /* String volume ID */
+        for (n = 0, vp = disk_name[CurrVol]; vp[n]; n++)
+            ;
+        if (i >= n + 2) {
+            if (FF_STR_VOLUME_ID == 2)
+                *tp++ = (char)'/';
+            for (vl = 0; vl < n; *tp++ = (char)vp[vl], vl++)
+                ;
+            if (FF_STR_VOLUME_ID == 1)
+                *tp++ = (char)':';
+            vl++;
+        }
+#else /* Numeric volume ID */
+        if (i >= 3) {
+            *tp++ = (char)'0' + CurrVol;
+            *tp++ = (char)':';
+            vl = 2;
+        }
+#endif
+        if (vl == 0)
+            res = FR_NOT_ENOUGH_CORE;
+#endif
+        /* Add current directory path */
+        if (res == FR_OK) {
+            do { /* Copy stacked path string */
+                *tp++ = buff[i++];
+            } while (i < len);
+        }
+    }
+    FREE_NAMBUF();
 
     *tp = 0;
     LEAVE_FF(fs, res);
@@ -4629,8 +4639,9 @@ fs_result_t f_statfs(const char *path, fs_info_t *info)
 
     // Get volume ID (logical drive number).
     int vol = get_ldnumber(&path);
-    if (vol < 0)
+    if (vol < 0) {
         return FR_INVALID_DRIVE;
+    }
 
     fs = &FatFs[vol];
     if (fs->fs_type == 0) {
