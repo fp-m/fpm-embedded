@@ -4,6 +4,16 @@
 #include <rpm/api.h>
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
+#include <rpm/fs.h>
+
+static void eject(const char *path)
+{
+    fs_result_t result = f_unmount(path);
+    if (result != FR_OK) {
+        rpm_puts(f_strerror(result));
+        rpm_puts("\r\n\n");
+    }
+}
 
 void rpm_cmd_eject(int argc, char *argv[])
 {
@@ -13,10 +23,17 @@ void rpm_cmd_eject(int argc, char *argv[])
     };
     struct rpm_opt opt = {};
 
+    if (argc > 2) {
+usage:
+        rpm_puts("Usage:\r\n"
+                     "    eject [sd: | flash:]\r\n"
+                 "\n");
+        return;
+    }
     while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
-            rpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
+            eject(opt.arg);
             return;
 
         case '?':
@@ -25,12 +42,10 @@ void rpm_cmd_eject(int argc, char *argv[])
             return;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
-                     "    eject [sd: | flash:]\r\n"
-                     "\n");
-            return;
+            goto usage;
         }
     }
 
-    rpm_puts("Not implemented yet.\r\n\n");
+    // Eject SD card by default.
+    eject("sd:");
 }

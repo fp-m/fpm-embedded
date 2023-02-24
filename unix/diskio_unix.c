@@ -132,7 +132,11 @@ disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned co
     if (offset + nbytes > disk_size[unit])
         return DISK_PARERR;
 
-    int status = read(disk_fd[unit], buf, nbytes);
+    int status = lseek(disk_fd[unit], offset, SEEK_SET);
+    if (status < 0)
+        return DISK_ERROR;
+
+    status = read(disk_fd[unit], buf, nbytes);
     if (status < 0)
         return DISK_ERROR;
 
@@ -153,7 +157,11 @@ disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsi
     if (offset + nbytes > disk_size[unit])
         return DISK_PARERR;
 
-    int status = write(disk_fd[unit], buf, nbytes);
+    int status = lseek(disk_fd[unit], offset, SEEK_SET);
+    if (status < 0)
+        return DISK_ERROR;
+
+    status = write(disk_fd[unit], buf, nbytes);
     if (status < 0)
         return DISK_ERROR;
 
