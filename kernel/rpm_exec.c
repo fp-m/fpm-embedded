@@ -3,6 +3,7 @@
 //
 #include <rpm/api.h>
 #include <rpm/internal.h>
+#include <rpm/fs.h>
 
 //
 // Debug options.
@@ -60,6 +61,17 @@ void rpm_exec(int argc, char *argv[])
             rpm_puts(argv[i]);
         }
         rpm_puts("\r\n");
+    }
+
+    // Command ends with colon?
+    if (argv[0][strlen(argv[0]) - 1] == ':') {
+        // Switch to another drive.
+        fs_result_t result = f_chdrive(argv[0]);
+        if (result != FR_OK) {
+            rpm_puts(f_strerror(result));
+            rpm_puts("\r\n\n");
+        }
+        return;
     }
 
     // Find internal command.
