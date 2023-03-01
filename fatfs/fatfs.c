@@ -4634,7 +4634,7 @@ fs_result_t f_statfs(const char *path, fs_info_t *info)
 {
     fs_result_t res = FR_OK;
     filesystem_t *fs;
-    uint32_t nfree, clst, stat;
+    uint32_t clst, stat;
     fs_lba_t sect;
     unsigned i;
     obj_id_t obj;
@@ -4658,11 +4658,13 @@ fs_result_t f_statfs(const char *path, fs_info_t *info)
 
     /* If free_clst is valid, return it without full FAT scan */
     if (fs->free_clst <= fs->n_fatent - 2) {
-        info->f_bfree = (fs_size_t) fs->free_clst; // Free blocks in filesystem
+        info->f_bfree = fs->free_clst; // Free blocks in filesystem
     } else {
         /* Scan FAT to obtain number of free clusters */
-        nfree = 0;
-        if (fs->fs_type == FS_FAT12) { /* FAT12: Scan bit field FAT entries */
+        uint32_t nfree = 0;
+        switch (fs->fs_type) {
+        case FS_FAT12:
+            // FAT12: Scan bit field FAT entries.
             clst = 2;
             obj.fs = fs;
             do {
@@ -4678,63 +4680,70 @@ fs_result_t f_statfs(const char *path, fs_info_t *info)
                 if (stat == 0)
                     nfree++;
             } while (++clst < fs->n_fatent);
-        } else {
-            if (fs->fs_type == FS_EXFAT) { /* exFAT: Scan allocation bitmap */
-                uint8_t bm;
-                unsigned b;
+            break;
 
-                clst = fs->n_fatent - 2; /* Number of clusters */
-                sect = fs->bitbase;      /* Bitmap sector */
-                i = 0;                   /* Offset in the sector */
-                do {                     /* Counts numbuer of bits with zero in the bitmap */
-                    if (i == 0) {        /* New sector? */
-                        res = move_window(fs, sect++);
-                        if (res != FR_OK)
-                            break;
-                    }
-                    for (b = 8, bm = ~fs->win[i]; b && clst; b--, clst--) {
-                        nfree += bm & 1;
-                        bm >>= 1;
-                    }
-                    i = (i + 1) % SS(fs);
-                } while (clst);
-            } else {
-                /* FAT16/32: Scan uint16_t/uint32_t FAT entries */
-                clst = fs->n_fatent; /* Number of entries */
-                sect = fs->fatbase;  /* Top of the FAT */
-                i = 0;               /* Offset in the sector */
-                do {                 /* Counts numbuer of entries with zero in the FAT */
-                    if (i == 0) {    /* New sector? */
-                        res = move_window(fs, sect++);
-                        if (res != FR_OK)
-                            break;
-                    }
-                    if (fs->fs_type == FS_FAT16) {
-                        if (ld_word(fs->win + i) == 0)
-                            nfree++;
-                        i += 2;
-                    } else {
-                        if ((ld_dword(fs->win + i) & 0x0FFFFFFF) == 0)
-                            nfree++;
-                        i += 4;
-                    }
-                    i %= SS(fs);
-                } while (--clst);
-            }
+        case FS_EXFAT: {
+            // exFAT: Scan allocation bitmap.
+            uint8_t bm;
+            unsigned b;
+
+            clst = fs->n_fatent - 2; /* Number of clusters */
+            sect = fs->bitbase;      /* Bitmap sector */
+            i = 0;                   /* Offset in the sector */
+            do {                     /* Counts numbuer of bits with zero in the bitmap */
+                if (i == 0) {        /* New sector? */
+                    res = move_window(fs, sect++);
+                    if (res != FR_OK)
+                        break;
+                }
+                for (b = 8, bm = ~fs->win[i]; b && clst; b--, clst--) {
+                    nfree += bm & 1;
+                    bm >>= 1;
+                }
+                i = (i + 1) % SS(fs);
+            } while (clst);
+            break;
         }
-        if (res == FR_OK) {        /* Update parameters if succeeded */
-            // Return the free bytes.
-            info->f_bfree = (fs_size_t) nfree;
-            fs->free_clst = nfree; /* Now free_clst is valid */
-            fs->fsi_flag |= 1;     /* FAT32: FSInfo is to be updated */
+        default:
+            // FAT16/32: Scan uint16_t/uint32_t FAT entries.
+            clst = fs->n_fatent; /* Number of entries */
+            sect = fs->fatbase;  /* Top of the FAT */
+            i = 0;               /* Offset in the sector */
+            do {                 /* Counts number of entries with zero in the FAT */
+                if (i == 0) {    /* New sector? */
+                    res = move_window(fs, sect++);
+                    if (res != FR_OK)
+                        break;
+                }
+                if (fs->fs_type == FS_FAT16) {
+                    if (ld_word(fs->win + i) == 0) {
+                        nfree++;
+                    }
+                    i += 2;
+                } else {
+                    if ((ld_dword(fs->win + i) & 0x0FFFFFFF) == 0) {
+                        nfree++;
+                    }
+                    i += 4;
+                }
+                i %= SS(fs);
+            } while (--clst);
+            break;
+        }
+        if (res == FR_OK) {         // Update parameters if succeeded
+            info->f_bfree = nfree;  // Free blocks
+            fs->free_clst = nfree;  // Now free_clst is valid
+            fs->fsi_flag |= 1;      // FAT32: FSInfo is to be updated
         }
     }
+
+    // Update parameters if succeeded.
     if (res == FR_OK) {
-        info->f_type = fs->fs_type;         // Type of filesystem
-        info->f_pdrv = fs->pdrv;            // Volume hosting physical drive
-        info->f_bsize = SS(fs) * fs->csize; // Optimal transfer block size
-        info->f_blocks = fs->totsec;        // Total data blocks in filesystem
-        info->f_bavail = info->f_bfree;     // Free blocks available to unprivileged user
+        info->f_type = fs->fs_type;              // Type of filesystem
+        info->f_pdrv = fs->pdrv;                 // Volume hosting physical drive
+        info->f_bsize = SS(fs) * fs->csize;      // Optimal transfer block size
+        info->f_blocks = fs->totsec / fs->csize; // Total data blocks in filesystem
+        info->f_bavail = info->f_bfree;          // Free blocks available to unprivileged user
     }
     LEAVE_FF(fs, res);
 }

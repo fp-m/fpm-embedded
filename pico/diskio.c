@@ -36,6 +36,13 @@ specific language governing permissions and limitations under the License.
 const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
 
 //
+// Setup the hardware.
+//
+void disk_setup()
+{
+}
+
+//
 // Fast check of drive status: whether the media is present or not.
 // Argument specifies the physical drive number.
 // Drive 0 means Flash memory, drive 1 - SD card.

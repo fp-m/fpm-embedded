@@ -64,7 +64,7 @@ static void show(int i)
     if (avail == 0) {
         rpm_puts("   100%");
     } else {
-        rpm_printf(" %5u%%", (used * 200 + avail) / avail / 2);
+        rpm_printf(" %5u%%", (unsigned) ((used * 200ULL + avail) / avail / 2));
     }
     rpm_puts("\r\n");
 }

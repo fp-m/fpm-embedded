@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <rpm/fs.h>
 #include <rpm/internal.h>
+#include <rpm/diskio.h>
 #include <pico/stdlib.h>
 #include "hardware/rtc.h"
 
@@ -25,6 +27,9 @@ void setup_date_time()
 int main()
 {
     setup_date_time();
+    disk_setup();
+    //TODO: f_mount("flash:");
+    //TODO: f_mount("sd:");
 
     // Initialize chosen serial port.
     stdio_init_all();
@@ -32,13 +37,8 @@ int main()
         sleep_ms(100);
     }
 
+     // Start interactive dialog.
     for (;;) {
-        printf("Start RP/M shell.\r\n");
-        printf("Use '?' for help.\r\n\r\n");
-
-        // Start interactive dialog.
         rpm_shell();
-
-        printf("Shell has finished.\r\n");
     }
 }
