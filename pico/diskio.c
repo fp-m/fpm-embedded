@@ -25,6 +25,7 @@ specific language governing permissions and limitations under the License.
 #include <rpm/diskio.h> /* Declarations of disk functions */
 #include "hw_config.h"
 #include "sd_card.h"
+#include "flash.h"
 
 #define TRACE_PRINTF(fmt, args...)
 // #define TRACE_PRINTF printf  // task_printf
@@ -34,35 +35,46 @@ specific language governing permissions and limitations under the License.
 //
 const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
 
-/*-----------------------------------------------------------------------*/
-/* Get Drive Status                                                      */
-/*-----------------------------------------------------------------------*/
-
-media_status_t disk_status(uint8_t pdrv) /* Physical drive nmuber to identify the drive */
+//
+// Fast check of drive status: whether the media is present or not.
+// Argument specifies the physical drive number.
+// Drive 0 means Flash memory, drive 1 - SD card.
+//
+media_status_t disk_status(uint8_t pdrv)
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    if (pdrv == 0) {
+        // Flash memory: always present.
+        return 0;
+    } else {
+        // SD card.
+        sd_card_t *sd = sd_get_by_num(0);
+        if (!sd)
+            return MEDIA_NOINIT;
 
-    sd_card_t *p_sd = sd_get_by_num(pdrv);
-    if (!p_sd)
-        return MEDIA_NOINIT;
-
-    sd_card_detect(p_sd); // Fast: just a GPIO read
-    return p_sd->m_Status;
+        // Fast probe: just a GPIO read.
+        sd_card_detect(sd);
+        return sd->m_Status;
+    }
 }
 
-/*-----------------------------------------------------------------------*/
-/* Inidialize a Drive                                                    */
-/*-----------------------------------------------------------------------*/
-
-media_status_t disk_initialize(uint8_t pdrv) /* Physical drive number to identify the drive */
+//
+// Initialize a drive.
+//
+media_status_t disk_initialize(uint8_t pdrv)
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    if (pdrv == 0) {
+        // Flash memory: always active.
+        return 0;
+    } else {
+        // SD card.
+        sd_card_t *sd = sd_get_by_num(0);
+        if (!sd)
+            return MEDIA_NOINIT;
 
-    sd_card_t *p_sd = sd_get_by_num(pdrv);
-    if (!p_sd)
-        return MEDIA_NOINIT;
-
-    return sd_init(p_sd);
+        return sd_init(sd);
+    }
 }
 
 static int sdrc2dresult(int sd_rc)
@@ -98,16 +110,22 @@ static int sdrc2dresult(int sd_rc)
 /*-----------------------------------------------------------------------*/
 
 disk_result_t disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify the drive */
-                  uint8_t *buff,   /* Data buffer to store read data */
-                  unsigned sector, /* Start sector in LBA */
-                  unsigned count)  /* Number of sectors to read */
+                        uint8_t *buff,   /* Data buffer to store read data */
+                        unsigned sector, /* Start sector in LBA */
+                        unsigned count)  /* Number of sectors to read */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
-    sd_card_t *p_sd = sd_get_by_num(pdrv);
-    if (!p_sd)
-        return DISK_PARERR;
-    int rc = sd_read_blocks(p_sd, buff, sector, count);
-    return sdrc2dresult(rc);
+    if (pdrv == 0) {
+        // Flash memory.
+        return flash_read(buff, sector, count);
+    } else {
+        // SD card.
+        sd_card_t *sd = sd_get_by_num(0);
+        if (!sd)
+            return DISK_PARERR;
+        int rc = sd_read_blocks(sd, buff, sector, count);
+        return sdrc2dresult(rc);
+    }
 }
 
 /*-----------------------------------------------------------------------*/
@@ -122,11 +140,17 @@ disk_result_t disk_write(uint8_t pdrv,        /* Physical drive nmuber to identi
                    unsigned count)      /* Number of sectors to write */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
-    sd_card_t *p_sd = sd_get_by_num(pdrv);
-    if (!p_sd)
-        return DISK_PARERR;
-    int rc = sd_write_blocks(p_sd, buff, sector, count);
-    return sdrc2dresult(rc);
+    if (pdrv == 0) {
+        // Flash memory.
+        return flash_write(buff, sector, count);
+    } else {
+        // SD card.
+        sd_card_t *sd = sd_get_by_num(0);
+        if (!sd)
+            return DISK_PARERR;
+        int rc = sd_write_blocks(sd, buff, sector, count);
+        return sdrc2dresult(rc);
+    }
 }
 
 #endif
@@ -140,11 +164,6 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
                    void *buff) /* Buffer to send/receive control data */
 {
     TRACE_PRINTF(">>> %s\n", __FUNCTION__);
-
-    sd_card_t *p_sd = sd_get_by_num(pdrv);
-    if (!p_sd)
-        return DISK_PARERR;
-
     switch (cmd) {
     case GET_SECTOR_COUNT: {
         //
@@ -156,13 +175,23 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
         // volume/partition to be created. It is
         // required when FF_USE_MKFS == 1.
         //
-        unsigned n = sd_sectors(p_sd);
-        *(uint32_t *)buff = n;
-        if (!n)
+        unsigned num_sectors;
+        if (pdrv == 0) {
+            // Flash memory.
+            num_sectors = flash_block_count();
+        } else {
+            // SD card.
+            sd_card_t *sd = sd_get_by_num(0);
+            if (!sd)
+                return DISK_PARERR;
+            num_sectors = sd_sectors(sd);
+        }
+        *(uint32_t *)buff = num_sectors;
+        if (num_sectors == 0)
             return DISK_ERROR;
         return DISK_OK;
     }
-    case GET_SECTOR_SIZE:
+    case GET_SECTOR_SIZE: {
         //
         // Retrieves the sector size on this media (512, 1024, 2048 or 4096).
         // Always set 512 for most systems, generic memory card and harddisk,
@@ -170,9 +199,17 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
         // type of optical media. This command is used by f_mount() and f_mkfs()
         // functions when FF_MAX_SS is larger than FF_MIN_SS.
         //
-        *(uint16_t *)buff = 512;
+        unsigned sector_size;
+        if (pdrv == 0) {
+            // Flash memory.
+            sector_size = flash_block_size();
+        } else {
+            // SD card.
+            sector_size = 512;
+        }
+        *(uint16_t *)buff = sector_size;
         return DISK_OK;
-
+    }
     case GET_BLOCK_SIZE:
         //
         // Retrieves erase block size of the flash
@@ -193,5 +230,55 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
 
     default:
         return DISK_PARERR;
+    }
+}
+
+//
+// Get info from the disk.
+//
+disk_result_t disk_identify(uint8_t pdrv, disk_info_t *output)
+{
+    TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    memset(output, 0, sizeof(*output));
+    if (pdrv == 0) {
+        // Flash memory.
+        flash_identify(output);
+        return DISK_OK;
+    } else {
+        // SD card.
+        sd_card_t *sd = sd_get_by_num(0);
+        if (!sd)
+            return DISK_PARERR;
+
+        // Fast probe: just a GPIO read.
+        if (!sd_card_detect(sd))
+            return DISK_NOTRDY;
+
+        // Full detection.
+        // The media may have been reinserted, so reinitialize.
+        sd->m_Status |= (MEDIA_NODISK | MEDIA_NOINIT);
+        sd->card_type = 0;
+        sd_init(sd);
+        if (sd->m_Status & (MEDIA_NOINIT | MEDIA_NODISK))
+            return DISK_NOTRDY;
+
+        // Size in bytes.
+        output->num_bytes = sd->sectors * 512ULL;
+
+        // Serial number: 32 bits or 64 bits.
+        output->serial_number = sd->product_serial_number;
+
+        // Product name.
+        char *p = output->product_name;
+        *p++ = sd->oem_id[0];
+        *p++ = sd->oem_id[1];
+        *p++ = ' ';
+        *p++ = sd->product_name[0];
+        *p++ = sd->product_name[1];
+        *p++ = sd->product_name[2];
+        *p++ = sd->product_name[3];
+        *p++ = sd->product_name[4];
+        *p++ = 0;
+        return DISK_OK;
     }
 }

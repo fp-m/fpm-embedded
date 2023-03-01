@@ -44,6 +44,11 @@ typedef struct {
     int card_type;           // Assigned dynamically
     mutex_t mutex;
     bool mounted;
+
+    // Card identification
+    char oem_id[2+1];
+    char product_name[5+1];
+    uint32_t product_serial_number;
 } sd_card_t;
 
 #define SD_BLOCK_DEVICE_ERROR_NONE 0

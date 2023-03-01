@@ -755,6 +755,60 @@ uint64_t sd_sectors(sd_card_t *pSD)
     return sectors;
 }
 
+//
+// Get OEM/Application ID, product name and serial number.
+// In case of failure set default values.
+//
+static void sd_identification_nolock(sd_card_t *pSD)
+{
+    // Default values.
+    memset(pSD->oem_id, 0, sizeof(pSD->oem_id));
+    memset(pSD->product_name, 0, sizeof(pSD->product_name));
+    pSD->product_serial_number = 0;
+
+    // CMD10, Response R2 (R1 byte + 16-byte block read)
+    if (sd_cmd(pSD, CMD10_SEND_CID, 0x0, false, 0) != 0x0) {
+        DBG_PRINTF("Didn't get a response from the disk\r\n");
+        return;
+    }
+    uint8_t cid[16];
+    if (sd_read_bytes(pSD, cid, 16) != 0) {
+        DBG_PRINTF("Couldn't read cid response from disk\r\n");
+        return;
+    }
+
+    // The Card IDentification (CID) register is 128 bits wide. It contains the card
+    // identification information used during the card identification phase. Every
+    // individual Read/Write (RW) card shall have a unique identification number. The
+    // structure of the CID register is defined in the following paragraphs:
+    //
+    // Name                    Field  Width CID-slice
+    // ----------------------------------------------
+    // Manufacturer ID          MID     8   [127:120]
+    // OEM/Application ID       OID     16  [119:104]
+    // Product name             PNM     40  [103:64]
+    // Product revision         PRV     8   [63:56]
+    // Product serial number    PSN     32  [55:24]
+    // reserved                 --      4   [23:20]
+    // Manufacturing date       MDT     12  [19:8]
+    // CRC7 checksum            CRC     7   [7:1]
+    // not used, always 1       -       1   [0:0]
+
+    pSD->oem_id[0] = ext_bits(cid, 119, 112);
+    pSD->oem_id[1] = ext_bits(cid, 111, 104);
+    pSD->product_name[0] = ext_bits(cid, 103, 96);
+    pSD->product_name[1] = ext_bits(cid, 95, 88);
+    pSD->product_name[2] = ext_bits(cid, 87, 80);
+    pSD->product_name[3] = ext_bits(cid, 79, 72);
+    pSD->product_name[4] = ext_bits(cid, 71, 64);
+    pSD->product_serial_number = ext_bits(cid, 55, 24);
+
+    DBG_PRINTF("OEM id: '%c%c'\r\n", pSD->oem_id[0], pSD->oem_id[1]);
+    DBG_PRINTF("Product name: '%c%c%c%c%c'\r\n", pSD->product_name[0], pSD->product_name[1],
+               pSD->product_name[2], pSD->product_name[3], pSD->product_name[4]);
+    DBG_PRINTF("Serial Number: %08x\r\n", pSD->product_serial_number);
+}
+
 // SPI function to wait till chip is ready and sends start token
 static bool sd_wait_token(sd_card_t *pSD, uint8_t token)
 {
@@ -1171,6 +1225,7 @@ media_status_t sd_init(sd_card_t *pSD)
         sd_unlock(pSD);
         return pSD->m_Status;
     }
+    sd_identification_nolock(pSD);
     // Set block length to 512 (CMD16)
     if (sd_cmd(pSD, CMD16_SET_BLOCKLEN, _block_size, false, 0) != 0) {
         DBG_PRINTF("Set %" PRIu32 "-byte block timed out\r\n", _block_size);

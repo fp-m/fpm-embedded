@@ -60,6 +60,15 @@ typedef enum {
 } disk_result_t;
 
 //
+// Information about the disk.
+//
+typedef struct {
+    uint64_t num_bytes;     // Size in bytes
+    uint64_t serial_number; // Serial number, 32 bits or 64 bits
+    char product_name[32];  // Product name
+} disk_info_t;
+
+//
 // Disk control functions.
 //
 void disk_setup(void);
@@ -68,6 +77,7 @@ media_status_t disk_status(uint8_t pdrv);
 disk_result_t disk_read(uint8_t pdrv, uint8_t *buff, unsigned sector, unsigned count);
 disk_result_t disk_write(uint8_t pdrv, const uint8_t *buff, unsigned sector, unsigned count);
 disk_result_t disk_ioctl(uint8_t pdrv, uint8_t cmd, void *buff);
+disk_result_t disk_identify(uint8_t pdrv, disk_info_t *output);
 
 //
 // Command code for disk_ioctl() fucntion.

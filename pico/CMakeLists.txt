@@ -19,6 +19,7 @@ add_executable(${PROJECT_NAME}
     rpm_pico.c
     rtc_pico.c
     diskio.c
+    flash.c
     sd_pico/crc.c
     sd_pico/demo_logging.c
     sd_pico/hw_config.c
