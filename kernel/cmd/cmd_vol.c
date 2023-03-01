@@ -10,9 +10,8 @@
 static void print_volume_info(const char *path)
 {
     // Check the argument.
-    const char *colon = strchr(path, ':');
-    if ((colon && colon[1] != '\0') ||
-        (!colon && path[0] != '\0')) {
+    int drive = f_getdrive(path);
+    if (drive < 0) {
         rpm_printf("%s: Invalid drive name\r\n\n", path);
         return;
     }
@@ -29,22 +28,13 @@ static void print_volume_info(const char *path)
     }
 
     // Print drive name.
-    const char *drive;
-    int len;
-    if (colon) {
-        drive = path;
-        len = colon - path;
-    } else {
-        drive = disk_name[f_drive()];
-        len = strlen(drive);
-    }
-    rpm_printf("      Disk Drive: %.*s\r\n", len, drive);
+    rpm_printf("      Disk Drive: %s\r\n", disk_name[drive]);
 
     //
     // Print disk name, size and unique id.
     //
     disk_info_t info;
-    if (disk_identify(f_drive(), &info) == DISK_OK) {
+    if (disk_identify(drive, &info) == DISK_OK) {
         rpm_printf("      Disk Model: '%s'\r\n", info.product_name);
         rpm_printf("       Disk Size: %u.%u Mbytes\r\n",
                    (unsigned) (info.num_bytes / 1024 / 1024),

@@ -4027,8 +4027,7 @@ fs_result_t f_close(file_t *fp /* Open file to be closed */
 /* Change Current Directory or Current Drive, Get Current Directory      */
 /*-----------------------------------------------------------------------*/
 
-fs_result_t f_chdrive(const char *path /* Drive number to set */
-)
+fs_result_t f_chdrive(const char *path) /* Drive number to set */
 {
     int vol;
 
@@ -4044,9 +4043,13 @@ fs_result_t f_chdrive(const char *path /* Drive number to set */
 //
 // Get current drive.
 //
-int f_drive()
+int f_getdrive(const char *path)
 {
-    return CurrVol;
+    if (!path || *path == 0)
+        return CurrVol;
+
+    // Get volume ID (logical drive number).
+    return get_ldnumber(&path);
 }
 
 fs_result_t f_chdir(const char *path) /* Pointer to the directory path */

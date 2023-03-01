@@ -201,3 +201,26 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
         return DISK_PARERR;
     }
 }
+
+//
+// Get info from the disk.
+//
+disk_result_t disk_identify(uint8_t unit, disk_info_t *output)
+{
+    if (unit >= DISK_VOLUMES)
+        return DISK_PARERR;
+
+    memset(output, 0, sizeof(*output));
+
+    // Size in bytes.
+    output->num_bytes = disk_size[unit];
+
+    // Serial number: 32 bits or 64 bits.
+    struct stat st;
+    fstat(disk_fd[unit], &st);
+    output->serial_number = (st.st_dev << 16) + st.st_ino;
+
+    // Product name.
+    strcpy(output->product_name, unit==0 ? "flash.img" : "sd.img");
+    return DISK_OK;
+}

@@ -20,8 +20,8 @@ uint16_t rpm_history[RPM_CMDLINE_SIZE];
 static void build_prompt(char *prompt, unsigned max_length)
 {
     prompt[0] = 0;
-    strcat(prompt, "\033[0;31m");         // dim red color
-    strcat(prompt, disk_name[f_drive()]); // current disk
+    strcat(prompt, "\033[0;31m");              // dim red color
+    strcat(prompt, disk_name[f_getdrive("")]); // current disk
 
     // Get current directory.
     char path[4096];
