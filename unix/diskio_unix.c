@@ -32,6 +32,66 @@ static const unsigned disk_size[DISK_VOLUMES] = {
 static int disk_fd[DISK_VOLUMES] = { -1, -1 };
 
 //
+// Create a file with given name and contents.
+//
+static void write_file(const char *filename, const char *contents)
+{
+    // Create file.
+    file_t *fp = alloca(f_sizeof_file_t());
+    fs_result_t result = f_open(fp, filename, FA_WRITE | FA_CREATE_ALWAYS);
+    if (result != FR_OK)
+        return;
+
+    // Write data.
+    unsigned nbytes = strlen(contents);
+    unsigned written = 0;
+    result = f_write(fp, contents, nbytes, &written);
+
+    // Close the file.
+    f_close(fp);
+}
+
+//
+// Create a few files and directories on the disk.
+//
+static void populate_disk(unsigned unit)
+{
+    fs_result_t result;
+
+    switch (unit) {
+    case 0:
+        result = f_mount("0:");
+        if (result != FR_OK)
+            return;
+        write_file("Foo.txt", "'Twas brillig, and the slithy toves\n");
+        result = f_mkdir("Bar");
+        if (result != FR_OK) {
+            printf("%s: Cannot create directory: %s\r\n", "Bar", f_strerror(result));
+            return;
+        }
+        write_file("Bar/Long-file-name.txt", "Did gyre and gimble in the wabe\n");
+        write_file("Αβρακαδαβρα.txt", "Kαυσπροῦντος ἤδη, γλοῖσχρα διὰ περισκιᾶς\n");
+        f_unmount("0:");
+        break;
+
+    case 1:
+        result = f_mount("1:");
+        if (result != FR_OK)
+            return;
+        write_file("1:Readme.txt", "'Twas brillig, and the slithy toves\n");
+        write_file("1:License.txt", "MIT License\n");
+        result = f_mkdir("1:bin");
+        if (result != FR_OK) {
+            printf("%s: Cannot create directory: %s\r\n", "1:bin", f_strerror(result));
+            return;
+        }
+        write_file("1:bin/Nothing-there-yet.txt", "Still in development");
+        f_unmount("1:");
+        break;
+    }
+}
+
+//
 // Open disk image.
 // On first run, create file with required size.
 //
@@ -69,6 +129,7 @@ static void open_disk_image(unsigned unit, const char *dirname, const char *file
         }
 
         printf("Create file %s - size %u Mbytes\r\n", path, disk_size[unit] / 1024 / 1024);
+        populate_disk(unit);
     }
 }
 

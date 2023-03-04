@@ -91,10 +91,16 @@ int rpm_editline(uint16_t *buffer, unsigned buffer_length, bool clear,
 const char *rpm_tokenize(char *argv[], int *argc, char *cmd_line);
 
 //
-// Compute the length of the Unicode string s.
+// Compute length of Unicode string.
 // Return the number of characters that precede the terminating NUL character.
 //
-size_t rpm_strwlen(const uint16_t *s);
+size_t rpm_strwlen(const uint16_t *str);
+
+//
+// Compute length of UTF-8 string.
+// Return the number of characters that precede the terminating NUL character.
+//
+size_t rpm_utf8len(const char *str);
 
 //
 // Size-bounded string copying.

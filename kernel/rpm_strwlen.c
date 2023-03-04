@@ -13,3 +13,13 @@ size_t rpm_strwlen(const uint16_t *input)
 
     return s - input;
 }
+
+size_t rpm_utf8len(const char *input)
+{
+    size_t count = 0;
+
+    while (*input) {
+        count += ((*input++ & 0xc0) != 0x80);
+    }
+    return count;
+}
