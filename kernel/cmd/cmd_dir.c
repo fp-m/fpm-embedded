@@ -2,9 +2,9 @@
 // Clear the console screen
 //
 #include <rpm/api.h>
+#include <rpm/fs.h>
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
-#include <rpm/fs.h>
 #include <stdlib.h>
 
 //
@@ -42,7 +42,7 @@ typedef struct _list_item_t {
 //
 typedef struct {
     list_item_t *head; // First file in the list
-    list_item_t *tail;  // Last file in the list
+    list_item_t *tail; // Last file in the list
 } file_list_t;
 
 // Forward declaration of a recursive routine.
@@ -231,7 +231,7 @@ static void list_sort(file_list_t *list, options_t *options)
 //
 static bool is_link(list_item_t *item)
 {
-    //TODO: implement symlinks in RP/M.
+    // TODO: implement symlinks in RP/M.
     return false;
 }
 
@@ -284,11 +284,11 @@ static void print_time(unsigned mtime)
     union {
         uint32_t word;
         struct {
-            unsigned second2  : 5; // Second / 2 (0..29, e.g. 25 for 50)
-            unsigned minute   : 6; // Minute (0..59)
-            unsigned hour     : 5; // Hour (0..23)
-            unsigned day      : 5; // Day of the month (1..31)
-            unsigned month    : 4; // Month (1..12)
+            unsigned second2 : 5;  // Second / 2 (0..29, e.g. 25 for 50)
+            unsigned minute : 6;   // Minute (0..59)
+            unsigned hour : 5;     // Hour (0..23)
+            unsigned day : 5;      // Day of the month (1..31)
+            unsigned month : 4;    // Month (1..12)
             unsigned year1980 : 7; // Year origin from the 1980 (0..127, e.g. 37 for 2017)
         } field;
     } u;
@@ -307,7 +307,7 @@ static void print_time(unsigned mtime)
 //
 static void print_link(list_item_t *item)
 {
-    //TODO: read link contents from the file and print the path.
+    // TODO: read link contents from the file and print the path.
 }
 
 //
@@ -338,12 +338,12 @@ static void print_size(uint64_t n, unsigned width)
         scale *= 1000;
         width -= 4;
     }
-    rpm_printf("%*u", width, (unsigned) n);
+    rpm_printf("%*u", width, (unsigned)n);
     while (scale != 1) {
         scale /= 1000;
         n = n2 / scale;
-        n2 = n2  % scale;
-        rpm_printf(",%03u", (unsigned) n);
+        n2 = n2 % scale;
+        rpm_printf(",%03u", (unsigned)n);
     }
 }
 
@@ -364,8 +364,8 @@ static unsigned size_len(uint64_t n)
 //
 // Print files in -l format.
 //
-static void print_long(file_list_t *list, options_t *options,
-                       uint64_t kbytes_total, uint64_t maxsize)
+static void print_long(file_list_t *list, options_t *options, uint64_t kbytes_total,
+                       uint64_t maxsize)
 {
     if (!options->toplevel && options->longform)
         rpm_printf("Total %ju kbytes\r\n", (uintmax_t)kbytes_total);
@@ -399,8 +399,8 @@ static void print_long(file_list_t *list, options_t *options,
 //
 // Print files in columns.
 //
-static void print_columnized(file_list_t *list, options_t *options,
-                             int printable_entries, unsigned maxlen, uint64_t kbytes_total)
+static void print_columnized(file_list_t *list, options_t *options, int printable_entries,
+                             unsigned maxlen, uint64_t kbytes_total)
 {
     //
     // Have to do random access in the linked list -- build a table of pointers.
@@ -607,8 +607,8 @@ void rpm_cmd_dir(int argc, char *argv[])
     struct rpm_opt opt = {};
     unsigned argcount = 0;
 
-    options.termwidth = 80;    // Default terminal width
-    options.type = true;       // Append '/' for directories
+    options.termwidth = 80; // Default terminal width
+    options.type = true;    // Append '/' for directories
 
     if (strcasecmp(argv[0], "dir") == 0) {
         // dir - long format by default.
@@ -651,17 +651,18 @@ void rpm_cmd_dir(int argc, char *argv[])
             rpm_puts("\r\n");
             return;
         case 'h':
-            rpm_puts("Usage:\r\n"
-                     "    ls [options] [file ...]\r\n"
-                     "    dir [options] [file ...]\r\n"
-                     "Options:\r\n"
-                     "    -a      Include hidden files and directories\r\n"
-                     "    -l      List files in the long format\r\n"
-                     "    -R      Recursively list subdirectories\r\n"
-                     "    -r      Reverse the order of the sort\r\n"
-                     "    -t      Sort by modification time\r\n"
-                     "    -1      Force output to be one entry per line\r\n"
-                     "\n");
+            rpm_puts(
+                "Usage:\r\n"
+                "    ls [options] [file ...]\r\n"
+                "    dir [options] [file ...]\r\n"
+                "Options:\r\n"
+                "    -a      Include hidden files and directories\r\n"
+                "    -l      List files in the long format\r\n"
+                "    -R      Recursively list subdirectories\r\n"
+                "    -r      Reverse the order of the sort\r\n"
+                "    -t      Sort by modification time\r\n"
+                "    -1      Force output to be one entry per line\r\n"
+                "\n");
             return;
         }
     }
