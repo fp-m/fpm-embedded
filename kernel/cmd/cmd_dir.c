@@ -326,25 +326,64 @@ static void print_single_column(file_list_t *list, options_t *options)
 }
 
 //
+// Print integer number using comma as thousands separator.
+//
+static void print_size(uint64_t n, unsigned width)
+{
+    uint64_t n2 = 0;
+    uint64_t scale = 1;
+    while (n >= 1000) {
+        n2 = n2 + scale * (n % 1000);
+        n /= 1000;
+        scale *= 1000;
+        width -= 4;
+    }
+    rpm_printf("%*u", width, (unsigned) n);
+    while (scale != 1) {
+        scale /= 1000;
+        n = n2 / scale;
+        n2 = n2  % scale;
+        rpm_printf(",%03u", (unsigned) n);
+    }
+}
+
+//
+// Estimate length of integer number printed using comma as thousands separator.
+//
+static unsigned size_len(uint64_t n)
+{
+    unsigned len = 0;
+    while (n >= 1000) {
+        n /= 1000;
+        len += 4;
+    }
+    len += (n >= 100) ? 3 : (n >= 10) ? 2 : 1;
+    return len;
+}
+
+//
 // Print files in -l format.
 //
 static void print_long(file_list_t *list, options_t *options,
                        uint64_t kbytes_total, uint64_t maxsize)
 {
     if (!options->toplevel && options->longform)
-        rpm_printf("Total %lu kbytes\r\n", kbytes_total);
+        rpm_printf("Total %ju kbytes\r\n", (uintmax_t)kbytes_total);
 
-    char buf[20];
-    rpm_snprintf(buf, sizeof(buf), "%ju", (uintmax_t)maxsize);
-    unsigned s_size = strlen(buf);
-
+    unsigned size_width = size_len(maxsize);
     list_item_t *item;
     for (item = list->head; item; item = item->next) {
         if (item->no_print)
             continue;
 
         print_attrib(item->attrib);
-        rpm_printf("  %*ju  ", s_size, (uintmax_t)item->nbytes);
+        rpm_puts("  ");
+        if (item->attrib & AM_DIR) {
+            rpm_printf("%*s", size_width, "-");
+        } else {
+            print_size(item->nbytes, size_width);
+        }
+        rpm_puts("  ");
         print_time(item->mtime);
         rpm_puts(item->name);
         if (options->type) {
@@ -395,7 +434,7 @@ static void print_columnized(file_list_t *list, options_t *options,
     }
 
     if (!options->toplevel && options->longform)
-        rpm_printf("Total %lu kbytes\r\n", kbytes_total);
+        rpm_printf("Total %ju kbytes\r\n", (uintmax_t)kbytes_total);
 
     unsigned row;
     for (row = 0; row < numrows; ++row) {
