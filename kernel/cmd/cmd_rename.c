@@ -21,10 +21,7 @@ static void rename_file(const char *source, const char *destination, const optio
 {
     fs_result_t result;
 
-    //
-    // Check access.  If file exists, ask user if it should be replaced.
-    // Otherwise if file exists but isn't writable make sure the user wants to clobber it.
-    //
+    // If file exists, ask user if it should be replaced.
     if (!options->force) {
         file_info_t info;
         result = f_stat(destination, &info);
@@ -44,7 +41,7 @@ static void rename_file(const char *source, const char *destination, const optio
             rpm_editline(reply, sizeof(reply), 1, prompt, 0);
 
             if (reply[0] != 'y' && reply[0] != 'Y') {
-                rpm_printf("Not overwritten.\r\n");
+                rpm_printf("\r\nNot overwritten.\r\n");
                 return;
             }
         }
@@ -132,7 +129,7 @@ void rpm_cmd_rename(int argc, char *argv[])
 usage:      rpm_puts("Usage:\r\n"
                      "    mv [options] filename ...\r\n"
                      "    rename [options] filename ...\r\n"
-                     "Options:\n"
+                     "Options:\r\n"
                      "    -f      Force, do not ask for confirmation to overwrite\r\n"
                      "    -v      Verbose: show files as they are renamed\r\n"
                      "\n");

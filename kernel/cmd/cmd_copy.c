@@ -5,6 +5,7 @@
 #include <rpm/fs.h>
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
+#include <stdlib.h>
 
 //
 // Options for copying.
@@ -22,45 +23,108 @@ static void copy_file(const char *source, const char *destination, const options
 {
     fs_result_t result;
 
-    //
-    // Check access.  If file exists, ask user if it should be replaced.
-    // Otherwise if file exists but isn't writable make sure the user wants to clobber it.
-    //
+    // If file exists, ask user if it should be replaced.
     if (!options->force) {
         file_info_t info;
         result = f_stat(destination, &info);
         if (result == FR_OK) {
-
-            // Prompt only if source exist.
-            result = f_stat(source, &info);
-            if (result != FR_OK) {
-                rpm_printf("%s: %s\r\n", source, f_strerror(result));
-                return;
-            }
-
-            // Ask user.
             char prompt[32 + strlen(destination)];
             uint16_t reply[32];
             rpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? (y/n [n]) ", destination);
             rpm_editline(reply, sizeof(reply), 1, prompt, 0);
 
             if (reply[0] != 'y' && reply[0] != 'Y') {
-                rpm_printf("Not overwritten.\r\n");
+                rpm_printf("\r\nNot overwritten.\r\n");
                 return;
             }
         }
     }
 
-    //TODO
-    //result = copy(source, destination);
-    //if (result != FR_OK) {
-    //    rpm_printf("%s -> %s: %s\r\n", source, destination, f_strerror(result));
-    //    return;
-    //}
+    // Open source file.
+    file_t *fsrc = alloca(f_sizeof_file_t());
+    result = f_open(fsrc, source, FA_READ);
+    if (result != FR_OK) {
+        rpm_printf("%s: %s\r\n", source, f_strerror(result));
+        return;
+    }
+
+    // Open destination file.
+    file_t *fdest = alloca(f_sizeof_file_t());
+    result = f_open(fdest, destination, FA_WRITE | FA_CREATE_ALWAYS);
+    if (result != FR_OK) {
+        rpm_printf("%s: %s\r\n", destination, f_strerror(result));
+        f_close(fsrc);
+        return;
+    }
+
+    // Copy contents.
+    char buf[4096];
+    for (;;) {
+        unsigned nbytes_read = 0;
+        result = f_read(fsrc, buf, sizeof(buf), &nbytes_read);
+        if (result != FR_OK) {
+            // Read error.
+            rpm_printf("%s: %s\r\n", source, f_strerror(result));
+fatal:      f_close(fsrc);
+            f_close(fdest);
+            return;
+        }
+        if (nbytes_read == 0) {
+            // End of file.
+            break;
+        }
+        unsigned nbytes_written = 0;
+        result = f_write(fdest, buf, nbytes_read, &nbytes_written);
+        if (result != FR_OK) {
+            // Write error.
+            rpm_printf("%s: %s\r\n", destination, f_strerror(result));
+            goto fatal;
+        }
+        if (nbytes_written != nbytes_read) {
+            // Out of disk space.
+            rpm_printf("%s: Not enough space on device\r\n", destination);
+            goto fatal;
+        }
+    }
 
     // Copied successfully.
+    f_close(fsrc);
+    f_close(fdest);
     if (options->verbose)
         rpm_printf("%s -> %s\r\n", source, destination);
+}
+
+//
+// Copy directory recursively.
+//
+static void copy_recursive(const char *source, const char *destination, const options_t *options)
+{
+    rpm_printf("TODO: recursive copy %s -> %s\r\n", source, destination);
+}
+
+//
+// Copy one file or directory.
+//
+static void copy_object(const char *source, const char *destination, const options_t *options)
+{
+    file_info_t info;
+    fs_result_t result;
+
+    // Source can be a file or a directory.
+    result = f_stat(source, &info);
+    if (result != FR_OK) {
+        rpm_printf("%s: %s\r\n", source, f_strerror(result));
+        return;
+    }
+    if (info.fattrib & AM_DIR) {
+        if (options->recursive) {
+            copy_recursive(source, destination, options);
+        } else {
+            rpm_printf("%s: Cannot copy directory without -r option\r\n", source);
+        }
+    } else {
+        copy_file(source, destination, options);
+    }
 }
 
 //
@@ -91,7 +155,7 @@ static void copy_to_directory(const char *source[], unsigned num_sources,
             --p;
 
         strcpy(endp, p);
-        copy_file(source[i], destination, options);
+        copy_object(source[i], destination, options);
     }
 }
 
@@ -138,7 +202,7 @@ void rpm_cmd_copy(int argc, char *argv[])
 usage:      rpm_puts("Usage:\r\n"
                      "    cp [options] source ... destination\r\n"
                      "    copy [options] source ... destination\r\n"
-                     "Options:\n"
+                     "Options:\r\n"
                      "    -f      Force, do not ask for confirmation to overwrite\r\n"
                      "    -r      Recursively copy directories and their contents\r\n"
                      "    -v      Verbose: show files as they are copied\r\n"
@@ -165,7 +229,7 @@ usage:      rpm_puts("Usage:\r\n"
             rpm_printf("%s is not a directory\r\n", destination);
         } else {
             // Copy one file.
-            copy_file(source[0], destination, &options);
+            copy_object(source[0], destination, &options);
         }
     } else {
         copy_to_directory(source, num_sources, destination, &options);

@@ -28,7 +28,7 @@ void rpm_cmd_remove(int argc, char *argv[])
             rpm_puts("Usage:\r\n"
                      "    rm [options] filename ...\r\n"
                      "    erase [options] filename ...\r\n"
-                     "Options:\n"
+                     "Options:\r\n"
                      "    -f      Force removing, do not ask for confirmation\r\n"
                      "    -r      Remove directories and their contents recursively\r\n"
                      "    -v      Verbose: show files as they are removed\r\n"
