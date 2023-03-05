@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Create filesystem on a disk device
 //
 #include <rpm/api.h>
 #include <rpm/getopt.h>

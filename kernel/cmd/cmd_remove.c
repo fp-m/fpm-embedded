@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Delete a file or set of files
 //
 #include <rpm/api.h>
 #include <rpm/getopt.h>

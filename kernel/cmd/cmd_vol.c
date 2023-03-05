@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Show the volume label of a disk device
 //
 #include <rpm/api.h>
 #include <rpm/getopt.h>

@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Show or change current directory
 //
 #include <rpm/api.h>
 #include <rpm/getopt.h>

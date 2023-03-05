@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Engage removable disk device
 //
 #include <rpm/api.h>
 #include <rpm/getopt.h>

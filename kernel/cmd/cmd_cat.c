@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Display the contents of a text file
 //
 #include <rpm/api.h>
 #include <rpm/fs.h>

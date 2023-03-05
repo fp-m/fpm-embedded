@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Rename files or directories
 //
 #include <rpm/api.h>
 #include <rpm/fs.h>
@@ -129,8 +129,7 @@ void rpm_cmd_rename(int argc, char *argv[])
             return;
 
         case 'h':
-usage:
-            rpm_puts("Usage:\r\n"
+usage:      rpm_puts("Usage:\r\n"
                      "    mv [options] filename ...\r\n"
                      "    rename [options] filename ...\r\n"
                      "Options:\n"

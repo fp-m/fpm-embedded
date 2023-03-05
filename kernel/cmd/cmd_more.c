@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Display output in pages
 //
 #include <rpm/api.h>
 #include <rpm/getopt.h>

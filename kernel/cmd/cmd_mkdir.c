@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// Create a directory
 //
 #include <rpm/api.h>
 #include <rpm/getopt.h>

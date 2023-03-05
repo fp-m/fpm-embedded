@@ -1,5 +1,5 @@
 //
-// Clear the console screen
+// List the contents of a directory
 //
 #include <rpm/api.h>
 #include <rpm/fs.h>
