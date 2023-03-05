@@ -189,7 +189,7 @@ int rpm_editline(uint16_t *buffer, unsigned buffer_length, bool clear, const cha
 
         case CTRL('n'):           // ^N - next line from history
         case RPM_DOWNWARDS_ARROW: // Arrow down
-            if (on_prev_line) {
+            if (on_prev_line && prev_line != 0) {
                 // Save current line.
                 rpm_strlcpy_unicode(prev_line, buffer, sizeof(next_line)/sizeof(uint16_t));
                 erase_line(buffer, &insert_pos);
