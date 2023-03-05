@@ -39,9 +39,10 @@ static void rename_file(const char *source, const char *destination, const optio
             uint16_t reply[32];
             rpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? (y/n [n]) ", destination);
             rpm_editline(reply, sizeof(reply), 1, prompt, 0);
+            rpm_puts("\r\n");
 
             if (reply[0] != 'y' && reply[0] != 'Y') {
-                rpm_printf("\r\nNot overwritten.\r\n");
+                rpm_printf("Not overwritten.\r\n");
                 return;
             }
         }
