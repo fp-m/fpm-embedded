@@ -26,7 +26,6 @@ void rpm_cmd_eject(int argc, char *argv[]);
 void rpm_cmd_format(int argc, char *argv[]);
 void rpm_cmd_help(int argc, char *argv[]);
 void rpm_cmd_mkdir(int argc, char *argv[]);
-void rpm_cmd_more(int argc, char *argv[]);
 void rpm_cmd_mount(int argc, char *argv[]);
 void rpm_cmd_pwd(int argc, char *argv[]);
 void rpm_cmd_reboot(int argc, char *argv[]);

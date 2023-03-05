@@ -37,7 +37,6 @@ void rpm_exec(int argc, char *argv[])
         { "help",   rpm_cmd_help },   // also ?
         { "ls",     rpm_cmd_dir },    // also DIR
         { "mkdir",  rpm_cmd_mkdir },  //
-        { "more",   rpm_cmd_more },   //
         { "mount",  rpm_cmd_mount },  //
         { "mv",     rpm_cmd_rename }, // also RENAME
         { "reboot", rpm_cmd_reboot }, //

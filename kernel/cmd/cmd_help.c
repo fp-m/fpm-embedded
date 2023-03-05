@@ -40,7 +40,6 @@ void rpm_cmd_help(int argc, char *argv[])
     rpm_puts("help or ?       Show all built-in commands\r\n");
     rpm_puts("ls or dir       List the contents of a directory\r\n");
     rpm_puts("mkdir           Create a directory\r\n");
-    rpm_puts("more            Display output in pages\r\n");
     rpm_puts("mount           Engage removable disk device\r\n");
     rpm_puts("mv or rename    Rename or move files and directories\r\n");
     rpm_puts("reboot          Restart the RP/M kernel\r\n");

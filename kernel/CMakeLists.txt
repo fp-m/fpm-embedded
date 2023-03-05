@@ -24,7 +24,6 @@ add_library(rpm_kernel STATIC
     cmd/cmd_format.c
     cmd/cmd_help.c
     cmd/cmd_mkdir.c
-    cmd/cmd_more.c
     cmd/cmd_mount.c
     cmd/cmd_reboot.c
     cmd/cmd_remove.c
