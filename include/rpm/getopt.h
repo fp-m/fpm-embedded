@@ -1,6 +1,10 @@
 //
 // Get long options from command line argument list.
 //
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum {                    // For has_arg:
     RPM_NO_ARG = 0,       // no argument to the option is expected
     RPM_REQUIRED_ARG = 1, // an argument to the option is required
@@ -30,3 +34,7 @@ struct rpm_opt {
 
 int rpm_getopt(int argc, char *const *argv, const char *optstring,
                const struct rpm_option *longopts, struct rpm_opt *opt);
+
+#ifdef __cplusplus
+}
+#endif

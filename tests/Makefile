@@ -2,7 +2,7 @@ TOP             = ..
 CFLAGS          = -g -O0 -Wall -I$(TOP)/include
 LDFLAGS         = -g
 LIBS            = -lcmocka
-TESTS           = editline_test tokenize_test getopt_test dotw_test fatfs_test copy_test
+TESTS           = editline_test tokenize_test getopt_test dotw_test fatfs_test
 EDITLINE_OBJ    = editline_test.o \
                   rpm_editline.o \
                   rpm_puts.o \
@@ -21,10 +21,6 @@ DOTW_OBJ        = dotw_test.o \
 FATFS_OBJ       = fatfs_test.o \
                   fatfs.o \
                   unicode.o
-COPY_OBJ        = copy_test.o \
-                  fatfs.o \
-                  unicode.o \
-                  fs_util.o
 vpath %.c $(TOP)/kernel $(TOP)/fatfs
 
 ifneq ($(wildcard /usr/local/include),)
@@ -66,9 +62,6 @@ dotw_test:      $(DOTW_OBJ)
 
 fatfs_test:     $(FATFS_OBJ)
 		$(CC) $(LDFLAGS) $(FATFS_OBJ) $(LIBS) -o $@
-
-copy_test:      $(COPY_OBJ)
-		$(CC) $(LDFLAGS) $(COPY_OBJ) $(LIBS) -o $@
 
 ###
 rpm_editline.o: ../kernel/rpm_editline.c ../include/rpm/api.h

@@ -6,6 +6,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Type for file size in bytes.
 typedef uint64_t fs_size_t;
 
@@ -248,5 +252,9 @@ fs_result_t f_setlabel(const char *label);
 
 // Create a FAT volume.
 fs_result_t f_mkfs(const char *path, uint8_t fmt, void *work, unsigned len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // RPM_FS_H

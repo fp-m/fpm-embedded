@@ -1,5 +1,9 @@
 #include <setjmp.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define RPM_VERSION "0.0"
 
 //
@@ -35,3 +39,7 @@ void rpm_cmd_rmdir(int argc, char *argv[]);
 void rpm_cmd_time(int argc, char *argv[]);
 void rpm_cmd_ver(int argc, char *argv[]);
 void rpm_cmd_vol(int argc, char *argv[]);
+
+#ifdef __cplusplus
+}
+#endif

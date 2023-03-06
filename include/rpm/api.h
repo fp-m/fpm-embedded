@@ -1,6 +1,10 @@
 //
 // API for RP/M.
 //
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -137,3 +141,7 @@ void rpm_reboot(void);
 void rpm_exec(int argc, char *argv[]);
 
 //TODO: sysvar_time
+
+#ifdef __cplusplus
+}
+#endif

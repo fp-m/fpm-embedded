@@ -1,5 +1,6 @@
 pico/build
 unix/build
+tests/build
 tests/*_test
 *.o
 *.c-

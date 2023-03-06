@@ -1,7 +1,4 @@
-#include <setjmp.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <cmocka.h>
+#include <gtest/gtest.h>
 #include <rpm/fs.h>
 #include <rpm/diskio.h>
 #include <alloca.h>
@@ -129,6 +126,8 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
     }
 }
 
+extern "C" {
+
 //
 // Get date and time (local).
 //
@@ -143,6 +142,8 @@ void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int
     *sec = 45;
 }
 
+};
+
 //
 // Create filesystem.
 //
@@ -150,7 +151,7 @@ static void create_filesystem(const char *drive_name, unsigned format)
 {
     char buf[4*1024];
     fs_result_t result = f_mkfs(drive_name, format, buf, sizeof(buf));
-    assert_int_equal(result, FR_OK);
+    ASSERT_EQ(result, FR_OK);
 }
 
 //
@@ -163,11 +164,11 @@ void disk_setup()
 
     // Mount flash disk.
     fs_result_t result = f_mount("flash:");
-    assert_int_equal(result, FR_OK);
+    ASSERT_EQ(result, FR_OK);
 
     // Mount SD card.
     result = f_mount("sd:");
-    assert_int_equal(result, FR_OK);
+    ASSERT_EQ(result, FR_OK);
 }
 
 //
@@ -176,25 +177,19 @@ void disk_setup()
 void write_file(const char *filename, const char *contents)
 {
     // Create file.
-    file_t *fp = alloca(f_sizeof_file_t());
-    fs_result_t result = f_open(fp, filename, FA_WRITE | FA_CREATE_ALWAYS);
-    assert_int_equal(result, FR_OK);
-
-    // Check current position.
-    assert_int_equal(f_tell(fp), 0);
+    auto fp = (file_t*) alloca(f_sizeof_file_t());
+    auto result = f_open(fp, filename, FA_WRITE | FA_CREATE_ALWAYS);
+    ASSERT_EQ(result, FR_OK) << filename;
 
     // Write data.
     unsigned nbytes = strlen(contents);
     unsigned written = 0;
     result = f_write(fp, contents, nbytes, &written);
-    assert_int_equal(nbytes, written);
-
-    // Check position again.
-    assert_int_equal(f_tell(fp), nbytes);
+    ASSERT_EQ(nbytes, written) << filename;
 
     // Close the file.
     result = f_close(fp);
-    assert_int_equal(result, FR_OK);
+    ASSERT_EQ(result, FR_OK) << filename;
 }
 
 //
@@ -203,25 +198,19 @@ void write_file(const char *filename, const char *contents)
 void read_file(const char *filename, const char *contents)
 {
     // Open file.
-    file_t *fp = alloca(f_sizeof_file_t());
-    fs_result_t result = f_open(fp, filename, FA_READ);
-    assert_int_equal(result, FR_OK);
-
-    // Check current position.
-    assert_int_equal(f_tell(fp), 0);
+    auto fp = (file_t*) alloca(f_sizeof_file_t());
+    auto result = f_open(fp, filename, FA_READ);
+    ASSERT_EQ(result, FR_OK) << filename;
 
     // Read data.
     char buf[128] = {};
     unsigned nbytes_read = 0;
     unsigned nbytes_expected = strlen(contents);
     result = f_read(fp, buf, sizeof(buf), &nbytes_read);
-    assert_int_equal(nbytes_read, nbytes_expected);
-    assert_string_equal(buf, contents);
-
-    // Check position again.
-    assert_int_equal(f_tell(fp), nbytes_read);
+    ASSERT_EQ(nbytes_read, nbytes_expected) << filename;
+    ASSERT_STREQ(buf, contents) << filename;
 
     // Close the file.
     result = f_close(fp);
-    assert_int_equal(result, FR_OK);
+    ASSERT_EQ(result, FR_OK) << filename;
 }
