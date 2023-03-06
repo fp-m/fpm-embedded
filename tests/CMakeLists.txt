@@ -7,6 +7,9 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Werror)
 
+add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
+add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)
+
 #
 # Download GoogleTest
 #
@@ -89,7 +92,13 @@ gtest_discover_tests(fatfs_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 
 add_executable(copy_tests
     copy_test.cpp
     fs_util.cpp
+    console_util.cpp
     ../fatfs/fatfs.c
     ../fatfs/unicode.c
+    ../kernel/cmd/cmd_copy.c
+)
+target_link_libraries(copy_tests
+    rpm_kernel
+    rpm_fatfs
 )
 gtest_discover_tests(copy_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
