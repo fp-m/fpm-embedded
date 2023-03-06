@@ -17,7 +17,7 @@ char rpm_getchar()
 {
     if (input == nullptr || *input == 0) {
         // Should not happen.
-        return '?';
+        throw std::runtime_error("No input in rpm_getchar()");
     }
     return *input++;
 }

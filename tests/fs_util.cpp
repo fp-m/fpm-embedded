@@ -126,11 +126,10 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
     }
 }
 
-extern "C" {
-
 //
 // Get date and time (local).
 //
+extern "C" {
 void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
 {
     *year = 2023;
@@ -141,7 +140,6 @@ void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int
     *min = 33;
     *sec = 45;
 }
-
 };
 
 //

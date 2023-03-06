@@ -47,6 +47,43 @@ add_executable(editline_tests
 gtest_discover_tests(editline_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
 
 #
+# Check rpm_tokenize() routine.
+#
+add_executable(tokenize_tests
+    tokenize_test.cpp
+    ../kernel/rpm_tokenize.c
+)
+gtest_discover_tests(tokenize_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
+# Check rpm_getopt() routine.
+#
+add_executable(getopt_tests
+    getopt_test.cpp
+    ../kernel/rpm_getopt.c
+)
+gtest_discover_tests(getopt_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
+# Check rpm_get_dotw() routine.
+#
+add_executable(dotw_tests
+    dotw_test.cpp
+    ../kernel/rpm_get_dotw.c
+)
+gtest_discover_tests(dotw_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
+# Check rpm_fatfs() routine.
+#
+add_executable(fatfs_tests
+    fatfs_test.cpp
+    ../fatfs/fatfs.c
+    ../fatfs/unicode.c
+)
+gtest_discover_tests(fatfs_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
 # Check cp/copy command.
 #
 add_executable(copy_tests

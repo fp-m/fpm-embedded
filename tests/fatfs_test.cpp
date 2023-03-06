@@ -1,10 +1,7 @@
 //
 // Test FatFS routines.
 //
-#include <setjmp.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <cmocka.h>
+#include <gtest/gtest.h>
 #include <rpm/fs.h>
 #include <rpm/diskio.h>
 #include <stdio.h>
@@ -73,8 +70,11 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
 disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned count)
 {
     //printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
-    assert_true(count > 0);
-    assert_true(sector + count <= fs_nbytes / sector_size);
+    if (count == 0)
+        throw std::runtime_error("Zero count in disk_read()");
+
+    if (sector + count > fs_nbytes / sector_size)
+        throw std::runtime_error("Too large count in disk_read()");
 
     memcpy(buf, &fs_image[sector * sector_size], count * sector_size);
     return DISK_OK;
@@ -83,8 +83,10 @@ disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned co
 disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsigned count)
 {
     //printf("--- %s(unit = %u, sector = %u, count = %u)\n", __func__, unit, sector, count);
-    assert_true(count > 0);
-    assert_true(sector + count <= fs_nbytes / sector_size);
+    if (count == 0)
+        throw std::runtime_error("Zero count in disk_write()");
+    if (sector + count > fs_nbytes / sector_size)
+        throw std::runtime_error("Too large count in disk_write()");
 
     memcpy(&fs_image[sector * sector_size], buf, count * sector_size);
     return DISK_OK;
@@ -93,6 +95,7 @@ disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsi
 //
 // Get date and time (local).
 //
+extern "C" {
 void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
 {
     *year = 2023;
@@ -103,6 +106,7 @@ void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int
     *min = 33;
     *sec = 45;
 }
+};
 
 //
 // Create a file with given name and contents.
@@ -110,25 +114,25 @@ void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int
 static void write_file(const char *filename, const char *contents)
 {
     // Create file.
-    file_t *fp = alloca(f_sizeof_file_t());
-    fs_result_t result = f_open(fp, filename, FA_WRITE | FA_CREATE_ALWAYS);
-    assert_int_equal(result, FR_OK);
+    auto fp = (file_t*) alloca(f_sizeof_file_t());
+    auto result = f_open(fp, filename, FA_WRITE | FA_CREATE_ALWAYS);
+    EXPECT_EQ(result, FR_OK);
 
     // Check current position.
-    assert_int_equal(f_tell(fp), 0);
+    EXPECT_EQ(f_tell(fp), 0);
 
     // Write data.
     unsigned nbytes = strlen(contents);
     unsigned written = 0;
     result = f_write(fp, contents, nbytes, &written);
-    assert_int_equal(nbytes, written);
+    EXPECT_EQ(nbytes, written);
 
     // Check position again.
-    assert_int_equal(f_tell(fp), nbytes);
+    EXPECT_EQ(f_tell(fp), nbytes);
 
     // Close the file.
     result = f_close(fp);
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 }
 
 //
@@ -137,27 +141,27 @@ static void write_file(const char *filename, const char *contents)
 static void read_file(const char *filename, const char *contents)
 {
     // Open file.
-    file_t *fp = alloca(f_sizeof_file_t());
-    fs_result_t result = f_open(fp, filename, FA_READ);
-    assert_int_equal(result, FR_OK);
+    auto fp = (file_t*) alloca(f_sizeof_file_t());
+    auto result = f_open(fp, filename, FA_READ);
+    EXPECT_EQ(result, FR_OK);
 
     // Check current position.
-    assert_int_equal(f_tell(fp), 0);
+    EXPECT_EQ(f_tell(fp), 0);
 
     // Read data.
     char buf[128] = {};
     unsigned nbytes_read = 0;
     unsigned nbytes_expected = strlen(contents);
     result = f_read(fp, buf, sizeof(buf), &nbytes_read);
-    assert_int_equal(nbytes_read, nbytes_expected);
-    assert_string_equal(buf, contents);
+    EXPECT_EQ(nbytes_read, nbytes_expected);
+    EXPECT_STREQ(buf, contents);
 
     // Check position again.
-    assert_int_equal(f_tell(fp), nbytes_read);
+    EXPECT_EQ(f_tell(fp), nbytes_read);
 
     // Close the file.
     result = f_close(fp);
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 }
 
 //
@@ -183,11 +187,11 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     fs_nbytes = (fmt & FM_FAT32) ? sizeof(fs_image) : 1*1024*1024;
     memset(fs_image, 0xff, fs_nbytes);
     fs_result_t result = f_mkfs(filename, fmt, buf, sizeof(buf));
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Mount drive.
     result = f_mount("0:");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Check free space on the drive.
     unsigned const expect_free_clusters = (fmt & FM_FAT32) ? 81184 :
@@ -195,19 +199,19 @@ static void test_mkfs_write_read_delete(unsigned fmt)
                                                              24;
     fs_info_t fsinfo;
     result = f_statfs("", &fsinfo);
-    assert_int_equal(result, FR_OK);
-    assert_int_equal(fsinfo.f_bavail, expect_free_clusters);
+    EXPECT_EQ(result, FR_OK);
+    EXPECT_EQ(fsinfo.f_bavail, expect_free_clusters);
 
     // Set disk label.
     const char *disk_label = "mydisklabel";
     result = f_setlabel(disk_label);
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     write_file("Foo.txt", "'Twas brillig, and the slithy toves");
 
     // Create directory.
     result = f_mkdir("Bar");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     write_file("Bar/Long-file-name.txt", "Did gyre and gimble in the wabe");
 
@@ -215,27 +219,27 @@ static void test_mkfs_write_read_delete(unsigned fmt)
 
     // Unmount.
     result = f_unmount("0:");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Save FS image to file.
     int fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0664);
-    assert_true(fd >= 0);
+    ASSERT_TRUE(fd >= 0);
     int nbytes = write(fd, fs_image, fs_nbytes);
     close(fd);
-    assert_int_equal(nbytes, fs_nbytes);
+    EXPECT_EQ(nbytes, fs_nbytes);
 
     // Mount the drive again.
     result = f_mount("0:");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Get disk label.
     char label[128];
     uint32_t serial_number = 0;
     result = f_getlabel("0:", label, &serial_number);
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
     //printf("--- %s() volume label = '%s', serial number = %08x\n", __func__, label, serial_number);
-    assert_string_equal(label, (fmt & FM_EXFAT) ? "mydisklabel" : "MYDISKLABEL");
-    assert_true(serial_number != 0);
+    EXPECT_STREQ(label, (fmt & FM_EXFAT) ? "mydisklabel" : "MYDISKLABEL");
+    ASSERT_TRUE(serial_number != 0);
 
     read_file("Foo.txt", "'Twas brillig, and the slithy toves");
 
@@ -246,77 +250,64 @@ static void test_mkfs_write_read_delete(unsigned fmt)
     // Check directory.
     file_info_t info = {};
     result = f_stat("Bar", &info);
-    assert_int_equal(result, FR_OK);
-    assert_int_equal(info.fattrib, AM_DIR);   // File attribute
-    assert_int_equal(info.fsize, 0);          // File size
-    assert_int_equal(info.fdate, 0x5652);     // Modified date
-    assert_int_equal(info.ftime, 0x7c36);     // Modified time
-    assert_string_equal(info.fname, "Bar");   // Primary file name
-    assert_string_equal(info.altname, (fmt & FM_EXFAT) ? "" : "BAR"); // Alternative file name
+    EXPECT_EQ(result, FR_OK);
+    EXPECT_EQ(info.fattrib, AM_DIR);   // File attribute
+    EXPECT_EQ(info.fsize, 0);          // File size
+    EXPECT_EQ(info.fdate, 0x5652);     // Modified date
+    EXPECT_EQ(info.ftime, 0x7c36);     // Modified time
+    EXPECT_STREQ(info.fname, "Bar");   // Primary file name
+    EXPECT_STREQ(info.altname, (fmt & FM_EXFAT) ? "" : "BAR"); // Alternative file name
 
     // Check file with unicode name.
     result = f_stat("Αβρακαδαβρα.txt", &info);
-    assert_int_equal(result, FR_OK);
-    assert_int_equal(info.fattrib, AM_ARC);             // File attribute
-    assert_int_equal(info.fsize, 79);                   // File size
-    assert_int_equal(info.fdate, 0x5652);               // Modified date
-    assert_int_equal(info.ftime, 0x7c36);               // Modified time
-    assert_string_equal(info.fname, "Αβρακαδαβρα.txt"); // Primary file name
-    assert_string_equal(info.altname, (fmt & FM_EXFAT) ? "" : "______~1.TXT"); // Alternative file name
+    EXPECT_EQ(result, FR_OK);
+    EXPECT_EQ(info.fattrib, AM_ARC);             // File attribute
+    EXPECT_EQ(info.fsize, 79);                   // File size
+    EXPECT_EQ(info.fdate, 0x5652);               // Modified date
+    EXPECT_EQ(info.ftime, 0x7c36);               // Modified time
+    EXPECT_STREQ(info.fname, "Αβρακαδαβρα.txt"); // Primary file name
+    EXPECT_STREQ(info.altname, (fmt & FM_EXFAT) ? "" : "______~1.TXT"); // Alternative file name
 
     // Delete file.
     result = f_unlink("Foo.txt");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Try to delete it again.
     result = f_unlink("Foo.txt");
-    assert_int_equal(result, FR_NO_FILE);
+    EXPECT_EQ(result, FR_NO_FILE);
 
     // Try to delete non-empty directory.
     result = f_unlink("Bar");
-    assert_int_equal(result, FR_DENIED);
+    EXPECT_EQ(result, FR_DENIED);
 
     // Delete file in the directorry.
     result = f_unlink("Bar/Long-file-name.txt");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Delete the directory.
     result = f_unlink("Bar");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Delete file with unicode name.
     result = f_unlink("Αβρακαδαβρα.txt");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 
     // Unmount.
     result = f_unmount("0:");
-    assert_int_equal(result, FR_OK);
+    EXPECT_EQ(result, FR_OK);
 }
 
-static void fat32(void **unused)
+TEST(fatfs, fat32)
 {
     test_mkfs_write_read_delete(FM_FAT32);
 }
 
-static void exfat(void **unused)
+TEST(fatfs, exfat)
 {
     test_mkfs_write_read_delete(FM_EXFAT | FM_SFD);
 }
 
-static void fat16(void **unused)
+TEST(fatfs, fat16)
 {
     test_mkfs_write_read_delete(FM_FAT | FM_SFD);
-}
-
-//
-// Run all tests.
-//
-int main()
-{
-    const struct CMUnitTest tests[] = {
-        cmocka_unit_test(fat32),
-        cmocka_unit_test(exfat),
-        cmocka_unit_test(fat16),
-    };
-    return cmocka_run_group_tests(tests, NULL, NULL);
 }

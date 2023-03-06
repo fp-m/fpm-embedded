@@ -17,7 +17,7 @@ void rpm_exec(int argc, char *argv[])
 {
     // Table of internal commands.
     typedef struct {
-        char *name;
+        const char *name;
         void (*func)(int argc, char *argv[]);
     } command_table_t;
     static const command_table_t cmd_tab[] = {

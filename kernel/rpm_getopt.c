@@ -34,7 +34,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 {
     int optindex = 0;
     size_t match_chars = 0;
-    char *possible_arg = 0;
+    const char *possible_arg = 0;
     int longopt_match = -1;
     int has_arg = -1;
     char *cp = 0;

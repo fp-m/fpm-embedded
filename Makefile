@@ -12,10 +12,10 @@
 all:    pico/build unix/build
 	$(MAKE) -C pico/build $@
 	$(MAKE) -C unix/build $@
-	$(MAKE) -C tests $@
 
-test:
-	$(MAKE) -C tests $@
+test:   tests/build
+	$(MAKE) -C tests/build all
+	ctest --test-dir tests/build
 
 install: pico/build unix/build
 	$(MAKE) -C pico/build $@
@@ -24,7 +24,7 @@ install: pico/build unix/build
 clean:
 	if [ -d pico/build ]; then $(MAKE) -C pico/build clean; fi
 	if [ -d unix/build ]; then $(MAKE) -C unix/build clean; fi
-	$(MAKE) -C tests $@
+	if [ -d tests/build ]; then $(MAKE) -C tests/build clean; fi
 
 pico/build:
 	mkdir $@
@@ -33,3 +33,7 @@ pico/build:
 unix/build:
 	mkdir $@
 	cmake -B $@ unix
+
+tests/build:
+	mkdir $@
+	cmake -B $@ tests
