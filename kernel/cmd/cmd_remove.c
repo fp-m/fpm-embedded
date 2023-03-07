@@ -37,5 +37,6 @@ void rpm_cmd_remove(int argc, char *argv[])
         }
     }
 
+    //TODO: implement rm/erase
     rpm_puts("Not implemented yet.\r\n\n");
 }

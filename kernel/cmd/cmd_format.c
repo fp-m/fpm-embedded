@@ -33,5 +33,6 @@ void rpm_cmd_format(int argc, char *argv[])
         }
     }
 
+    //TODO: implement format
     rpm_puts("Not implemented yet.\r\n\n");
 }

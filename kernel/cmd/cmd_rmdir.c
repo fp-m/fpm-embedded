@@ -32,5 +32,6 @@ void rpm_cmd_rmdir(int argc, char *argv[])
         }
     }
 
+    //TODO: implement rmdir
     rpm_puts("Not implemented yet.\r\n\n");
 }

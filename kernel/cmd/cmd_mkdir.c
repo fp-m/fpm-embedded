@@ -32,5 +32,6 @@ void rpm_cmd_mkdir(int argc, char *argv[])
         }
     }
 
+    //TODO: implement mkdir
     rpm_puts("Not implemented yet.\r\n\n");
 }
