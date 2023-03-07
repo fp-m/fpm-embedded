@@ -177,17 +177,20 @@ void write_file(const char *filename, const char *contents)
     // Create file.
     auto fp = (file_t*) alloca(f_sizeof_file_t());
     auto result = f_open(fp, filename, FA_WRITE | FA_CREATE_ALWAYS);
-    ASSERT_EQ(result, FR_OK) << filename;
+    ASSERT_EQ(result, FR_OK)
+        << filename << ": " << f_strerror(result);
 
     // Write data.
     unsigned nbytes = strlen(contents);
     unsigned written = 0;
     result = f_write(fp, contents, nbytes, &written);
-    ASSERT_EQ(nbytes, written) << filename;
+    ASSERT_EQ(nbytes, written)
+        << filename;
 
     // Close the file.
     result = f_close(fp);
-    ASSERT_EQ(result, FR_OK) << filename;
+    ASSERT_EQ(result, FR_OK)
+        << filename << ": " << f_strerror(result);
 }
 
 //
@@ -198,17 +201,44 @@ void read_file(const char *filename, const char *contents)
     // Open file.
     auto fp = (file_t*) alloca(f_sizeof_file_t());
     auto result = f_open(fp, filename, FA_READ);
-    ASSERT_EQ(result, FR_OK) << filename;
+    ASSERT_EQ(result, FR_OK)
+        << filename << ": " << f_strerror(result);
 
     // Read data.
     char buf[128] = {};
     unsigned nbytes_read = 0;
     unsigned nbytes_expected = strlen(contents);
     result = f_read(fp, buf, sizeof(buf), &nbytes_read);
-    ASSERT_EQ(nbytes_read, nbytes_expected) << filename;
-    ASSERT_STREQ(buf, contents) << filename;
+    ASSERT_EQ(nbytes_read, nbytes_expected)
+        << filename;
+    ASSERT_STREQ(buf, contents)
+        << filename;
 
     // Close the file.
     result = f_close(fp);
-    ASSERT_EQ(result, FR_OK) << filename;
+    ASSERT_EQ(result, FR_OK)
+        << filename << ": " << f_strerror(result);
+}
+
+//
+// Create new directory.
+//
+void create_directory(const char *dirname)
+{
+    auto result = f_mkdir(dirname);
+    ASSERT_EQ(result, FR_OK)
+        << dirname << ": " << f_strerror(result);
+}
+
+//
+// Make sure directory exists.
+//
+void check_directory(const char *dirname)
+{
+    file_info_t info;
+    auto result = f_stat(dirname, &info);
+    ASSERT_EQ(result, FR_OK)
+        << dirname << ": " << f_strerror(result);
+    ASSERT_TRUE((info.fattrib & AM_DIR) != 0)
+        << dirname << ": " << f_strerror(result);
 }

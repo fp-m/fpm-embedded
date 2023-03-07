@@ -19,3 +19,13 @@ void write_file(const char *filename, const char *contents);
 // Check contents of the file.
 //
 void read_file(const char *filename, const char *contents);
+
+//
+// Create new directory.
+//
+void create_directory(const char *dirname);
+
+//
+// Make sure directory exists.
+//
+void check_directory(const char *dirname);
