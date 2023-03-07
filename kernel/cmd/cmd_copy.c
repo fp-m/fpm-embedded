@@ -100,7 +100,65 @@ fatal:      f_close(fsrc);
 //
 static void copy_recursive(const char *source, const char *destination, const options_t *options)
 {
-    rpm_printf("TODO: recursive copy %s -> %s\r\n", source, destination);
+    // Allocate from/to paths.
+    unsigned src_len = strlen(source);
+    unsigned dest_len = strlen(destination);
+    char from[src_len + 1 + FF_LFN_BUF + 1];
+    char to[dest_len + 1 + FF_LFN_BUF + 1];
+    char *from_last = from + src_len;
+    char *to_last = to + dest_len;
+    strcpy(from, source);
+    strcpy(to, destination);
+    if (from_last[-1] != '/')
+        *from_last++ = '/';
+    if (to_last[-1] != '/')
+        *to_last++ = '/';
+
+    // Check destination existence and type.
+    file_info_t info;
+    fs_result_t result = f_stat(destination, &info);
+    if (result != FR_OK) {
+        // Create destination directory.
+        result = f_mkdir(destination);
+        if (result != FR_OK) {
+            // Cannot create destination directory.
+            rpm_printf("%s: %s\r\n", destination, f_strerror(result));
+            return;
+        }
+    } else {
+        if (!(info.fattrib & AM_DIR)) {
+            // Destination must be a directory.
+            rpm_printf("%s: Destination is not a directory, cannot copy\r\n", destination);
+            return;
+        }
+    }
+
+    // Scan the directory.
+    directory_t *dir = alloca(f_sizeof_directory_t());
+    result = f_opendir(dir, source);
+    if (result != FR_OK) {
+        rpm_printf("%s: %s\r\n", source, f_strerror(result));
+        return;
+    }
+    for (;;) {
+        // Get directory entry.
+        result = f_readdir(dir, &info);
+        if (result != FR_OK || !info.fname[0]) {
+            // End of directory.
+            break;
+        }
+
+        // Update from/to paths.
+        strcpy(from_last, info.fname);
+        strcpy(to_last, info.fname);
+
+        if (info.fattrib & AM_DIR) {
+            copy_recursive(from, to, options);
+        } else {
+            copy_file(from, to, options);
+        }
+    }
+    f_closedir(dir);
 }
 
 //
@@ -130,6 +188,22 @@ static void copy_object(const char *source, const char *destination, const optio
 
 //
 // Copy a list of files/directories into destination directory.
+// Path of destination files depends on existence of the target directory,
+// and on presence of slash at the end of the source path.
+//
+// For example, assume we run command:
+//      cp -r foo bar
+//
+// Source  Source      Destination Destination
+//         files       exists      non-existent
+// --------------------------------------------
+// foo     foo/a       bar/foo/a   bar/a
+//         foo/b       bar/foo/b   bar/b
+//         foo/c       bar/foo/c   bar/c
+// --------------------------------------------
+// foo/    foo/a       bar/a       bar/a
+//         foo/b       bar/b       bar/b
+//         foo/c       bar/c       bar/c
 //
 static void copy_to_directory(const char *source[], unsigned num_sources,
                               const char *dest_dir, const options_t *options)
@@ -146,16 +220,19 @@ static void copy_to_directory(const char *source[], unsigned num_sources,
     }
     for (unsigned i = 0; i < num_sources; i++) {
         //
-        // Find the last component of the source pathname.  It
-        // may have trailing slashes.
+        // Find the last component of the source pathname.
+        // It may have trailing slashes.
         //
         const char *p = source[i] + strlen(source[i]);
-        while (p != source[i] && p[-1] == '/')
-            --p;
-        while (p != source[i] && p[-1] != '/')
-            --p;
-
-        strcpy(endp, p);
+        if (p[-1] != '/') {
+            // No trailing slash: append last component of the source
+            // to the destination path.
+            while (p != source[i] && p[-1] == '/')
+                --p;
+            while (p != source[i] && p[-1] != '/')
+                --p;
+            strcpy(endp, p);
+        }
         copy_object(source[i], destination, options);
     }
 }
