@@ -30,7 +30,7 @@ static void copy_file(const char *source, const char *destination, const options
         if (result == FR_OK) {
             char prompt[32 + strlen(destination)];
             uint16_t reply[32];
-            rpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? (y/n [n]) ", destination);
+            rpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? y/n [n] ", destination);
             rpm_editline(reply, sizeof(reply), 1, prompt, 0);
             rpm_puts("\r\n");
 
