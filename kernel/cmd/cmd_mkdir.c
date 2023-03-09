@@ -2,8 +2,17 @@
 // Create a directory
 //
 #include <rpm/api.h>
+#include <rpm/fs.h>
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
+
+static void create_directory(const char *path)
+{
+    fs_result_t result = f_mkdir(path);
+    if (result != FR_OK) {
+        rpm_printf("%s: %s\r\n", path, f_strerror(result));
+    }
+}
 
 void rpm_cmd_mkdir(int argc, char *argv[])
 {
@@ -12,12 +21,14 @@ void rpm_cmd_mkdir(int argc, char *argv[])
         {},
     };
     struct rpm_opt opt = {};
+    unsigned argcount = 0;
 
     while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
-            rpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
-            return;
+            create_directory(opt.arg);
+            argcount++;
+            break;
 
         case '?':
             // Unknown option: message already printed.
@@ -25,13 +36,16 @@ void rpm_cmd_mkdir(int argc, char *argv[])
             return;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
+usage:      rpm_puts("Usage:\r\n"
                      "    mkdir name ...\r\n"
                      "\n");
             return;
         }
     }
 
-    //TODO: implement mkdir
-    rpm_puts("Not implemented yet.\r\n\n");
+    if (argcount == 0) {
+        // Nothing to create.
+        goto usage;
+    }
+    rpm_puts("\r\n");
 }
