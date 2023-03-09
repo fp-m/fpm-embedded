@@ -2,8 +2,27 @@
 // Remove a directory
 //
 #include <rpm/api.h>
+#include <rpm/fs.h>
 #include <rpm/getopt.h>
 #include <rpm/internal.h>
+
+static void remove_directory(const char *path)
+{
+    file_info_t info;
+    fs_result_t result = f_stat(path, &info);
+    if (result != FR_OK) {
+        rpm_printf("%s: %s\r\n", path, f_strerror(result));
+        return;
+    }
+    if (!(info.fattrib & AM_DIR)) {
+        rpm_printf("%s: Not a directory\r\n", path);
+        return;
+    }
+    result = f_unlink(path);
+    if (result != FR_OK) {
+        rpm_printf("%s: %s\r\n", path, f_strerror(result));
+    }
+}
 
 void rpm_cmd_rmdir(int argc, char *argv[])
 {
@@ -12,12 +31,14 @@ void rpm_cmd_rmdir(int argc, char *argv[])
         {},
     };
     struct rpm_opt opt = {};
+    unsigned argcount = 0;
 
     while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
-            rpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
-            return;
+            remove_directory(opt.arg);
+            argcount++;
+            break;
 
         case '?':
             // Unknown option: message already printed.
@@ -25,13 +46,16 @@ void rpm_cmd_rmdir(int argc, char *argv[])
             return;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
+usage:      rpm_puts("Usage:\r\n"
                      "    rmdir directory ...\r\n"
                      "\n");
             return;
         }
     }
 
-    //TODO: implement rmdir
-    rpm_puts("Not implemented yet.\r\n\n");
+    if (argcount == 0) {
+        // Nothing to remove.
+        goto usage;
+    }
+    rpm_puts("\r\n");
 }
