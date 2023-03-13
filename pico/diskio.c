@@ -20,15 +20,14 @@ specific language governing permissions and limitations under the License.
 /* This is an example of glue functions to attach various exsisting      */
 /* storage control modules to the FatFs module with a defined API.       */
 /*-----------------------------------------------------------------------*/
-#include <stdio.h>
-
-#include <rpm/diskio.h> /* Declarations of disk functions */
+#include <rpm/diskio.h> // Declarations of disk functions
+#include <stdio.h>      // For debug printfs
 #include "hw_config.h"
 #include "sd_card.h"
 #include "flash.h"
 
 #define TRACE_PRINTF(fmt, args...)
-// #define TRACE_PRINTF printf  // task_printf
+//#define TRACE_PRINTF printf
 
 //
 // Names of disk volumes.

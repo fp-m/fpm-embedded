@@ -19,16 +19,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#include <rpm/api.h> /* Declarations of disk functions */
-#include <rpm/diskio.h> /* Declarations of disk functions */
+#include <rpm/api.h>    // Declarations of disk functions
+#include <rpm/diskio.h> // Declarations of disk functions
+#include <stdio.h>      // For debug printfs
 #include "pico/stdlib.h"
 #include "flash.h"
-#include "pico/bootrom.h"
-#include "hardware/structs/ioqspi.h"
-#include "hardware/structs/ssi.h"
 #include "hardware/sync.h"
+#include "hardware/flash.h"
 
 static char *flash_disk_image = 0;
+static unsigned flash_base_offset;
 static disk_info_t flash_info;
 
 // All supported Flash chips have 4-kbyte block size.
@@ -38,59 +38,6 @@ extern char __flash_binary_start[];
 extern char __flash_binary_end[];
 
 //
-// Perform command on the Flash chip.
-//
-static void __no_inline_not_in_flash_func(flash_do_cmd)(const uint8_t* txbuf, uint8_t* rxbuf, size_t count)
-{
-    uint32_t irqsave = save_and_disable_interrupts();
-
-    // Call routines in Boot ROM.
-    rom_connect_internal_flash_fn connect_internal_flash =
-        (rom_connect_internal_flash_fn)rom_func_lookup_inline(ROM_FUNC_CONNECT_INTERNAL_FLASH);
-    rom_flash_exit_xip_fn flash_exit_xip =
-        (rom_flash_exit_xip_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_EXIT_XIP);
-    rom_flash_flush_cache_fn flash_flush_cache =
-        (rom_flash_flush_cache_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_FLUSH_CACHE);
-    rom_flash_enter_cmd_xip_fn flash_enter_cmd_xip =
-        (rom_flash_enter_cmd_xip_fn)rom_func_lookup_inline(ROM_FUNC_FLASH_ENTER_CMD_XIP);
-
-    __compiler_memory_barrier();
-    connect_internal_flash();
-    flash_exit_xip();
-
-    // Flash /CS = low.
-    hw_write_masked(&ioqspi_hw->io[1].ctrl,
-                    IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_VALUE_LOW << IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_LSB,
-                    IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_BITS);
-
-    size_t tx_remaining = count;
-    size_t rx_remaining = count;
-    const size_t max_in_flight = 16 - 2;
-    while (tx_remaining || rx_remaining) {
-        uint32_t flags = ssi_hw->sr;
-        bool can_put = flags & SSI_SR_TFNF_BITS;
-        bool can_get = flags & SSI_SR_RFNE_BITS;
-        if (can_put && tx_remaining && rx_remaining - tx_remaining < max_in_flight) {
-            ssi_hw->dr0 = *txbuf++;
-            --tx_remaining;
-        }
-        if (can_get && rx_remaining) {
-            *rxbuf++ = (uint8_t)ssi_hw->dr0;
-            --rx_remaining;
-        }
-    }
-
-    // Flash /CS = high.
-    hw_write_masked(&ioqspi_hw->io[1].ctrl,
-                    IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_VALUE_HIGH << IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_LSB,
-                    IO_QSPI_GPIO_QSPI_SS_CTRL_OUTOVER_BITS);
-
-    flash_flush_cache();
-    flash_enter_cmd_xip();
-    restore_interrupts(irqsave);
-}
-
-//
 // Read Flash unique ID as 64-bit integer value.
 //
 static uint64_t flash_read_unique_id()
@@ -98,7 +45,9 @@ static uint64_t flash_read_unique_id()
     // Read Unique ID instruction: 4Bh command prefix, 32 dummy bits, 64 data bits.
     uint8_t txbuf[1 + 4 + 8] = { 0x4b };
     uint8_t rxbuf[1 + 4 + 8] = {};
+    uint32_t irqsave = save_and_disable_interrupts();
     flash_do_cmd(txbuf, rxbuf, sizeof(txbuf));
+    restore_interrupts(irqsave);
 
     return (uint64_t)rxbuf[5] << 56 | (uint64_t)rxbuf[6] << 48 |
            (uint64_t)rxbuf[7] << 40 | (uint64_t)rxbuf[8] << 32 |
@@ -114,7 +63,9 @@ static void flash_read_mf_dev_id(uint8_t *mf_id, uint16_t *dev_id)
     // JEDEC ID instruction: 9Fh command prefix, 24 data bits.
     uint8_t txbuf[1 + 3] = { 0x9f };
     uint8_t rxbuf[1 + 3] = {};
+    uint32_t irqsave = save_and_disable_interrupts();
     flash_do_cmd(txbuf, rxbuf, sizeof(txbuf));
+    restore_interrupts(irqsave);
 
     *mf_id = rxbuf[1];
     *dev_id = rxbuf[2] << 8 | rxbuf[3];
@@ -166,13 +117,13 @@ static void flash_probe()
     }
 
     // Subtract area occupied by the code.
-    unsigned code_nbytes = __flash_binary_end - __flash_binary_start;
+    flash_base_offset = __flash_binary_end - __flash_binary_start;
 
     // Align to 64 kbytes.
-    code_nbytes = (code_nbytes + 0xffff) & ~0xffff;
+    flash_base_offset = (flash_base_offset + 0xffff) & ~0xffff;
 
-    flash_disk_image = &__flash_binary_start[code_nbytes];
-    flash_info.num_bytes -= code_nbytes;
+    flash_disk_image = &__flash_binary_start[flash_base_offset];
+    flash_info.num_bytes -= flash_base_offset;
 }
 
 //
@@ -196,7 +147,7 @@ unsigned flash_block_size(void)
 
 disk_result_t flash_read(uint8_t *buf, unsigned block, unsigned count)
 {
-    //printf("--- %s(unit = %u, block = %u, count = %u)\r\n", __func__, block, count);
+    //printf("--- %s(block = %u, count = %u)\r\n", __func__, block, count);
     if (!flash_disk_image) {
         flash_probe();
     }
@@ -214,11 +165,26 @@ disk_result_t flash_read(uint8_t *buf, unsigned block, unsigned count)
 
 disk_result_t flash_write(const uint8_t *buf, unsigned block, unsigned count)
 {
+    //printf("--- %s(block = %u, count = %u)\r\n", __func__, block, count);
     if (!flash_disk_image) {
         flash_probe();
     }
-    //TODO: Implement Flash write
-    return DISK_ERROR;
+
+    unsigned offset = block * flash_bytes_per_block;
+    unsigned nbytes = count * flash_bytes_per_block;
+    if (nbytes == 0 || offset + nbytes > flash_info.num_bytes)
+        return DISK_PARERR;
+
+    // Erase flash.
+    uint32_t irqsave = save_and_disable_interrupts();
+    flash_range_erase(flash_base_offset + offset, nbytes);
+    restore_interrupts(irqsave);
+
+    // Write to flash.
+    irqsave = save_and_disable_interrupts();
+    flash_range_program(flash_base_offset + offset, buf, nbytes);
+    restore_interrupts(irqsave);
+    return DISK_OK;
 }
 
 //
