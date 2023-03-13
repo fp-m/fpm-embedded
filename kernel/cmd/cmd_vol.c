@@ -7,12 +7,13 @@
 #include <rpm/fs.h>
 #include <rpm/diskio.h>
 
-static void print_volume_info(const char *path)
+static void print_volume_info(const char *drive_name)
 {
     // Check the argument.
-    int drive = f_getdrive(path);
-    if (drive < 0) {
-        rpm_printf("%s: Invalid drive name\r\n\n", path);
+    const char *path = drive_name;
+    int drive = f_getdrive(&path);
+    if (drive < 0 || *path != '\0') {
+        rpm_printf("%s: Invalid drive name\r\n\n", drive_name);
         return;
     }
 
@@ -20,7 +21,7 @@ static void print_volume_info(const char *path)
     // The filesystem may not be formatted, which is OK.
     char label[32] = "";
     uint32_t serial_number;
-    fs_result_t result = f_getlabel(path, label, &serial_number);
+    fs_result_t result = f_getlabel(drive_name, label, &serial_number);
     if (result != FR_OK && result != FR_NO_FILESYSTEM) {
         rpm_puts(f_strerror(result));
         rpm_puts("\r\n\n");

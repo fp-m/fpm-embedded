@@ -4043,13 +4043,13 @@ fs_result_t f_chdrive(const char *path) /* Drive number to set */
 //
 // Get current drive.
 //
-int f_getdrive(const char *path)
+int f_getdrive(const char **path)
 {
-    if (!path || *path == 0)
+    if (!path || !*path)
         return CurrVol;
 
     // Get volume ID (logical drive number).
-    return get_ldnumber(&path);
+    return get_ldnumber(path);
 }
 
 fs_result_t f_chdir(const char *path) /* Pointer to the directory path */

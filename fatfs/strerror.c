@@ -18,7 +18,7 @@ const char *f_strerror(fs_result_t errnum)
     case FR_INVALID_DRIVE:       return "The logical drive number is invalid";
     case FR_NOT_ENABLED:         return "The volume has no work area";
     case FR_NO_FILESYSTEM:       return "There is no valid FAT volume";
-    case FR_MKFS_ABORTED:        return "The f_mkfs() aborted due to any problem";
+    case FR_MKFS_ABORTED:        return "Cannot create filesystem: disk too small/big";
     case FR_TIMEOUT:             return "Operation timed out";
     case FR_LOCKED:              return "Resource busy";
     case FR_NOT_ENOUGH_CORE:     return "Cannot allocate memory";
