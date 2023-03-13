@@ -29,7 +29,6 @@ extern "C" {
 
 // "Class" representing SD Cards
 typedef struct {
-    const char *pcName;
     struct _spi_t *spi;
 
     // Slave select is here in sd_card_t because multiple SDs can share an SPI
