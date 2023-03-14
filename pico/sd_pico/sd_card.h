@@ -27,9 +27,13 @@ specific language governing permissions and limitations under the License.
 extern "C" {
 #endif
 
+//
 // "Class" representing SD Cards
-typedef struct {
-    struct _spi_t *spi;
+//
+typedef struct _sd_card_t {
+    struct _sd_card_t *sd_cards; // List of all SD cards configured
+    struct _spi_t *spi_ports;    // List of all SPI ports configured
+    struct _spi_t *spi;          // SPI port for this SD card
 
     // Slave select is here in sd_card_t because multiple SDs can share an SPI
     uint ss_gpio; // Slave select for this SD card
@@ -63,7 +67,7 @@ typedef struct {
 #define SD_BLOCK_DEVICE_ERROR_ERASE -5010           /*!< Erase error: reset/sequence */
 #define SD_BLOCK_DEVICE_ERROR_WRITE -5011           /*!< SPI Write error: !SPI_DATA_ACCEPTED */
 
-bool sd_init_driver(void);
+bool sd_init_driver(sd_card_t *sd_cards);
 media_status_t sd_init(sd_card_t *pSD);
 int sd_write_blocks(sd_card_t *pSD, const uint8_t *buffer, uint64_t ulSectorNumber,
                     uint32_t blockCnt);

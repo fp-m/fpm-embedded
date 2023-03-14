@@ -168,7 +168,6 @@ specific language governing permissions and limitations under the License.
 #include "hardware/gpio.h"
 #include "pico/mutex.h"
 
-#include "hw_config.h" // Hardware Configuration of the SPI and SD Card "objects"
 #include "sd_spi.h"
 #include "sd_card.h"
 
@@ -1185,7 +1184,7 @@ static int sd_init_medium(sd_card_t *pSD)
 media_status_t sd_init(sd_card_t *pSD)
 {
     TRACE_PRINTF("> %s\r\n", __FUNCTION__);
-    if (!sd_init_driver()) {
+    if (!sd_init_driver(pSD->sd_cards)) {
         pSD->m_Status |= MEDIA_NOINIT;
         return pSD->m_Status;
     }
@@ -1246,29 +1245,27 @@ media_status_t sd_init(sd_card_t *pSD)
     return pSD->m_Status;
 }
 
-bool sd_init_driver()
+bool sd_init_driver(sd_card_t *sd_cards)
 {
     static bool initialized;
     auto_init_mutex(sd_init_driver_mutex);
     mutex_enter_blocking(&sd_init_driver_mutex);
     if (!initialized) {
-        for (size_t i = 0; i < sd_get_num(); ++i) {
-            sd_card_t *pSD = sd_get_by_num(i);
-            if (pSD->use_card_detect) {
-                gpio_init(pSD->card_detect_gpio);
-                gpio_pull_up(pSD->card_detect_gpio);
-                gpio_set_dir(pSD->card_detect_gpio, GPIO_IN);
+        for (sd_card_t *sd = sd_cards; sd->spi != NULL; ++sd) {
+            if (sd->use_card_detect) {
+                gpio_init(sd->card_detect_gpio);
+                gpio_pull_up(sd->card_detect_gpio);
+                gpio_set_dir(sd->card_detect_gpio, GPIO_IN);
             }
             // Chip select is active-low, so we'll initialise it to a
             // driven-high state.
-            gpio_put(pSD->ss_gpio, 1); // Avoid any glitches when enabling output
-            gpio_init(pSD->ss_gpio);
-            gpio_set_dir(pSD->ss_gpio, GPIO_OUT);
-            gpio_put(pSD->ss_gpio, 1); // In case set_dir does anything
+            gpio_put(sd->ss_gpio, 1); // Avoid any glitches when enabling output
+            gpio_init(sd->ss_gpio);
+            gpio_set_dir(sd->ss_gpio, GPIO_OUT);
+            gpio_put(sd->ss_gpio, 1); // In case set_dir does anything
         }
-        for (size_t i = 0; i < spi_get_num(); ++i) {
-            spi_t *pSPI = spi_get_by_num(i);
-            if (!my_spi_init(pSPI)) {
+        for (spi_t *spi = sd_cards[0].spi_ports; spi->hw_inst != NULL; ++spi) {
+            if (!my_spi_init(spi)) {
                 mutex_exit(&sd_init_driver_mutex);
                 return false;
             }

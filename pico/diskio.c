@@ -1,28 +1,26 @@
-/* glue.c
-Copyright 2021 Carl John Kugler III
-
-Licensed under the Apache License, Version 2.0 (the License); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software distributed
-under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR
-CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-*/
-
-/*-----------------------------------------------------------------------*/
-/* Low level disk I/O module SKELETON for FatFs     (C)ChaN, 2019        */
-/*-----------------------------------------------------------------------*/
-/* If a working storage control module is available, it should be        */
-/* attached to the FatFs via a glue function rather than modifying it.   */
-/* This is an example of glue functions to attach various exsisting      */
-/* storage control modules to the FatFs module with a defined API.       */
-/*-----------------------------------------------------------------------*/
+//
+// Copyright (c) 2023 Serge Vakulenko
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
 #include <rpm/diskio.h> // Declarations of disk functions
 #include <stdio.h>      // For debug printfs
-#include "hw_config.h"
 #include "sd_card.h"
 #include "flash.h"
 
@@ -33,6 +31,44 @@ specific language governing permissions and limitations under the License.
 // Names of disk volumes.
 //
 const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
+
+//
+// Hardware Configuration of SPI ports.
+// Note: multiple SD cards can be driven by one SPI if they use
+// different slave selects.
+//
+static void spi_isr0(void);
+
+static spi_t spi_ports[] = {
+    {                      // One for each SPI port
+        .hw_inst   = spi1, // SPI component
+        .miso_gpio = 12,   // GPIO number (not pin number)
+        .mosi_gpio = 15,
+        .sck_gpio  = 14,
+        .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
+        .dma_isr   = spi_isr0,
+    },
+    { 0 }, // Terminate by zero.
+};
+static void spi_isr0(void) { spi_irq_handler(&spi_ports[0]); }
+
+//
+// Hardware Configuration of SD cards.
+// TODO: Need to re-design these routines to allow auto probing of
+// SD card connection. Create a list of CD configurations for
+// various boards, and search through it until SD card reacts properly.
+//
+static sd_card_t sd_cards[] = {
+    {                             // One for each SD card
+        .spi = &spi_ports[0],     // Pointer to the SPI driving this card
+        .ss_gpio = 9,             // The SPI slave select GPIO for this SD card
+        .use_card_detect = false, // No card detect contact on this board
+        .m_Status = MEDIA_NOINIT,
+        .sd_cards = &sd_cards[0],
+        .spi_ports = &spi_ports[0],
+    },
+    { 0 }, // Terminate by zero.
+};
 
 //
 // Setup the hardware.
@@ -54,7 +90,8 @@ media_status_t disk_status(uint8_t pdrv)
         return 0;
     } else {
         // SD card.
-        sd_card_t *sd = sd_get_by_num(0);
+        // TODO: autodetect valid SD port
+        sd_card_t *sd = &sd_cards[0];
         if (!sd)
             return MEDIA_NOINIT;
 
@@ -75,7 +112,8 @@ media_status_t disk_initialize(uint8_t pdrv)
         return 0;
     } else {
         // SD card.
-        sd_card_t *sd = sd_get_by_num(0);
+        // TODO: autodetect valid SD port
+        sd_card_t *sd = &sd_cards[0];
         if (!sd)
             return MEDIA_NOINIT;
 
@@ -126,9 +164,11 @@ disk_result_t disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify th
         return flash_read(buff, sector, count);
     } else {
         // SD card.
-        sd_card_t *sd = sd_get_by_num(0);
+        // TODO: autodetect valid SD port
+        sd_card_t *sd = &sd_cards[0];
         if (!sd)
             return DISK_PARERR;
+
         int rc = sd_read_blocks(sd, buff, sector, count);
         return sdrc2dresult(rc);
     }
@@ -151,9 +191,11 @@ disk_result_t disk_write(uint8_t pdrv,        /* Physical drive nmuber to identi
         return flash_write(buff, sector, count);
     } else {
         // SD card.
-        sd_card_t *sd = sd_get_by_num(0);
+        // TODO: autodetect valid SD port
+        sd_card_t *sd = &sd_cards[0];
         if (!sd)
             return DISK_PARERR;
+
         int rc = sd_write_blocks(sd, buff, sector, count);
         return sdrc2dresult(rc);
     }
@@ -187,9 +229,11 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
             num_sectors = flash_block_count();
         } else {
             // SD card.
-            sd_card_t *sd = sd_get_by_num(0);
+            // TODO: autodetect valid SD port
+            sd_card_t *sd = &sd_cards[0];
             if (!sd)
                 return DISK_PARERR;
+
             num_sectors = sd_sectors(sd);
         }
         *(uint32_t *)buff = num_sectors;
@@ -252,7 +296,8 @@ disk_result_t disk_identify(uint8_t pdrv, disk_info_t *output)
         return DISK_OK;
     } else {
         // SD card.
-        sd_card_t *sd = sd_get_by_num(0);
+        // TODO: autodetect valid SD port
+        sd_card_t *sd = &sd_cards[0];
         if (!sd)
             return DISK_PARERR;
 

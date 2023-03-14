@@ -21,8 +21,6 @@ add_executable(${PROJECT_NAME}
     diskio.c
     flash.c
     sd_pico/crc.c
-    sd_pico/demo_logging.c
-    sd_pico/hw_config.c
     sd_pico/sd_card.c
     sd_pico/sd_spi.c
     sd_pico/spi.c
