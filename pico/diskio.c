@@ -39,38 +39,84 @@ const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
 
 //
 // Hardware Configuration of SPI ports.
+// One entry for each supported board.
 // Note: multiple SD cards can be driven by one SPI if they use
 // different slave selects.
 //
 static void spi_isr0(void);
+static void spi_isr1(void);
 
 static spi_t spi_ports[] = {
-    {                      // One for each SPI port
-        .hw_inst   = spi1, // SPI component
-        .miso_gpio = 12,   // GPIO number (not pin number)
-        .mosi_gpio = 15,
-        .sck_gpio  = 14,
+    // SparkFun RP2040 Thing Plus board.
+    {
+        .hw_inst   = spi1,         // Port SPI1
+        .miso_gpio = 12,           // GPIO 12: DATA 0 - SDO
+        .mosi_gpio = 15,           // GPIO 15: CMD    - SDI
+        .sck_gpio  = 14,           // GPIO 14: CLK    - SCK
         .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
         .dma_isr   = spi_isr0,
+    },
+    // Challenger RP2040 SD/RTC board.
+    {
+        .hw_inst   = spi1,         // Port SPI1
+        .miso_gpio = 11,           // GPIO 11: serial data output SDO
+        .mosi_gpio = 12,           // GPIO 12: serial data input SDI
+        .sck_gpio  = 10,           // GPIO 10: serial clock SCK
+        .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
+        .dma_isr   = spi_isr1,
     },
     { 0 }, // Terminate by zero.
 };
 static void spi_isr0(void) { spi_irq_handler(&spi_ports[0]); }
+static void spi_isr1(void) { spi_irq_handler(&spi_ports[1]); }
 
 //
 // Hardware Configuration of SD cards.
+// One entry for each supported board.
 // TODO: Need to re-design these routines to allow auto probing of
 // SD card connection. Create a list of CD configurations for
 // various boards, and search through it until SD card reacts properly.
 //
 static sd_card_t sd_cards[] = {
-    {                             // One for each SD card
-        .spi = &spi_ports[0],     // Pointer to the SPI driving this card
-        .ss_gpio = 9,             // The SPI slave select GPIO for this SD card
-        .use_card_detect = false, // No card detect contact on this board
-        .m_Status = MEDIA_NOINIT,
-        .sd_cards = &sd_cards[0],
-        .spi_ports = &spi_ports[0],
+    //
+    // SparkFun RP2040 Thing Plus board.
+    // https://learn.sparkfun.com/tutorials/rp2040-thing-plus-hookup-guide/hardware-overview
+    //
+    // The µSD card slot is connected to the following dedicated GPIO:
+    // GPIO 09: DATA 3 - /CS
+    // GPIO 10: DATA 2
+    // GPIO 11: DATA 1
+    // GPIO 12: DATA 0 - SDO
+    // GPIO 14: CLK    - SCK
+    // GPIO 15: CMD    - SDI
+    {
+        .spi             = &spi_ports[0], // Pointer to the SPI port driving this card
+        .ss_gpio         = 9,             // The SPI slave select GPIO for this SD card
+        .use_card_detect = false,         // No card detect GPIO for this card
+        .m_Status        = MEDIA_NOINIT,  // Initial status
+        .sd_cards        = &sd_cards[0],  // List of all SD card configurations
+        .spi_ports       = &spi_ports[0], // List of all SPI ports
+    },
+    //
+    // Challenger RP2040 SD/RTC board.
+    // https://ilabs.se/challenger-rp2040-sd-rtc-datasheet/
+    //
+    // The processor connects to the SD card via the second spi (SPI1) communication channel.
+    // GPIO 09: SD Card chip select signal /CS
+    // GPIO 10: serial clock SCK
+    // GPIO 12: serial data input SDI
+    // GPIO 11: serial data output SDO
+    // GPIO 13: card detect, active low
+    // When this signal is logically low a card has been inserted
+    // and when it is high the card has been removed.
+    {
+        .spi              = &spi_ports[1], // Pointer to the SPI port driving this card
+        .ss_gpio          = 9,             // The SPI slave select GPIO for this SD card
+        .use_card_detect  = true,          // Card detect GPIO is available
+        .card_detect_gpio = 13,            // The card detect GPIO signal
+        .m_Status         = MEDIA_NOINIT,  // Initial status
+        .sd_cards         = &sd_cards[0],  // List of all SD card configurations
+        .spi_ports        = &spi_ports[0], // List of all SPI ports
     },
     { 0 }, // Terminate by zero.
 };
