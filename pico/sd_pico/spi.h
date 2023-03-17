@@ -60,8 +60,13 @@ void spi_unlock(spi_t *pSPI);
 bool my_spi_init(spi_t *pSPI);
 void set_spi_dma_irq_channel(bool useChannel1, bool shared);
 
+#if 1
+// No debug output
+#define DBG_PRINTF(fmt, args...)
+#else
+// Enable debug output
 #define DBG_PRINTF rpm_printf
-//#define DBG_PRINTF(fmt, args...) /* Don't do anything in release builds */
+#endif
 
 //#define myASSERT(__e) ((__e) ? (void)0 : my_assert_func(__FILE__, __LINE__, __func__, #__e))
 #define myASSERT(__e)

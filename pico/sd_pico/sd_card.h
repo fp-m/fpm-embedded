@@ -36,8 +36,9 @@ typedef struct _sd_card_t {
     struct _spi_t *spi;          // SPI port for this SD card
 
     // Slave select is here in sd_card_t because multiple SDs can share an SPI
-    uint ss_gpio; // Slave select for this SD card
-    bool use_card_detect;
+    uint ss_gpio;            // Slave select for this SD card
+    bool use_card_detect;    // GPIO signal for card detect is available
+    bool doing_reinit;       // Doing card reinitialization right now
     uint card_detect_gpio;   // Card detect; ignored if !use_card_detect
     uint card_detected_true; // Varies with card socket; ignored if !use_card_detect
 

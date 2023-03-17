@@ -24,8 +24,13 @@
 #include "sd_card.h"
 #include "flash.h"
 
-//#define TRACE_PRINTF(fmt, args...)
+#if 1
+// No trace output
+#define TRACE_PRINTF(fmt, args...)
+#else
+// Enable trace output
 #define TRACE_PRINTF printf
+#endif
 
 //
 // Names of disk volumes.

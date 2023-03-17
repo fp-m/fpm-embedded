@@ -180,9 +180,13 @@ specific language governing permissions and limitations under the License.
 static bool crc_on = true;
 #endif
 
-//#define TRACE_PRINTF(fmt, args...)
-int printf(const char *format, ...);
-#define TRACE_PRINTF printf
+#if 1
+// No trace output
+#define TRACE_PRINTF(fmt, args...)
+#else
+// Enable trace output
+#define TRACE_PRINTF rpm_printf
+#endif
 
 /* Control Tokens   */
 #define SPI_DATA_RESPONSE_MASK (0x1F)
@@ -276,6 +280,8 @@ typedef enum {
 #define OCR_3_3V (0x1 << 20)
 
 #define SPI_CMD(x) (0x40 | (x & 0x3f))
+
+static void sd_init_nolock(sd_card_t *pSD);
 
 static uint8_t sd_cmd_spi(sd_card_t *pSD, cmdSupported cmd, uint32_t arg)
 {
@@ -373,7 +379,7 @@ static void sd_release(sd_card_t *pSD)
     sd_spi_release(pSD);
 }
 
-#if 1
+#if 0
 static const char *cmd2str(const cmdSupported cmd) {
     switch (cmd) {
         default:
@@ -453,6 +459,7 @@ static int sd_cmd(sd_card_t *pSD, const cmdSupported cmd, uint32_t arg, bool isA
         }
     }
     // Re-try command
+retry:
     for (int i = 0; i < 3; i++) {
         // Send CMD55 for APP command first
         if (isAcmd) {
@@ -477,6 +484,20 @@ static int sd_cmd(sd_card_t *pSD, const cmdSupported cmd, uint32_t arg, bool isA
     // Process the response R1  : Exit on CRC/Illegal command error/No response
     if (R1_NO_RESPONSE == response) {
         DBG_PRINTF("--- No response CMD:%d response: 0x%" PRIx32 "\r\n", cmd, response);
+        // Probably the card was re-inserted.
+        if (!pSD->doing_reinit) {
+            // Try to restore the interface (only once!).
+            pSD->doing_reinit = true;
+            pSD->m_Status |= MEDIA_NODISK | MEDIA_NOINIT;
+            if (sd_card_detect(pSD)) {
+                sd_init_nolock(pSD);
+            }
+            pSD->doing_reinit = false;
+            if (!(pSD->m_Status & MEDIA_NOINIT)) {
+                // The card looks good now.
+                goto retry;
+            }
+        }
         return SD_BLOCK_DEVICE_ERROR_NO_DEVICE; // No device
     }
     if (response & R1_COM_CRC_ERROR && ACMD23_SET_WR_BLK_ERASE_COUNT != cmd) {
@@ -1169,6 +1190,40 @@ static int sd_init_medium(sd_card_t *pSD)
     return status;
 }
 
+//
+// Initialize the card, starting with the default low frequency mode.
+// Update m_Status field.
+// The card must be already acquired (by sd_lock() and sd_spi_acquire()).
+//
+static void sd_init_nolock(sd_card_t *pSD)
+{
+    // Initialize the member variables
+    pSD->card_type = SDCARD_NONE;
+
+    int err = sd_init_medium(pSD);
+    if (SD_BLOCK_DEVICE_ERROR_NONE != err) {
+        DBG_PRINTF("--- Failed to initialize card\r\n");
+        return;
+    }
+    DBG_PRINTF("--- SD card initialized\r\n");
+    pSD->sectors = sd_sectors_nolock(pSD);
+    if (0 == pSD->sectors) {
+        // CMD9 failed
+        return;
+    }
+    sd_identification_nolock(pSD);
+    // Set block length to 512 (CMD16)
+    if (sd_cmd(pSD, CMD16_SET_BLOCKLEN, _block_size, false, 0) != 0) {
+        DBG_PRINTF("--- Set %" PRIu32 "-byte block timed out\r\n", _block_size);
+        return;
+    }
+    // Set SCK for data transfer
+    sd_spi_go_high_frequency(pSD);
+
+    // The card is now initialized
+    pSD->m_Status &= ~MEDIA_NOINIT;
+}
+
 media_status_t sd_init(sd_card_t *pSD)
 {
     TRACE_PRINTF("--- %s\r\n", __FUNCTION__);
@@ -1187,45 +1242,14 @@ media_status_t sd_init(sd_card_t *pSD)
         sd_unlock(pSD);
         return pSD->m_Status;
     }
+
     // Make sure we're not already initialized before proceeding
     if (!(pSD->m_Status & MEDIA_NOINIT)) {
         sd_unlock(pSD);
         return pSD->m_Status;
     }
-    // Initialize the member variables
-    pSD->card_type = SDCARD_NONE;
-
     sd_spi_acquire(pSD);
-
-    int err = sd_init_medium(pSD);
-    if (SD_BLOCK_DEVICE_ERROR_NONE != err) {
-        DBG_PRINTF("--- Failed to initialize card\r\n");
-        sd_spi_release(pSD);
-        sd_unlock(pSD);
-        return pSD->m_Status;
-    }
-    DBG_PRINTF("--- SD card initialized\r\n");
-    pSD->sectors = sd_sectors_nolock(pSD);
-    if (0 == pSD->sectors) {
-        // CMD9 failed
-        sd_spi_release(pSD);
-        sd_unlock(pSD);
-        return pSD->m_Status;
-    }
-    sd_identification_nolock(pSD);
-    // Set block length to 512 (CMD16)
-    if (sd_cmd(pSD, CMD16_SET_BLOCKLEN, _block_size, false, 0) != 0) {
-        DBG_PRINTF("--- Set %" PRIu32 "-byte block timed out\r\n", _block_size);
-        sd_spi_release(pSD);
-        sd_unlock(pSD);
-        return pSD->m_Status;
-    }
-    // Set SCK for data transfer
-    sd_spi_go_high_frequency(pSD);
-
-    // The card is now initialized
-    pSD->m_Status &= ~MEDIA_NOINIT;
-
+    sd_init_nolock(pSD);
     sd_spi_release(pSD);
     sd_unlock(pSD);
 

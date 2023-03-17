@@ -23,18 +23,23 @@ specific language governing permissions and limitations under the License.
 #include "sd_spi.h"
 #include "spi.h"
 
-// #define TRACE_PRINTF(fmt, args...)
-#define TRACE_PRINTF printf
+#if 1
+// No trace output
+#define TRACE_PRINTF(fmt, args...)
+#else
+// Enable trace output
+#define TRACE_PRINTF rpm_printf
+#endif
 
 void sd_spi_go_high_frequency(sd_card_t *pSD)
 {
-    uint actual = spi_set_baudrate(pSD->spi->hw_inst, pSD->spi->baud_rate);
+    uint actual __attribute__((unused)) = spi_set_baudrate(pSD->spi->hw_inst, pSD->spi->baud_rate);
     TRACE_PRINTF("%s: Actual frequency: %lu\n", __FUNCTION__, (long)actual);
 }
 
 void sd_spi_go_low_frequency(sd_card_t *pSD)
 {
-    uint actual = spi_set_baudrate(pSD->spi->hw_inst, 400 * 1000); // Actual frequency: 398089
+    uint actual __attribute__((unused)) = spi_set_baudrate(pSD->spi->hw_inst, 400 * 1000); // Actual frequency: 398089
     TRACE_PRINTF("%s: Actual frequency: %lu\n", __FUNCTION__, (long)actual);
 }
 
