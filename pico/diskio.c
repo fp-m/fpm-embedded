@@ -73,9 +73,8 @@ static void spi_isr1(void) { spi_irq_handler(&spi_ports[1]); }
 //
 // Hardware Configuration of SD cards.
 // One entry for each supported board.
-// TODO: Need to re-design these routines to allow auto probing of
-// SD card connection. Create a list of CD configurations for
-// various boards, and search through it until SD card reacts properly.
+// On first SD card connection, this list will be searched and one
+// of these configurations selected, whichever is valid for the current board.
 //
 static sd_card_t sd_cards[] = {
     //
@@ -141,8 +140,7 @@ media_status_t disk_status(uint8_t pdrv)
         return 0;
     } else {
         // SD card.
-        // TODO: autodetect valid SD port
-        sd_card_t *sd = &sd_cards[0];
+        sd_card_t *sd = sd_configure(sd_cards);
         if (!sd)
             return MEDIA_NOINIT;
 
@@ -163,8 +161,7 @@ media_status_t disk_initialize(uint8_t pdrv)
         return 0;
     } else {
         // SD card.
-        // TODO: autodetect valid SD port
-        sd_card_t *sd = &sd_cards[0];
+        sd_card_t *sd = sd_configure(sd_cards);
         if (!sd)
             return MEDIA_NOINIT;
 
@@ -215,10 +212,9 @@ disk_result_t disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify th
         return flash_read(buff, sector, count);
     } else {
         // SD card.
-        // TODO: autodetect valid SD port
-        sd_card_t *sd = &sd_cards[0];
+        sd_card_t *sd = sd_configure(sd_cards);
         if (!sd)
-            return DISK_PARERR;
+            return DISK_NOTRDY;
 
         int rc = sd_read_blocks(sd, buff, sector, count);
         return sdrc2dresult(rc);
@@ -242,10 +238,9 @@ disk_result_t disk_write(uint8_t pdrv,        /* Physical drive nmuber to identi
         return flash_write(buff, sector, count);
     } else {
         // SD card.
-        // TODO: autodetect valid SD port
-        sd_card_t *sd = &sd_cards[0];
+        sd_card_t *sd = sd_configure(sd_cards);
         if (!sd)
-            return DISK_PARERR;
+            return DISK_NOTRDY;
 
         int rc = sd_write_blocks(sd, buff, sector, count);
         return sdrc2dresult(rc);
@@ -280,10 +275,9 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
             num_sectors = flash_block_count();
         } else {
             // SD card.
-            // TODO: autodetect valid SD port
-            sd_card_t *sd = &sd_cards[0];
+            sd_card_t *sd = sd_configure(sd_cards);
             if (!sd)
-                return DISK_PARERR;
+                return DISK_NOTRDY;
 
             num_sectors = sd_sectors(sd);
         }
@@ -347,10 +341,9 @@ disk_result_t disk_identify(uint8_t pdrv, disk_info_t *output)
         return DISK_OK;
     } else {
         // SD card.
-        // TODO: autodetect valid SD port
-        sd_card_t *sd = &sd_cards[0];
+        sd_card_t *sd = sd_configure(sd_cards);
         if (!sd)
-            return DISK_PARERR;
+            return DISK_NOTRDY;
 
         // Fast probe: just a GPIO read.
         if (!sd_card_detect(sd))

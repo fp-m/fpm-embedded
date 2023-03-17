@@ -68,7 +68,9 @@ typedef struct _sd_card_t {
 #define SD_BLOCK_DEVICE_ERROR_ERASE -5010           /*!< Erase error: reset/sequence */
 #define SD_BLOCK_DEVICE_ERROR_WRITE -5011           /*!< SPI Write error: !SPI_DATA_ACCEPTED */
 
-void sd_init_port(sd_card_t *sd_cards);
+// Find valid SD configuration.
+sd_card_t *sd_configure(sd_card_t sd_list[]);
+
 media_status_t sd_init(sd_card_t *pSD);
 int sd_write_blocks(sd_card_t *pSD, const uint8_t *buffer, uint64_t ulSectorNumber,
                     uint32_t blockCnt);

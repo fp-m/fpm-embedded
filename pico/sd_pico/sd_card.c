@@ -1227,8 +1227,6 @@ static void sd_init_nolock(sd_card_t *pSD)
 media_status_t sd_init(sd_card_t *pSD)
 {
     TRACE_PRINTF("--- %s\r\n", __FUNCTION__);
-    sd_init_port(pSD->sd_cards);
-
     if (!mutex_is_initialized(&pSD->mutex))
         mutex_init(&pSD->mutex);
     sd_lock(pSD);
@@ -1257,31 +1255,58 @@ media_status_t sd_init(sd_card_t *pSD)
 //
 // Initialize the SD port and related GPIO signals.
 //
-void sd_init_port(sd_card_t *sd_cards)
+static void sd_init_port(sd_card_t *sd)
 {
-    static bool initialized;
-    auto_init_mutex(sd_init_driver_mutex);
-    mutex_enter_blocking(&sd_init_driver_mutex);
-    if (!initialized) {
-        for (sd_card_t *sd = sd_cards; sd->spi != NULL; ++sd) {
-            if (sd->use_card_detect) {
-                gpio_init(sd->card_detect_gpio);
-                gpio_pull_up(sd->card_detect_gpio);
-                gpio_set_dir(sd->card_detect_gpio, GPIO_IN);
-            }
-            // Chip select is active-low, so we'll initialise it to a
-            // driven-high state.
-            gpio_put(sd->ss_gpio, 1); // Avoid any glitches when enabling output
-            gpio_init(sd->ss_gpio);
-            gpio_set_dir(sd->ss_gpio, GPIO_OUT);
-            gpio_put(sd->ss_gpio, 1); // In case set_dir does anything
-        }
-        for (spi_t *spi = sd_cards[0].spi_ports; spi->hw_inst != NULL; ++spi) {
-            spi_init_port(spi);
-        }
-        initialized = true;
+    // Setup GPIO signals.
+    if (sd->use_card_detect) {
+        gpio_init(sd->card_detect_gpio);
+        gpio_pull_up(sd->card_detect_gpio);
+        gpio_set_dir(sd->card_detect_gpio, GPIO_IN);
     }
-    mutex_exit(&sd_init_driver_mutex);
+    // Chip select is active-low, so we'll initialise it to a
+    // driven-high state.
+    gpio_put(sd->ss_gpio, 1); // Avoid any glitches when enabling output
+    gpio_init(sd->ss_gpio);
+    gpio_set_dir(sd->ss_gpio, GPIO_OUT);
+    gpio_put(sd->ss_gpio, 1); // In case set_dir does anything
+
+    // Setup SPI port for this SD card.
+    spi_init_port(sd->spi);
+}
+
+//
+// Find valid SD configuration.
+//
+sd_card_t *sd_configure(sd_card_t sd_list[])
+{
+    static sd_card_t *already_configured = 0;
+
+    // In case we have already configured SD port - return that slot.
+    if (already_configured != 0)
+        return already_configured;
+
+    // Walk through the list of available SD ports and find a valid one.
+    for (sd_card_t *sd = sd_list; sd->spi != NULL; ++sd) {
+        sd_init_port(sd);
+
+        // Fast probe: just a GPIO read.
+        if (!sd_card_detect(sd))
+            continue;
+
+        // Full detection.
+        sd->m_Status |= (MEDIA_NODISK | MEDIA_NOINIT);
+        sd->card_type = 0;
+        sd_init(sd);
+        if (sd->m_Status & (MEDIA_NOINIT | MEDIA_NODISK))
+            continue;
+
+        // This slot is valid, remember it.
+        already_configured = sd;
+        return sd;
+    }
+
+    // No valid slots, or no card inserted.
+    return 0;
 }
 
 /* [] END OF FILE */
