@@ -1227,10 +1227,7 @@ static void sd_init_nolock(sd_card_t *pSD)
 media_status_t sd_init(sd_card_t *pSD)
 {
     TRACE_PRINTF("--- %s\r\n", __FUNCTION__);
-    if (!sd_init_driver(pSD->sd_cards)) {
-        pSD->m_Status |= MEDIA_NOINIT;
-        return pSD->m_Status;
-    }
+    sd_init_port(pSD->sd_cards);
 
     if (!mutex_is_initialized(&pSD->mutex))
         mutex_init(&pSD->mutex);
@@ -1257,7 +1254,10 @@ media_status_t sd_init(sd_card_t *pSD)
     return pSD->m_Status;
 }
 
-bool sd_init_driver(sd_card_t *sd_cards)
+//
+// Initialize the SD port and related GPIO signals.
+//
+void sd_init_port(sd_card_t *sd_cards)
 {
     static bool initialized;
     auto_init_mutex(sd_init_driver_mutex);
@@ -1277,15 +1277,11 @@ bool sd_init_driver(sd_card_t *sd_cards)
             gpio_put(sd->ss_gpio, 1); // In case set_dir does anything
         }
         for (spi_t *spi = sd_cards[0].spi_ports; spi->hw_inst != NULL; ++spi) {
-            if (!my_spi_init(spi)) {
-                mutex_exit(&sd_init_driver_mutex);
-                return false;
-            }
+            spi_init_port(spi);
         }
         initialized = true;
     }
     mutex_exit(&sd_init_driver_mutex);
-    return true;
 }
 
 /* [] END OF FILE */

@@ -125,7 +125,10 @@ void spi_unlock(spi_t *pSPI)
     mutex_exit(&pSPI->mutex);
 }
 
-bool my_spi_init(spi_t *pSPI)
+//
+// Initialize the SPI port and related GPIO signals.
+//
+void spi_init_port(spi_t *pSPI)
 {
     auto_init_mutex(my_spi_init_mutex);
     mutex_enter_blocking(&my_spi_init_mutex);
@@ -211,7 +214,6 @@ bool my_spi_init(spi_t *pSPI)
         spi_unlock(pSPI);
     }
     mutex_exit(&my_spi_init_mutex);
-    return true;
 }
 
 /* [] END OF FILE */

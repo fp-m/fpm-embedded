@@ -57,7 +57,7 @@ void __not_in_flash_func(spi_irq_handler)(spi_t *pSPI);
 bool __not_in_flash_func(spi_transfer)(spi_t *pSPI, const uint8_t *tx, uint8_t *rx, size_t length);
 void spi_lock(spi_t *pSPI);
 void spi_unlock(spi_t *pSPI);
-bool my_spi_init(spi_t *pSPI);
+void spi_init_port(spi_t *pSPI);
 void set_spi_dma_irq_channel(bool useChannel1, bool shared);
 
 #if 1
