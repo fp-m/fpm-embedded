@@ -24,8 +24,8 @@
 #include "sd_card.h"
 #include "flash.h"
 
-#define TRACE_PRINTF(fmt, args...)
-//#define TRACE_PRINTF printf
+//#define TRACE_PRINTF(fmt, args...)
+#define TRACE_PRINTF printf
 
 //
 // Names of disk volumes.
@@ -84,7 +84,7 @@ void disk_setup()
 //
 media_status_t disk_status(uint8_t pdrv)
 {
-    TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    TRACE_PRINTF("--- %s\n", __FUNCTION__);
     if (pdrv == 0) {
         // Flash memory: always present.
         return 0;
@@ -106,7 +106,7 @@ media_status_t disk_status(uint8_t pdrv)
 //
 media_status_t disk_initialize(uint8_t pdrv)
 {
-    TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    TRACE_PRINTF("--- %s\n", __FUNCTION__);
     if (pdrv == 0) {
         // Flash memory: always active.
         return 0;
@@ -158,7 +158,7 @@ disk_result_t disk_read(uint8_t pdrv,    /* Physical drive nmuber to identify th
                         unsigned sector, /* Start sector in LBA */
                         unsigned count)  /* Number of sectors to read */
 {
-    TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    TRACE_PRINTF("--- %s\n", __FUNCTION__);
     if (pdrv == 0) {
         // Flash memory.
         return flash_read(buff, sector, count);
@@ -185,7 +185,7 @@ disk_result_t disk_write(uint8_t pdrv,        /* Physical drive nmuber to identi
                    unsigned sector,     /* Start sector in LBA */
                    unsigned count)      /* Number of sectors to write */
 {
-    TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    TRACE_PRINTF("--- %s\n", __FUNCTION__);
     if (pdrv == 0) {
         // Flash memory.
         return flash_write(buff, sector, count);
@@ -211,7 +211,7 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
                    uint8_t cmd,   /* Control code */
                    void *buff) /* Buffer to send/receive control data */
 {
-    TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    TRACE_PRINTF("--- %s\n", __FUNCTION__);
     switch (cmd) {
     case GET_SECTOR_COUNT: {
         //
@@ -288,7 +288,7 @@ disk_result_t disk_ioctl(uint8_t pdrv,  /* Physical drive nmuber (0..) */
 //
 disk_result_t disk_identify(uint8_t pdrv, disk_info_t *output)
 {
-    TRACE_PRINTF(">>> %s\n", __FUNCTION__);
+    TRACE_PRINTF("--- %s\n", __FUNCTION__);
     memset(output, 0, sizeof(*output));
     if (pdrv == 0) {
         // Flash memory.

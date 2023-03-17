@@ -24,7 +24,7 @@ specific language governing permissions and limitations under the License.
 #include "spi.h"
 
 // #define TRACE_PRINTF(fmt, args...)
-#define TRACE_PRINTF printf // task_printf
+#define TRACE_PRINTF printf
 
 void sd_spi_go_high_frequency(sd_card_t *pSD)
 {
