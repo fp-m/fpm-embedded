@@ -22,9 +22,7 @@ install: pico/build unix/build
 	$(MAKE) -C unix/build $@
 
 clean:
-	if [ -d pico/build ]; then $(MAKE) -C pico/build clean; fi
-	if [ -d unix/build ]; then $(MAKE) -C unix/build clean; fi
-	if [ -d tests/build ]; then $(MAKE) -C tests/build clean; fi
+	rm -rf pico/build unix/build tests/build
 
 pico/build:
 	mkdir $@

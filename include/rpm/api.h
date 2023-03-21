@@ -140,7 +140,20 @@ void rpm_reboot(void);
 //
 void rpm_exec(int argc, char *argv[]);
 
-//TODO: sysvar_time
+//
+// Return the current 64-bit timestamp value in microseconds.
+//
+uint64_t rpm_time_usec(void);
+
+//
+// Busy wait for the given 64-bit number of microseconds.
+//
+void rpm_delay_usec(uint64_t delay_usec);
+
+//
+// Busy wait for the given number of milliseconds.
+//
+void rpm_delay_msec(unsigned delay_msec);
 
 #ifdef __cplusplus
 }

@@ -119,3 +119,27 @@ void rpm_reboot()
 {
     watchdog_reboot(0, 0, 0);
 }
+
+//
+// Return the current 64-bit timestamp value in microseconds.
+//
+uint64_t rpm_time_usec()
+{
+    return time_us_64();
+}
+
+//
+// Busy wait for the given 64-bit number of microseconds.
+//
+void rpm_delay_usec(uint64_t microseconds)
+{
+     busy_wait_us(microseconds);
+}
+
+//
+// Busy wait for the given number of milliseconds.
+//
+void rpm_delay_msec(unsigned milliseconds)
+{
+     busy_wait_ms(milliseconds);
+}

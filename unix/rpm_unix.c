@@ -137,3 +137,30 @@ void rpm_reboot()
 {
     rpm_puts("Cannot reboot Unix, sorry.\r\n\r\n");
 }
+
+//
+// Return the current 64-bit timestamp value in microseconds.
+//
+uint64_t rpm_time_usec()
+{
+    struct timeval t;
+
+    gettimeofday(&t, 0);
+    return t.tv_sec * 1000000ULL + t.tv_usec;
+}
+
+//
+// Busy wait for the given 64-bit number of microseconds.
+//
+void rpm_delay_usec(uint64_t microseconds)
+{
+     usleep(microseconds);
+}
+
+//
+// Busy wait for the given number of milliseconds.
+//
+void rpm_delay_msec(unsigned milliseconds)
+{
+     usleep(milliseconds * 1000ULL);
+}
