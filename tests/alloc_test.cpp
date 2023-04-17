@@ -51,14 +51,32 @@ static std::string to_hex_string(T val)
 }
 
 //
-// free memory, optionally zero it out
+// Allocate memory with unpredictable contents.
 //
-static void test_free(void *ptr, unsigned len)
+void *my_malloc(unsigned nbytes)
 {
-    if (len && OPTION_ZERO_ON_FREE) {
-        memset(ptr, 0, len);
+    std::cout << "--- malloc " << nbytes << " bytes";
+    return malloc(nbytes);
+}
+
+//
+// Allocate memory zeroed out.
+//
+void *my_calloc(unsigned count, unsigned size)
+{
+    std::cout << "--- calloc " << (count * size) << " bytes";
+    return calloc(count, size);
+}
+
+//
+// Free memory, optionally zero it out.
+//
+static void my_free(void *ptr, unsigned nbytes)
+{
+    if (nbytes > 0 && OPTION_ZERO_ON_FREE) {
+        memset(ptr, 0, nbytes);
     }
-    std::cout << "--- free " << len << " bytes" << std::endl;
+    std::cout << "--- free " << nbytes << " bytes" << std::endl;
     free(ptr);
 }
 
@@ -107,7 +125,7 @@ static void test_loop(unsigned max_count)
                     throw std::runtime_error("Allocation at " + to_hex_string(item->addr) +
                                              ": bad value " + to_hex_string(*item->addr));
                 }
-                test_free(item->addr, item->len);
+                my_free(item->addr, item->len);
                 item->addr = NULL;
                 item->len = 0;
             } else {
@@ -133,11 +151,9 @@ static void test_loop(unsigned max_count)
             // 50% malloc, 50% calloc
             //
             if (fifty_fifty) {
-                std::cout << "--- malloc " << len << " bytes";
-                item->addr = (uintptr_t *)malloc(len);
+                item->addr = (uintptr_t *)my_malloc(len);
             } else {
-                std::cout << "--- calloc " << len << " bytes";
-                item->addr = (uintptr_t *)calloc(1, len);
+                item->addr = (uintptr_t *)my_calloc(1, len);
             }
 
             if (item->addr) {
@@ -162,7 +178,7 @@ static void test_loop(unsigned max_count)
                 throw std::runtime_error("Allocation at " + to_hex_string(item->addr) + ": bad value " +
                                          to_hex_string(*item->addr));
             }
-            test_free(item->addr, item->len);
+            my_free(item->addr, item->len);
         }
     }
 }

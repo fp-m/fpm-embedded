@@ -155,6 +155,17 @@ void rpm_delay_usec(uint64_t delay_usec);
 //
 void rpm_delay_msec(unsigned delay_msec);
 
+//
+// Memory allocation.
+//
+void *rpm_alloc(size_t nbytes);
+void rpm_free(void *ptr);
+void *rpm_realloc(void *ptr, size_t nbytes);
+void *rpm_alloc_dirty(size_t nbytes);
+//TODO: void rpm_alloc_truncate(void *block, size_t nbytes);
+//TODO: size_t rpm_alloc_size(void *block);
+//TODO: size_t rpm_alloc_available(void);
+
 #ifdef __cplusplus
 }
 #endif
