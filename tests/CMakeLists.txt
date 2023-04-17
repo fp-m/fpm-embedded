@@ -102,3 +102,11 @@ target_link_libraries(copy_tests
     rpm_fatfs
 )
 gtest_discover_tests(copy_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
+# Check memory allocation: rpm_alloc() and others.
+#
+add_executable(alloc_tests
+    alloc_test.cpp
+)
+gtest_discover_tests(alloc_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
