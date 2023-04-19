@@ -17,6 +17,12 @@ void rpm_shell(void);
 extern jmp_buf rpm_saved_point; // TODO: move to the system area
 
 //
+// Initialize region of memory for dynamic allocation.
+//
+void rpm_heap_init(size_t start, size_t nbytes);
+void rpm_heap_print_free_list(void);
+
+//
 // Shell commands.
 //
 void rpm_cmd_cat(int argc, char *argv[]);

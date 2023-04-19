@@ -108,5 +108,7 @@ gtest_discover_tests(copy_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 1
 #
 add_executable(alloc_tests
     alloc_test.cpp
+    console_util.cpp
+    ../kernel/rpm_alloc.c
 )
 gtest_discover_tests(alloc_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)

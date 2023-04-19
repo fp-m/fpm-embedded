@@ -3,6 +3,7 @@
 //
 #include <gtest/gtest.h>
 #include <rpm/api.h>
+#include <rpm/internal.h>
 
 //
 // Allocate about this amount of data in total.
@@ -22,12 +23,12 @@ static const unsigned MAX_ALLOCATIONS = TOTAL_BYTES_THRESHOLD / MAX_ALLOC_BYTES 
 //
 // Force pages to be populated.
 //
-static const bool OPTION_TOUCH_DATA = true;
+static const bool OPTION_TOUCH_DATA = false; //true;
 
 //
 // Zero free'd memory.
 //
-static const bool OPTION_ZERO_ON_FREE = true;
+static const bool OPTION_ZERO_ON_FREE = false; //true;
 
 //
 // Verify contents of allocated blocks.
@@ -55,8 +56,8 @@ static std::string to_hex_string(T val)
 //
 void *my_malloc(unsigned nbytes)
 {
-    std::cout << "--- malloc " << nbytes << " bytes";
-    return malloc(nbytes);
+    //std::cout << "--- malloc " << nbytes << " bytes" << std::endl;
+    return rpm_alloc_dirty(nbytes);
 }
 
 //
@@ -64,8 +65,9 @@ void *my_malloc(unsigned nbytes)
 //
 void *my_calloc(unsigned count, unsigned size)
 {
-    std::cout << "--- calloc " << (count * size) << " bytes";
-    return calloc(count, size);
+    size_t nbytes = count * size;
+    //std::cout << "--- calloc " << nbytes << " bytes" << std::endl;
+    return rpm_alloc(nbytes);
 }
 
 //
@@ -76,8 +78,17 @@ static void my_free(void *ptr, unsigned nbytes)
     if (nbytes > 0 && OPTION_ZERO_ON_FREE) {
         memset(ptr, 0, nbytes);
     }
-    std::cout << "--- free " << nbytes << " bytes" << std::endl;
-    free(ptr);
+    //std::cout << "--- free " << nbytes << " bytes" << std::endl;
+    rpm_free(ptr);
+}
+
+//
+// Re-allocate memory.
+//
+static void *my_realloc(void *ptr, unsigned nbytes)
+{
+    //std::cout << "--- realloc " << nbytes << " bytes" << std::endl;
+    return rpm_realloc(ptr, nbytes);
 }
 
 //
@@ -129,7 +140,7 @@ static void test_loop(unsigned max_count)
                 item->addr = NULL;
                 item->len = 0;
             } else {
-                void *ptr = realloc(item->addr, len);
+                void *ptr = my_realloc(item->addr, len);
                 if (ptr) {
                     total_allocated += len;
                     item->addr = (uintptr_t *)ptr;
@@ -144,6 +155,9 @@ static void test_loop(unsigned max_count)
                         throw std::runtime_error("Allocation at " + to_hex_string(item->addr) +
                                                  ": bad value " + to_hex_string(*item->addr));
                     }
+                } else {
+                    item->addr = NULL;
+                    item->len = 0;
                 }
             }
         } else if (total_allocated < TOTAL_BYTES_THRESHOLD) {
@@ -166,7 +180,6 @@ static void test_loop(unsigned max_count)
             } else {
                 item->len = 0;
             }
-            std::cout << ", total " << total_allocated << std::endl;
         }
     }
 
@@ -183,17 +196,25 @@ static void test_loop(unsigned max_count)
     }
 }
 
+void rpm_reboot()
+{
+    throw std::runtime_error("Program aborted");
+}
+
 //
 // Fail gracefully in case of SIGSEGV signal.
 //
 static void sig_segv(int)
 {
-    FAIL() << "Signal caught: segmentation violation";
+    throw std::runtime_error("Signal caught: segmentation violation");
 }
 
 TEST(mem, alloc_free)
 {
     signal(SIGSEGV, sig_segv);
+
+    char buf[TOTAL_BYTES_THRESHOLD];
+    rpm_heap_init((size_t) &buf[0], TOTAL_BYTES_THRESHOLD);
 
     const unsigned MAX_COUNT = 1000000;
     test_loop(MAX_COUNT);

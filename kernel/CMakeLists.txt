@@ -12,6 +12,7 @@ add_library(rpm_kernel STATIC
     rpm_getopt.c
     rpm_wputs.c
     rpm_get_dotw.c
+    rpm_alloc.c
 
     cmd/cmd_cat.c
     cmd/cmd_cd.c

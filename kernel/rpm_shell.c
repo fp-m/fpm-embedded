@@ -15,7 +15,6 @@ uint16_t rpm_history[RPM_CMDLINE_SIZE];
 
 //
 // Build the prompt string.
-// TODO: print current disk and directory.
 //
 static void build_prompt(char *prompt, unsigned max_length)
 {

@@ -34,4 +34,4 @@ unix/build:
 
 tests/build:
 	mkdir $@
-	cmake -B $@ tests
+	cmake -B $@ tests #-DCMAKE_BUILD_TYPE=Debug
