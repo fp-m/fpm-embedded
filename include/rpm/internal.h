@@ -17,6 +17,19 @@ void rpm_shell(void);
 extern jmp_buf rpm_saved_point; // TODO: move to the system area
 
 //
+// Program Area Descriptor (PAD): layout of the current program.
+//
+typedef struct {
+    // Total amount of free memory.
+    size_t free_size;
+
+    // A linked list of memory gaps, sorted by address in ascending order.
+    void *free_list;
+} rpm_pad_t;
+
+extern rpm_pad_t rpm_pad;
+
+//
 // Initialize region of memory for dynamic allocation.
 //
 void rpm_heap_init(size_t start, size_t nbytes);

@@ -23,12 +23,12 @@ static const unsigned MAX_ALLOCATIONS = TOTAL_BYTES_THRESHOLD / MAX_ALLOC_BYTES 
 //
 // Force pages to be populated.
 //
-static const bool OPTION_TOUCH_DATA = false; //true;
+static const bool OPTION_TOUCH_DATA = true;
 
 //
 // Zero free'd memory.
 //
-static const bool OPTION_ZERO_ON_FREE = false; //true;
+static const bool OPTION_ZERO_ON_FREE = true;
 
 //
 // Verify contents of allocated blocks.
@@ -39,6 +39,11 @@ typedef struct {
     uintptr_t *addr; // Address of allocation
     unsigned len;    // Allocation length
 } alloc_info_t;
+
+//
+// Program area descriptor.
+//
+rpm_pad_t rpm_pad;
 
 //
 // Convert value to string as hex number.
@@ -156,6 +161,7 @@ static void test_loop(unsigned max_count)
                                                  ": bad value " + to_hex_string(*item->addr));
                     }
                 } else {
+                    //std::cout << "--- cannot reallocate " << item->len << " -> " << len << " bytes" << std::endl;
                     item->addr = NULL;
                     item->len = 0;
                 }
@@ -178,6 +184,7 @@ static void test_loop(unsigned max_count)
                 *item->addr = (uintptr_t)item->addr; // stash address
                 item->len = len;
             } else {
+                //std::cout << "--- cannot allocate " << len << " bytes" << std::endl;
                 item->len = 0;
             }
         }

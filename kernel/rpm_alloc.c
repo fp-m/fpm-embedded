@@ -12,7 +12,7 @@
 //
 // Debug configuration.
 //
-#define MEM_DEBUG 1
+// #define MEM_DEBUG 1
 
 #ifdef NDEBUG // Disable memory debugging on NDEBUG
 #undef MEM_DEBUG
@@ -22,23 +22,6 @@
 #define MEM_DEBUG 0
 #endif
 
-typedef struct {
-    // Total amount of free memory.
-    size_t free_size;
-
-    // A linked list of memory gaps, sorted by address in ascending order.
-    void *free_list;
-} heap_pool_t;
-
-static heap_pool_t heap_pool;
-
-//
-// Memory alignment.
-// Align data on pointer-sized boundaries.
-//
-#define SIZEOF_POINTER sizeof(void *)
-#define MEM_ALIGN(x) (((x) + SIZEOF_POINTER - 1) & -SIZEOF_POINTER)
-
 //
 // Every memory block has a header.
 //
@@ -47,9 +30,7 @@ typedef struct {
     size_t size;
 
 #if MEM_DEBUG
-    unsigned magic;                  // For data curruption test
-#define MEMORY_BUSY_MAGIC 0x42555359 // Memory block in use
-#define MEMORY_GAP_MAGIC  0x47415021 // Free memory block
+    unsigned magic; // For data curruption test
 #endif
 } heap_header_t;
 
@@ -60,7 +41,29 @@ typedef struct {
 #define NEXT(h) (*(heap_header_t **)((h) + 1))
 
 //
-// Allocate a block of memory.
+// Magic values for debug.
+//
+enum {
+    HEAP_BUSY_MAGIC = 0x42555359, // Memory block in use
+    HEAP_GAP_MAGIC = 0x47415021,  // Free memory block
+};
+
+//
+// Align allocations on this granularity.
+//
+static unsigned const SIZEOF_POINTER = sizeof(void *);
+
+//
+// Memory alignment.
+// Align data on pointer-sized boundaries.
+//
+static inline size_t size_align(size_t nbytes)
+{
+    return (nbytes + SIZEOF_POINTER - 1) & -SIZEOF_POINTER;
+}
+
+//
+// Allocate memory of given size.
 // Fill it with zeroes.
 //
 void *rpm_alloc(size_t nbytes)
@@ -73,7 +76,7 @@ void *rpm_alloc(size_t nbytes)
 }
 
 //
-// Allocate a block of memory.
+// Allocate memory of given size.
 // The memory may contain garbage.
 //
 void *rpm_alloc_dirty(size_t nbytes)
@@ -85,24 +88,26 @@ void *rpm_alloc_dirty(size_t nbytes)
     // that they can contain a "heap_header_t" and any magic values used in
     // debugging (for when the block gets freed and becomes an isolated
     // gap).
-    if (nbytes < SIZEOF_POINTER)
+    if (nbytes < SIZEOF_POINTER) {
         nbytes = SIZEOF_POINTER;
-    nbytes = MEM_ALIGN(nbytes + sizeof(heap_header_t));
+    }
+    nbytes = size_align(nbytes + sizeof(heap_header_t));
 
     // Scan the list of all available memory gaps and find the first
     // one that meets our requirement.
-    h = (heap_header_t *)heap_pool.free_list;
-    hprev = (heap_header_t **)(void *)&heap_pool.free_list;
+    h = (heap_header_t *)rpm_pad.free_list;
+    hprev = (heap_header_t **)(void *)&rpm_pad.free_list;
     while (h) {
 #if MEM_DEBUG
-        if (h->magic != MEMORY_GAP_MAGIC) {
+        if (h->magic != HEAP_GAP_MAGIC) {
             rpm_printf("mem: bad gap magic at 0x%x\n", h);
             rpm_printf("     size=%d\n", h->size);
             rpm_reboot();
         }
 #endif
-        if (h->size >= nbytes)
+        if (h->size >= nbytes) {
             break;
+        }
 
         hprev = &NEXT(h);
         h = NEXT(h);
@@ -124,16 +129,16 @@ void *rpm_alloc_dirty(size_t nbytes)
         NEXT(newh) = NEXT(h);
         *hprev = newh;
 #if MEM_DEBUG
-        newh->magic = MEMORY_GAP_MAGIC;
+        newh->magic = HEAP_GAP_MAGIC;
 #endif
     } else {
         *hprev = NEXT(h);
     }
 
 #if MEM_DEBUG
-    h->magic = MEMORY_BUSY_MAGIC;
+    h->magic = HEAP_BUSY_MAGIC;
 #endif
-    heap_pool.free_size -= h->size;
+    rpm_pad.free_size -= h->size;
     // rpm_printf ("mem %d bytes returned 0x%x\n", h->size, h+1);
     return h + 1;
 }
@@ -143,9 +148,9 @@ void *rpm_alloc_dirty(size_t nbytes)
 //
 static void make_gap(heap_header_t *newh)
 {
-    heap_pool.free_size += newh->size;
+    rpm_pad.free_size += newh->size;
 #if MEM_DEBUG
-    newh->magic = MEMORY_GAP_MAGIC;
+    newh->magic = HEAP_GAP_MAGIC;
 #endif
 
     //
@@ -154,8 +159,8 @@ static void make_gap(heap_header_t *newh)
     // happens, we still ensure that the list is ordered lowest-addressed
     // gap first through to highest-addressed-gap last.
     //
-    heap_header_t *h = (heap_header_t *)heap_pool.free_list;
-    heap_header_t **hprev = (heap_header_t **)(void *)&heap_pool.free_list;
+    heap_header_t *h = (heap_header_t *)rpm_pad.free_list;
+    heap_header_t **hprev = (heap_header_t **)(void *)&rpm_pad.free_list;
     for (;;) {
         if (!h) {
             // At the end of free list
@@ -192,17 +197,18 @@ static void make_gap(heap_header_t *newh)
 }
 
 //
-// Release a block of memory.
+// Release previously allocated block of memory.
 //
 void rpm_free(void *block)
 {
-    if (!block)
+    if (!block) {
         return;
+    }
 
     // Make the header pointer.
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
-    if (h->magic != MEMORY_BUSY_MAGIC) {
+    if (h->magic != HEAP_BUSY_MAGIC) {
         rpm_printf("free: bad block magic 0x%x\n", h->magic);
         rpm_reboot();
     }
@@ -212,22 +218,28 @@ void rpm_free(void *block)
     make_gap(h);
 }
 
+//
+// Change size of previosly allocated block of memory.
+// Return new pointer.
+//
 void *rpm_realloc(void *old_block, size_t bytes)
 {
-    if (!old_block)
+    if (!old_block) {
         return 0;
+    }
 
     // Make the header pointer.
     heap_header_t *h = (heap_header_t *)old_block - 1;
 #if MEM_DEBUG
-    if (h->magic != MEMORY_BUSY_MAGIC) {
+    if (h->magic != HEAP_BUSY_MAGIC) {
         rpm_printf("realloc: bad block magic 0x%x\n", h->magic);
         rpm_reboot();
     }
 #endif
     size_t old_size = h->size - sizeof(heap_header_t);
-    if (old_size >= bytes)
+    if (old_size >= bytes) {
         return old_block;
+    }
 
     void *block = rpm_alloc(bytes);
     if (!block) {
@@ -239,20 +251,26 @@ void *rpm_realloc(void *old_block, size_t bytes)
     return block;
 }
 
-void rpm_alloc_truncate(void *block, size_t nbytes)
+//
+// Reduce memory block to a given size.
+// The pointer is not changed.
+//
+void rpm_truncate(void *block, size_t nbytes)
 {
-    if (!block)
+    if (!block) {
         return;
+    }
 
     // Add the size of header.
-    if (nbytes < SIZEOF_POINTER)
+    if (nbytes < SIZEOF_POINTER) {
         nbytes = SIZEOF_POINTER;
-    nbytes = MEM_ALIGN(nbytes + sizeof(heap_header_t));
+    }
+    nbytes = size_align(nbytes + sizeof(heap_header_t));
 
     // Make the header pointer.
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
-    if (h->magic != MEMORY_BUSY_MAGIC) {
+    if (h->magic != HEAP_BUSY_MAGIC) {
         rpm_printf("truncate: bad block magic 0x%x\n", h->magic);
         rpm_reboot();
     }
@@ -273,21 +291,22 @@ void rpm_alloc_truncate(void *block, size_t nbytes)
 //
 size_t rpm_heap_available()
 {
-    return heap_pool.free_size;
+    return rpm_pad.free_size;
 }
 
 //
-// Return the size of the given block.
+// Return size of the previosly allocated block of memory.
 //
-size_t rpm_alloc_size(void *block)
+size_t rpm_sizeof(void *block)
 {
-    if (!block)
+    if (!block) {
         return 0;
+    }
 
     // Make the header pointer.
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
-    if (h->magic != MEMORY_BUSY_MAGIC) {
+    if (h->magic != HEAP_BUSY_MAGIC) {
         rpm_printf("size: bad block magic 0x%x\n", h->magic);
         rpm_reboot();
     }
@@ -295,11 +314,14 @@ size_t rpm_alloc_size(void *block)
     return h->size - sizeof(heap_header_t);
 }
 
+//
+// Print list of free blocks in the heap, for debug.
+//
 #if MEM_DEBUG
 void rpm_heap_print_free_list()
 {
     rpm_printf("free list:");
-    for (heap_header_t *h = heap_pool.free_list; h; h = NEXT(h)) {
+    for (heap_header_t *h = rpm_pad.free_list; h; h = NEXT(h)) {
         rpm_printf(" %p-%p", h, (char *)h + h->size - 1);
     }
     rpm_printf("\n");
@@ -307,7 +329,7 @@ void rpm_heap_print_free_list()
 #endif
 
 //
-// Initialize the memory for dynamic allocation.
+// Initialize the heap for dynamic allocation.
 //
 void rpm_heap_init(size_t start, size_t nbytes)
 {
@@ -316,9 +338,9 @@ void rpm_heap_init(size_t start, size_t nbytes)
     heap_header_t *h = (heap_header_t *)start;
     h->size = nbytes;
 #if MEM_DEBUG
-    h->magic = MEMORY_GAP_MAGIC;
+    h->magic = HEAP_GAP_MAGIC;
 #endif
-    NEXT(h) = heap_pool.free_list;
-    heap_pool.free_list = h;
-    heap_pool.free_size += h->size;
+    NEXT(h) = rpm_pad.free_list;
+    rpm_pad.free_list = h;
+    rpm_pad.free_size += h->size;
 }

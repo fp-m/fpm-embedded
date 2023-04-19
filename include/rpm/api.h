@@ -162,8 +162,8 @@ void *rpm_alloc(size_t nbytes);
 void rpm_free(void *ptr);
 void *rpm_realloc(void *ptr, size_t nbytes);
 void *rpm_alloc_dirty(size_t nbytes);
-void rpm_alloc_truncate(void *block, size_t nbytes);
-size_t rpm_alloc_size(void *block);
+void rpm_truncate(void *ptr, size_t nbytes);
+size_t rpm_sizeof(void *ptr);
 size_t rpm_heap_available(void);
 
 #ifdef __cplusplus
