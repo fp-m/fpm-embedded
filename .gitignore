@@ -6,3 +6,4 @@ tests/build
 *.h-
 *.img
 *.hd
+*.elf
