@@ -5,7 +5,6 @@
 #include <rpm/internal.h>
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "pico/stdio_usb.h"
 #include "hardware/watchdog.h"
 
 //
@@ -17,11 +16,12 @@ char rpm_getchar()
     int ch;
 
     for (;;) {
+#if LIB_PICO_STDIO_USB
         // Make sure console is connected.
         while (!stdio_usb_connected()) {
             sleep_ms(100);
         }
-
+#endif
         // Read one byte.
         ch = getchar();
         if (ch >= 0) {

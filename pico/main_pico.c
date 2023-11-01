@@ -36,12 +36,15 @@ int main()
 
     // Initialize chosen serial port.
     stdio_init_all();
-    while (!stdio_usb_connected()) {
-        sleep_ms(100);
-    }
 
-     // Start interactive dialog.
+    // Start interactive dialog.
     for (;;) {
+#if LIB_PICO_STDIO_USB
+        // Make sure console is connected.
+        while (!stdio_usb_connected()) {
+            sleep_ms(100);
+        }
+#endif
         rpm_shell();
     }
 }
