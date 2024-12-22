@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
+#include <time.h>
 
 //
 // Read byte from the console.

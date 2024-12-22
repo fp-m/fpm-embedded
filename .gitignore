@@ -2,8 +2,12 @@ pico/build
 unix/build
 tests/build
 *.o
+*.so
 *.c-
 *.h-
 *.img
 *.hd
 *.elf
+*.dis
+*.nm
+*.readelf

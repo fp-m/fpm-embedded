@@ -7,7 +7,7 @@
 
 static const char *input;       // Input stream for the current test, utf-8 encoded
 static char output[1000];       // Output from the current test, utf-8 encoded
-static int output_ptr;          // Current position
+static unsigned output_ptr;     // Current position
 static char result[1000];       // Resulting command line, utf-8 encoded
 
 //

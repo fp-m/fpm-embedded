@@ -1,9 +1,16 @@
 ARCH    := $(shell uname -m)
-CC      = $(ARCH)-elf-gcc
-LD      = $(CC)
-SYSINC  = $(shell xcrun --show-sdk-path)/usr/include
-INC     = -I../include -I$(SYSINC)
+OS      := $(shell uname -s)
 LIBS    = rpm.so
+
+ifeq ($(OS), Linux)
+    PREFIX  =
+    INC     = -I../include
+endif
+ifeq ($(OS), Darwin)
+    PREFIX  = $(ARCH)-elf-
+    SYSINC  = $(shell xcrun --show-sdk-path)/usr/include
+    INC     = -I../include -I$(SYSINC)
+endif
 
 all:    hello.elf
 
@@ -11,15 +18,15 @@ clean:
 	rm -f *.o *.so *.elf *.dis *.nm *.readelf *.trace
 
 hello.elf: hello.c $(LIBS)
-	$(ARCH)-elf-gcc -fPIC -g -O1 $(INC) -c hello.c -o hello.o
-	$(ARCH)-elf-ld -shared -fPIC -g -e main hello.o $(LIBS) -o $@
-	$(ARCH)-elf-objdump -d $@ > hello.dis
-	$(ARCH)-elf-nm -n $@ > hello.nm
-	$(ARCH)-elf-readelf -a $@ > hello.readelf
+	$(PREFIX)gcc -fPIC -g -O1 $(INC) -c hello.c -o hello.o
+	$(PREFIX)ld -shared -fPIC -g -e main hello.o $(LIBS) -o $@
+	$(PREFIX)objdump -d $@ > hello.dis
+	$(PREFIX)nm -n $@ > hello.nm
+	$(PREFIX)readelf -a $@ > hello.readelf
 
 rpm.so: rpm-stub.c
-	$(ARCH)-elf-gcc -fPIC -g -O1 $(INC) -c rpm-stub.c -o rpm-stub.o
-	$(ARCH)-elf-ld -shared -fPIC rpm-stub.o -o $@
-	$(ARCH)-elf-objdump -d $@ > rpm.dis
-	$(ARCH)-elf-nm -n $@ > rpm.nm
-	$(ARCH)-elf-readelf -a $@ > rpm.readelf
+	$(PREFIX)gcc -fPIC -g -O1 $(INC) -c rpm-stub.c -o rpm-stub.o
+	$(PREFIX)ld -shared -fPIC rpm-stub.o -o $@
+	$(PREFIX)objdump -d $@ > rpm.dis
+	$(PREFIX)nm -n $@ > rpm.nm
+	$(PREFIX)readelf -a $@ > rpm.readelf
