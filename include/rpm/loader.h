@@ -12,7 +12,25 @@ extern "C" {
 // Dynamic object structure.
 //
 typedef struct {
-    //TODO
+    int fd;
+    size_t file_size;
+    void *base;
+
+    // ELF executable header (EHDR).
+    uint16_t e_type;      // Object file type (ET_*)
+    uint16_t e_machine;   // Machine type (EM_*)
+    uint32_t e_version;   // File format version (EV_*)
+    size_t   e_entry;     // Start address
+    size_t   e_phoff;     // File offset to the PHDR table
+    size_t   e_shoff;     // File offset to the SHDRheader
+    uint32_t e_flags;     // Flags (EF_*)
+    uint16_t e_ehsize;    // Elf header size in bytes
+    uint16_t e_phentsize; // PHDR table entry size in bytes
+    uint16_t e_phnum;     // Number of PHDR entries
+    uint16_t e_shentsize; // SHDR table entry size in bytes
+    uint16_t e_shnum;     // Number of SHDR entries
+    uint16_t e_shstrndx;  // Index of section name string table
+
 } dyn_object_t;
 
 //
