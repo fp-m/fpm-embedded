@@ -1,5 +1,0 @@
---- !ifs-v1
-IfsVersion: 3.0
-Symbols:
-  - { Name: "rpm_puts", Type: Func }
-...

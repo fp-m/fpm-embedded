@@ -112,3 +112,13 @@ add_executable(alloc_tests
     ../kernel/rpm_alloc.c
 )
 gtest_discover_tests(alloc_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
+# Check dynamic loader.
+#
+add_executable(loader_tests
+    loader_test.cpp
+    console_util.cpp
+    #../kernel/rpm_loader.c
+)
+gtest_discover_tests(loader_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
