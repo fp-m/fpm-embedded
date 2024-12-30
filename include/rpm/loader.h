@@ -17,9 +17,6 @@ typedef struct {
     void *base;
 
     // ELF executable header (EHDR).
-    uint16_t e_type;      // Object file type (ET_*)
-    uint16_t e_machine;   // Machine type (EM_*)
-    uint32_t e_version;   // File format version (EV_*)
     size_t   e_entry;     // Start address
     size_t   e_phoff;     // File offset to the PHDR table
     size_t   e_shoff;     // File offset to the SHDRheader

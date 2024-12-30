@@ -50,12 +50,6 @@ err:    close(dynobj->fd);
         goto err;
     }
 
-    static const char NATIVE_CLASS = (sizeof(size_t) == 8) ? ELFCLASS64 : ELFCLASS32;
-    if (id[EI_CLASS] != NATIVE_CLASS) {
-        rpm_printf("%s: Incompatible word size\r\n", filename);
-        goto err;
-    }
-
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     static const char NATIVE_ENDIANNESS = ELFDATA2LSB;
 #else
@@ -66,42 +60,19 @@ err:    close(dynobj->fd);
         goto err;
     }
 
-    //
-    // Copy fields of exec header.
-    //
-    if (sizeof(size_t) == 8) {
-        auto *hdr = (const Elf64_Ehdr *) dynobj->base;
-        dynobj->e_type      = hdr->e_type;
-        dynobj->e_machine   = hdr->e_machine;
-        dynobj->e_version   = hdr->e_version;
-        dynobj->e_entry     = hdr->e_entry;
-        dynobj->e_phoff     = hdr->e_phoff;
-        dynobj->e_shoff     = hdr->e_shoff;
-        dynobj->e_flags     = hdr->e_flags;
-        dynobj->e_ehsize    = hdr->e_ehsize;
-        dynobj->e_phentsize = hdr->e_phentsize;
-        dynobj->e_phnum     = hdr->e_phnum;
-        dynobj->e_shentsize = hdr->e_shentsize;
-        dynobj->e_shnum     = hdr->e_shnum;
-        dynobj->e_shstrndx  = hdr->e_shstrndx;
-    } else {
-        auto hdr = (const Elf32_Ehdr *) dynobj->base;
-        dynobj->e_type      = hdr->e_type;
-        dynobj->e_machine   = hdr->e_machine;
-        dynobj->e_version   = hdr->e_version;
-        dynobj->e_entry     = hdr->e_entry;
-        dynobj->e_phoff     = hdr->e_phoff;
-        dynobj->e_shoff     = hdr->e_shoff;
-        dynobj->e_flags     = hdr->e_flags;
-        dynobj->e_ehsize    = hdr->e_ehsize;
-        dynobj->e_phentsize = hdr->e_phentsize;
-        dynobj->e_phnum     = hdr->e_phnum;
-        dynobj->e_shentsize = hdr->e_shentsize;
-        dynobj->e_shnum     = hdr->e_shnum;
-        dynobj->e_shstrndx  = hdr->e_shstrndx;
+#if __SIZE_WIDTH__ == 64
+    static const char NATIVE_CLASS = ELFCLASS64;
+    auto *hdr = (const Elf64_Ehdr *) dynobj->base;
+#else
+    static const char NATIVE_CLASS = ELFCLASS32;
+    auto hdr = (const Elf32_Ehdr *) dynobj->base;
+#endif
+    if (id[EI_CLASS] != NATIVE_CLASS) {
+        rpm_printf("%s: Incompatible word size\r\n", filename);
+        goto err;
     }
 
-    if (dynobj->e_type != ET_DYN) {
+    if (hdr->e_type != ET_DYN) {
         rpm_printf("%s: Bad exec type\r\n", filename);
         goto err;
     }
@@ -121,10 +92,24 @@ err:    close(dynobj->fd);
 #else
 #   error "This architecture is not supported"
 #endif
-    if (dynobj->e_machine != NATIVE_MACHINE) {
+    if (hdr->e_machine != NATIVE_MACHINE) {
         rpm_printf("%s: Incompatible machine\r\n", filename);
         goto err;
     }
+
+    //
+    // Copy fields of exec header.
+    //
+    dynobj->e_entry     = hdr->e_entry;
+    dynobj->e_phoff     = hdr->e_phoff;
+    dynobj->e_shoff     = hdr->e_shoff;
+    dynobj->e_flags     = hdr->e_flags;
+    dynobj->e_ehsize    = hdr->e_ehsize;
+    dynobj->e_phentsize = hdr->e_phentsize;
+    dynobj->e_phnum     = hdr->e_phnum;
+    dynobj->e_shentsize = hdr->e_shentsize;
+    dynobj->e_shnum     = hdr->e_shnum;
+    dynobj->e_shstrndx  = hdr->e_shstrndx;
 
     return true;
 }
@@ -155,6 +140,9 @@ TEST(loader, elf_binary)
 
     bool load_status = dyn_load(&dynobj, filename);
     ASSERT_TRUE(load_status);
+
+    unsigned const expect_header_size = (sizeof(size_t) == 8) ? sizeof(Elf64_Ehdr) : sizeof(Elf32_Ehdr);
+    ASSERT_EQ(dynobj.e_ehsize, expect_header_size);
 
     dyn_unload(&dynobj);
 }
