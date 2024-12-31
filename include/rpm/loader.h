@@ -37,6 +37,11 @@ typedef struct {
 bool dyn_load(dyn_object_t *dynobj, const char *filename);
 
 //
+// Unmap ELF binary from memory.
+//
+void dyn_unload(dyn_object_t *dynobj);
+
+//
 // dyn_symbol symtab[] = { ... };
 // dyn_bind(&dynobj, symtab);
 // dyn_run(&dynobj, argc, argv);
