@@ -13,6 +13,29 @@
 #   error "This platform is not supported"
 #endif
 
+#if __SIZE_WIDTH__ == 64
+    typedef Elf64_Ehdr Native_Ehdr;
+    typedef Elf64_Shdr Native_Shdr;
+#else
+    typedef Elf32_Ehdr Native_Ehdr;
+    typedef Elf32_Shdr Native_Shdr;
+#endif
+
+//
+// Find section by type.
+//
+static const Native_Shdr *dyn_find_section(dyn_object_t *dynobj, unsigned type)
+{
+    const Native_Shdr *section = (const Native_Shdr *) (dynobj->e_shoff + (char*)dynobj->base);
+
+    for (unsigned i = 0; i < dynobj->e_shnum; i++) {
+        if (section[i].sh_type == type) {
+            return &section[i];
+        }
+    }
+    return NULL;
+}
+
 //
 // Map ELF binary into memory.
 //
@@ -69,11 +92,10 @@ err:    close(dynobj->fd);
 
 #if __SIZE_WIDTH__ == 64
     static const char NATIVE_CLASS = ELFCLASS64;
-    const Elf64_Ehdr *hdr = (const Elf64_Ehdr *) dynobj->base;
 #else
     static const char NATIVE_CLASS = ELFCLASS32;
-    const Elf32_Ehdr hdr = (const Elf32_Ehdr *) dynobj->base;
 #endif
+    const Native_Ehdr *hdr = dynobj->base;
     if (id[EI_CLASS] != NATIVE_CLASS) {
         rpm_printf("%s: Incompatible word size\r\n", filename);
         goto err;
@@ -118,6 +140,25 @@ err:    close(dynobj->fd);
     dynobj->e_shnum     = hdr->e_shnum;
     dynobj->e_shstrndx  = hdr->e_shstrndx;
 
+    // Find relocation section.
+    const Native_Shdr *rel_sect = dyn_find_section(dynobj, SHT_RELA);
+    if (rel_sect == NULL) {
+        rpm_printf("%s: No relocation section\r\n", filename);
+        goto err;
+    }
+#if 1
+    rpm_printf("Relocation section:\r\n");
+    rpm_printf("    name      = 0x%x\r\n", rel_sect->sh_name);      // index of section name
+    rpm_printf("    type      = 0x%x\r\n", rel_sect->sh_type);      // section type
+    rpm_printf("    flags     = 0x%x\r\n", rel_sect->sh_flags);     // section flags
+    rpm_printf("    addr      = 0x%x\r\n", rel_sect->sh_addr);      // in-memory address of section
+    rpm_printf("    offset    = 0x%x\r\n", rel_sect->sh_offset);    // file offset of section
+    rpm_printf("    size      = 0x%x\r\n", rel_sect->sh_size);      // section size in bytes
+    rpm_printf("    link      = 0x%x\r\n", rel_sect->sh_link);      // section header table link
+    rpm_printf("    info      = 0x%x\r\n", rel_sect->sh_info);      // extra information
+    rpm_printf("    addralign = 0x%x\r\n", rel_sect->sh_addralign); // alignment constraint
+    rpm_printf("    entsize   = 0x%x\r\n", rel_sect->sh_entsize);   // size for fixed-size entries
+#endif
     return true;
 }
 

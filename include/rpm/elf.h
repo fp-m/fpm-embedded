@@ -782,4 +782,85 @@ typedef struct {
     uint32_t gh_shift2;    /* Bloom filter shift count. */
 } Elf_GNU_Hash_Header;
 
+/*
+ * Section types.
+ */
+
+#define SHT_NULL               0
+#define SHT_PROGBITS           1
+#define SHT_SYMTAB             2
+#define SHT_STRTAB             3
+#define SHT_RELA               4
+#define SHT_HASH               5
+#define SHT_DYNAMIC            6
+#define SHT_NOTE               7
+#define SHT_NOBITS             8
+#define SHT_REL                9
+#define SHT_SHLIB              10
+#define SHT_DYNSYM             11
+#define SHT_INIT_ARRAY         14
+#define SHT_FINI_ARRAY         15
+#define SHT_PREINIT_ARRAY      16
+#define SHT_GROUP              17
+#define SHT_SYMTAB_SHNDX       18
+#define SHT_LOOS               0x60000000UL
+#define SHT_SUNW_dof           0x6FFFFFF4UL
+#define SHT_SUNW_cap           0x6FFFFFF5UL
+#define SHT_GNU_ATTRIBUTES     0x6FFFFFF5UL
+#define SHT_SUNW_SIGNATURE     0x6FFFFFF6UL
+#define SHT_GNU_HASH           0x6FFFFFF6UL
+#define SHT_GNU_LIBLIST        0x6FFFFFF7UL
+#define SHT_SUNW_ANNOTATE      0x6FFFFFF7UL
+#define SHT_SUNW_DEBUGSTR      0x6FFFFFF8UL
+#define SHT_CHECKSUM           0x6FFFFFF8UL
+#define SHT_SUNW_DEBUG         0x6FFFFFF9UL
+#define SHT_SUNW_move          0x6FFFFFFAUL
+#define SHT_SUNW_COMDAT        0x6FFFFFFBUL
+#define SHT_SUNW_syminfo       0x6FFFFFFCUL
+#define SHT_SUNW_verdef        0x6FFFFFFDUL
+#define SHT_SUNW_verneed       0x6FFFFFFEUL
+#define SHT_SUNW_versym        0x6FFFFFFFUL
+#define SHT_HIOS               0x6FFFFFFFUL
+#define SHT_LOPROC             0x70000000UL
+#define SHT_ARM_EXIDX          0x70000001UL
+#define SHT_ARM_PREEMPTMAP     0x70000002UL
+#define SHT_ARM_ATTRIBUTES     0x70000003UL
+#define SHT_ARM_DEBUGOVERLAY   0x70000004UL
+#define SHT_ARM_OVERLAYSECTION 0x70000005UL
+#define SHT_MIPS_LIBLIST       0x70000000UL
+#define SHT_MIPS_MSYM          0x70000001UL
+#define SHT_MIPS_CONFLICT      0x70000002UL
+#define SHT_MIPS_GPTAB         0x70000003UL
+#define SHT_MIPS_UCODE         0x70000004UL
+#define SHT_MIPS_DEBUG         0x70000005UL
+#define SHT_MIPS_REGINFO       0x70000006UL
+#define SHT_MIPS_PACKAGE       0x70000007UL
+#define SHT_MIPS_PACKSYM       0x70000008UL
+#define SHT_MIPS_RELD          0x70000009UL
+#define SHT_MIPS_IFACE         0x7000000BUL
+#define SHT_MIPS_CONTENT       0x7000000CUL
+#define SHT_MIPS_OPTIONS       0x7000000DUL
+#define SHT_MIPS_DELTASYM      0x7000001BUL
+#define SHT_MIPS_DELTAINST     0x7000001CUL
+#define SHT_MIPS_DELTACLASS    0x7000001DUL
+#define SHT_MIPS_DWARF         0x7000001EUL
+#define SHT_MIPS_DELTADECL     0x7000001FUL
+#define SHT_MIPS_SYMBOL_LIB    0x70000020UL
+#define SHT_MIPS_EVENTS        0x70000021UL
+#define SHT_MIPS_TRANSLATE     0x70000022UL
+#define SHT_MIPS_PIXIE         0x70000023UL
+#define SHT_MIPS_XLATE         0x70000024UL
+#define SHT_MIPS_XLATE_DEBUG   0x70000025UL
+#define SHT_MIPS_WHIRL         0x70000026UL
+#define SHT_MIPS_EH_REGION     0x70000027UL
+#define SHT_MIPS_XLATE_OLD     0x70000028UL
+#define SHT_MIPS_PDR_EXCEPTION 0x70000029UL
+#define SHT_MIPS_ABIFLAGS      0x7000002AUL
+#define SHT_SPARC_GOTDATA      0x70000000UL
+#define SHT_X86_64_UNWIND      0x70000001UL
+#define SHT_ORDERED            0x7FFFFFFFUL
+#define SHT_HIPROC             0x7FFFFFFFUL
+#define SHT_LOUSER             0x80000000UL
+#define SHT_HIUSER             0xFFFFFFFFUL
+
 #endif /* _RPM_ELF_H_ */
