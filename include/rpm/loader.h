@@ -12,21 +12,11 @@ extern "C" {
 // Dynamic object structure.
 //
 typedef struct {
-    int fd;
-    size_t file_size;
-    void *base;
-
-    // ELF executable header (EHDR).
-    size_t   e_entry;     // Start address
-    size_t   e_phoff;     // File offset to the PHDR table
-    size_t   e_shoff;     // File offset to the SHDRheader
-    uint32_t e_flags;     // Flags (EF_*)
-    uint16_t e_ehsize;    // Elf header size in bytes
-    uint16_t e_phentsize; // PHDR table entry size in bytes
-    uint16_t e_phnum;     // Number of PHDR entries
-    uint16_t e_shentsize; // SHDR table entry size in bytes
-    uint16_t e_shnum;     // Number of SHDR entries
-    uint16_t e_shstrndx;  // Index of section name string table
+    int fd;                  // File descriptor
+    size_t file_size;        // Size of file in bytes
+    void *base;              // File is mapped at this address
+    unsigned num_links;      // Number of linked procedures
+    const void *rel_section; // Header of .rela.plt section
 
 } dyn_object_t;
 
@@ -40,6 +30,11 @@ bool dyn_load(dyn_object_t *dynobj, const char *filename);
 // Unmap ELF binary from memory.
 //
 void dyn_unload(dyn_object_t *dynobj);
+
+//
+// Get names of linked procedures.
+//
+void dyn_get_symbols(dyn_object_t *dynobj, const char *symbols[]);
 
 //
 // dyn_symbol symtab[] = { ... };

@@ -14,8 +14,20 @@ TEST(loader, elf_binary)
     bool load_status = dyn_load(&dynobj, filename);
     ASSERT_TRUE(load_status);
 
-    unsigned const expect_header_size = (sizeof(size_t) == 8) ? sizeof(Elf64_Ehdr) : sizeof(Elf32_Ehdr);
-    ASSERT_EQ(dynobj.e_ehsize, expect_header_size);
+    dyn_unload(&dynobj);
+}
+
+TEST(loader, linked_symbols)
+{
+    const char filename[] = "hello.elf";
+    dyn_object_t dynobj{};
+
+    ASSERT_TRUE(dyn_load(&dynobj, filename));
+    ASSERT_EQ(dynobj.num_links, 1);
+
+    const char *symbols[dynobj.num_links]{};
+    dyn_get_symbols(&dynobj, symbols);
+    ASSERT_STREQ(symbols[0], "rpm_puts");
 
     dyn_unload(&dynobj);
 }
