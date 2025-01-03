@@ -135,7 +135,7 @@ err:    close(dynobj->fd);
 #elif __ARM_ARCH_ISA_ARM
     static const unsigned NATIVE_MACHINE = EM_ARM;
 #elif __ARM_ARCH_ISA_A64
-    static const unsigned NATIVE_MACHINE = EM_ARM;
+    static const unsigned NATIVE_MACHINE = EM_AARCH64;
 #elif __mips__
     static const unsigned NATIVE_MACHINE = EM_MIPS;
 #elif __riscv
@@ -190,21 +190,6 @@ static void dyn_get_symbols_rela(dyn_object_t *dynobj, const Native_Shdr *rela_s
 {
     const Native_Rela *relocations = (const Native_Rela *) (rela_section->sh_offset + (char*)dynobj->base);
 
-#if 0
-    rpm_printf("Relocation section:\r\n");
-    rpm_printf("    name      = 0x%x\r\n", rela_section->sh_name);      // index of section name
-    rpm_printf("    type      = 0x%x\r\n", rela_section->sh_type);      // section type
-    rpm_printf("    flags     = 0x%x\r\n", rela_section->sh_flags);     // section flags
-    rpm_printf("    addr      = 0x%x\r\n", rela_section->sh_addr);      // in-memory address of section
-    rpm_printf("    offset    = 0x%x\r\n", rela_section->sh_offset);    // file offset of section
-    rpm_printf("    size      = 0x%x\r\n", rela_section->sh_size);      // section size in bytes
-    rpm_printf("    link      = 0x%x\r\n", rela_section->sh_link);      // section header table link
-    rpm_printf("    info      = 0x%x\r\n", rela_section->sh_info);      // extra information
-    rpm_printf("    addralign = 0x%x\r\n", rela_section->sh_addralign); // alignment constraint
-    rpm_printf("    entsize   = 0x%x\r\n", rela_section->sh_entsize);   // size for fixed-size entries
-    rpm_printf("Relocation entries:\r\n");
-#endif
-
     // Get pointer to .dynsym contents.
     const Native_Shdr *dyn_section = dyn_section_by_index(dynobj, rela_section->sh_link);
     const Native_Sym *symbols      = (const Native_Sym *) (dyn_section->sh_offset + (char*)dynobj->base);
@@ -214,20 +199,10 @@ static void dyn_get_symbols_rela(dyn_object_t *dynobj, const Native_Shdr *rela_s
     const char *strings            = str_section->sh_offset + (char*)dynobj->base;
 
     for (unsigned reloc_index = 0; reloc_index < dynobj->num_links; reloc_index++) {
-        const Native_Rela *item = &relocations[reloc_index];
-        unsigned dynsym_index   = NATIVE_R_SYM(item->r_info);
+        unsigned dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
 
         // Get name from .dynsym section.
         result[reloc_index] = &strings[symbols[dynsym_index].st_name];
-#if 0
-        rpm_printf("    entry: %u\r\n", index);
-        rpm_printf("        offset: %#zx\r\n", (size_t) item->r_offset);
-        rpm_printf("          info: %#zx\r\n", (size_t) item->r_info);
-        rpm_printf("           sym: %#zx\r\n", (size_t) NATIVE_R_SYM(item->r_info));
-        rpm_printf("          type: %#zx\r\n", (size_t) NATIVE_R_TYPE(item->r_info));
-        rpm_printf("        addend: %zd\r\n", (size_t) item->r_addend);
-        rpm_printf("          name: %s\r\n", result[reloc_index]);
-#endif
     }
 }
 
@@ -238,21 +213,6 @@ static void dyn_get_symbols_rel(dyn_object_t *dynobj, const Native_Shdr *rel_sec
 {
     const Native_Rel *relocations = (const Native_Rel *) (rel_section->sh_offset + (char*)dynobj->base);
 
-#if 0
-    rpm_printf("Relocation section:\r\n");
-    rpm_printf("    name      = 0x%x\r\n", rel_section->sh_name);      // index of section name
-    rpm_printf("    type      = 0x%x\r\n", rel_section->sh_type);      // section type
-    rpm_printf("    flags     = 0x%x\r\n", rel_section->sh_flags);     // section flags
-    rpm_printf("    addr      = 0x%x\r\n", rel_section->sh_addr);      // in-memory address of section
-    rpm_printf("    offset    = 0x%x\r\n", rel_section->sh_offset);    // file offset of section
-    rpm_printf("    size      = 0x%x\r\n", rel_section->sh_size);      // section size in bytes
-    rpm_printf("    link      = 0x%x\r\n", rel_section->sh_link);      // section header table link
-    rpm_printf("    info      = 0x%x\r\n", rel_section->sh_info);      // extra information
-    rpm_printf("    addralign = 0x%x\r\n", rel_section->sh_addralign); // alignment constraint
-    rpm_printf("    entsize   = 0x%x\r\n", rel_section->sh_entsize);   // size for fixed-size entries
-    rpm_printf("Relocation entries:\r\n");
-#endif
-
     // Get pointer to .dynsym contents.
     const Native_Shdr *dyn_section = dyn_section_by_index(dynobj, rel_section->sh_link);
     const Native_Sym *symbols      = (const Native_Sym *) (dyn_section->sh_offset + (char*)dynobj->base);
@@ -262,20 +222,10 @@ static void dyn_get_symbols_rel(dyn_object_t *dynobj, const Native_Shdr *rel_sec
     const char *strings            = str_section->sh_offset + (char*)dynobj->base;
 
     for (unsigned reloc_index = 0; reloc_index < dynobj->num_links; reloc_index++) {
-        const Native_Rel *item = &relocations[reloc_index];
-        unsigned dynsym_index  = NATIVE_R_SYM(item->r_info);
+        unsigned dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
 
         // Get name from .dynsym section.
         result[reloc_index] = &strings[symbols[dynsym_index].st_name];
-#if 0
-        rpm_printf("    entry: %u\r\n", index);
-        rpm_printf("        offset: %#zx\r\n", (size_t) item->r_offset);
-        rpm_printf("          info: %#zx\r\n", (size_t) item->r_info);
-        rpm_printf("           sym: %#zx\r\n", (size_t) NATIVE_R_SYM(item->r_info));
-        rpm_printf("          type: %#zx\r\n", (size_t) NATIVE_R_TYPE(item->r_info));
-        // No addend.
-        rpm_printf("          name: %s\r\n", result[reloc_index]);
-#endif
     }
 }
 
