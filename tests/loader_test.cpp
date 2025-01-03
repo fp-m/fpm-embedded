@@ -11,6 +11,7 @@ TEST(loader, elf_binary)
     const char filename[] = "hello.elf";
     dyn_object_t dynobj{};
 
+    // Map ELF file into memory.
     bool load_status = dyn_load(&dynobj, filename);
     ASSERT_TRUE(load_status);
 
@@ -26,6 +27,7 @@ TEST(loader, linked_symbols)
     ASSERT_TRUE(dyn_load(&dynobj, filename));
     ASSERT_EQ(dynobj.num_links, expect_num_links);
 
+    // Get names of dynamically linked routines.
     const char *symbols[expect_num_links]{};
     dyn_get_symbols(&dynobj, symbols);
     ASSERT_STREQ(symbols[0], "rpm_puts");
