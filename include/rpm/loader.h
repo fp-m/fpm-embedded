@@ -17,6 +17,7 @@ typedef struct {
     void *base;              // File is mapped at this address
     unsigned num_links;      // Number of linked procedures
     const void *rel_section; // Header of .rela.plt section
+    int exit_code;           // Return value of invoked object
 
 } dyn_object_t;
 
@@ -25,8 +26,8 @@ typedef struct {
 //
 typedef struct {
     const char *name;       // Name of procedure
-    void *func;             // Address of procedure
-} dyn_export_t;
+    void *address;          // Address of procedure
+} dyn_linkmap_t;
 
 //
 // Load dynamic binary.
@@ -46,14 +47,14 @@ void dyn_get_symbols(dyn_object_t *dynobj, const char *symbols[]);
 
 //
 // Invoke entry address of the ELF binary with argc, argv arguments.
-// Bind dynamic symbols of the binary to the given vocabulary.
+// Bind dynamic symbols of the binary according to the given linkmap.
 // Assume the entry has signature:
 //
 //      int main(int argc, char *argv[])
 //
 // Return the exit code.
 //
-int dyn_execv(dyn_object_t *dynobj, dyn_export_t vocabulary[], int argc, const char *argv[]);
+bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const char *argv[]);
 
 #ifdef __cplusplus
 }

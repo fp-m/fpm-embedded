@@ -4,6 +4,7 @@
 #include <rpm/api.h>
 #include <rpm/loader.h>
 #include <rpm/elf.h>
+#include <alloca.h>
 #if __unix__ || __APPLE__
 #   include <unistd.h>
 #   include <fcntl.h>
@@ -184,34 +185,22 @@ void dyn_unload(dyn_object_t *dynobj)
 }
 
 //
-// Get names from RELA section.
+// Get name from .dynsym section.
 //
-static void dyn_get_symbols_rela(dyn_object_t *dynobj, const Native_Shdr *rela_section, const char *result[])
+static const char *dyn_get_name(dyn_object_t *dynobj, unsigned reloc_index)
 {
-    const Native_Rela *relocations = (const Native_Rela *) (rela_section->sh_offset + (char*)dynobj->base);
+    // Get pointer to REL or RELA section.
+    const Native_Shdr *rel_section = (const Native_Shdr *) dynobj->rel_section;
 
-    // Get pointer to .dynsym contents.
-    const Native_Shdr *dyn_section = dyn_section_by_index(dynobj, rela_section->sh_link);
-    const Native_Sym *symbols      = (const Native_Sym *) (dyn_section->sh_offset + (char*)dynobj->base);
-
-    // Get pointer to .dynstr contents.
-    const Native_Shdr *str_section = dyn_section_by_index(dynobj, dyn_section->sh_link);
-    const char *strings            = str_section->sh_offset + (char*)dynobj->base;
-
-    for (unsigned reloc_index = 0; reloc_index < dynobj->num_links; reloc_index++) {
-        unsigned dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
-
-        // Get name from .dynsym section.
-        result[reloc_index] = &strings[symbols[dynsym_index].st_name];
+    // Get index of the symbol in .dynsym section.
+    unsigned dynsym_index;
+    if (rel_section->sh_type == SHT_RELA) {
+        const Native_Rela *relocations = (const Native_Rela *) (rel_section->sh_offset + (char*)dynobj->base);
+        dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
+    } else {
+        const Native_Rel *relocations = (const Native_Rel *) (rel_section->sh_offset + (char*)dynobj->base);
+        dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
     }
-}
-
-//
-// Get names from REL section.
-//
-static void dyn_get_symbols_rel(dyn_object_t *dynobj, const Native_Shdr *rel_section, const char *result[])
-{
-    const Native_Rel *relocations = (const Native_Rel *) (rel_section->sh_offset + (char*)dynobj->base);
 
     // Get pointer to .dynsym contents.
     const Native_Shdr *dyn_section = dyn_section_by_index(dynobj, rel_section->sh_link);
@@ -221,12 +210,8 @@ static void dyn_get_symbols_rel(dyn_object_t *dynobj, const Native_Shdr *rel_sec
     const Native_Shdr *str_section = dyn_section_by_index(dynobj, dyn_section->sh_link);
     const char *strings            = str_section->sh_offset + (char*)dynobj->base;
 
-    for (unsigned reloc_index = 0; reloc_index < dynobj->num_links; reloc_index++) {
-        unsigned dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
-
-        // Get name from .dynsym section.
-        result[reloc_index] = &strings[symbols[dynsym_index].st_name];
-    }
+    // Get name from .dynsym section.
+    return &strings[symbols[dynsym_index].st_name];
 }
 
 //
@@ -235,26 +220,75 @@ static void dyn_get_symbols_rel(dyn_object_t *dynobj, const Native_Shdr *rel_sec
 //
 void dyn_get_symbols(dyn_object_t *dynobj, const char *result[])
 {
-    // Get pointer to .rela.plt contents.
-    const Native_Shdr *section = (const Native_Shdr *) dynobj->rel_section;
-    if (section->sh_type == SHT_RELA) {
-        dyn_get_symbols_rela(dynobj, section, result);
-    } else {
-        dyn_get_symbols_rel(dynobj, section, result);
+    for (unsigned index = 0; index < dynobj->num_links; index++) {
+        result[index] = dyn_get_name(dynobj, index);
+    }
+}
+
+//
+// Search linkmap for a given name.
+// Return address of the symbol, or NULL on failure.
+//
+static void *find_address_by_name(const dyn_linkmap_t *linkmap, const char *name)
+{
+    for (;;) {
+        // Skip first entry - it's a parent link.
+        for (unsigned index = 1; linkmap[index].name != NULL; index++) {
+            if (strcmp(name, linkmap[index].name) == 0) {
+                return linkmap[index].address;
+            }
+        }
+
+        // Name not found in this link map.
+        // Search parent recursively.
+        linkmap = (const dyn_linkmap_t *) linkmap[0].address;
+        if (linkmap == NULL) {
+            return NULL;
+        }
     }
 }
 
 //
 // Invoke entry address of the ELF binary with argc, argv arguments.
-// Bind dynamic symbols of the binary to the given vocabulary.
+// Bind dynamic symbols of the binary according to the given linkmap.
 // Assume the entry has signature:
 //
 //      int main(int argc, char *argv[])
 //
 // Return the exit code.
 //
-int dyn_execv(dyn_object_t *dynobj, dyn_export_t vocabulary[], int argc, const char *argv[])
+bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const char *argv[])
 {
-    //TODO
-    return -1;
+    // Build a Global Offset Table on stack.
+    void **got = alloca(dynobj->num_links);
+
+    // Bind dynamic symbols.
+    unsigned fail_count = 0;
+    for (unsigned index = 0; index < dynobj->num_links; index++) {
+
+        // Find symbol's name and address.
+        const char *name = dyn_get_name(dynobj, index);
+        void *address    = find_address_by_name(linkmap, name);
+
+        got[index] = address;
+        if (address == NULL) {
+            rpm_printf("%s: Symbol not found\r\n", name);
+            fail_count++;
+        }
+    }
+    if (fail_count > 0) {
+        // Cannot map some symbols.
+        return false;
+    }
+
+    //TODO: Setup arch-dependent GOT register.
+
+    // Compute entry address.
+    typedef int (*entry_t)(int, const char **);
+    const Native_Ehdr *hdr = dynobj->base;
+    const entry_t entry    = (entry_t) (hdr->e_entry + (char*)dynobj->base);
+
+    // Invoke ELF binary.
+    dynobj->exit_code = (*entry)(argc, argv);
+    return true;
 }

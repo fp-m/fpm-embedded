@@ -46,15 +46,16 @@ TEST(loader, run_puts)
     ASSERT_TRUE(dyn_load(&dynobj, "hello.elf"));
 
     // Export dynamically linked routines.
-    static dyn_export_t vocabulary[] = {
+    static dyn_linkmap_t linkmap[] = {
         { "", NULL },
         { "rpm_puts", (void*) mock_puts },
         {},
     };
     const char *argv[] = { "hello" };
 
-    auto ret_value = dyn_execv(&dynobj, vocabulary, 1, argv);
-    ASSERT_EQ(ret_value, 0);
+    bool exec_status = dyn_execv(&dynobj, linkmap, 1, argv);
+    ASSERT_TRUE(exec_status);
+    ASSERT_EQ(dynobj.exit_code, 0);
     // TODO: check output.
 
     dyn_unload(&dynobj);
