@@ -4,7 +4,7 @@
 #include <rpm/api.h>
 #include <rpm/loader.h>
 #include <rpm/elf.h>
-#if __unix__
+#if __unix__ || __APPLE__
 #   include <unistd.h>
 #   include <fcntl.h>
 #   include <sys/mman.h>
@@ -63,7 +63,7 @@ static const Native_Shdr *dyn_section_by_index(dyn_object_t *dynobj, unsigned in
 //
 bool dyn_load(dyn_object_t *dynobj, const char *filename)
 {
-#if __unix__
+#if __unix__ || __APPLE__
     // Open the shared library file in read-only mode
     dynobj->fd = open(filename, O_RDONLY);
     if (dynobj->fd < 0) {

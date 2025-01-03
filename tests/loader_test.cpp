@@ -22,10 +22,11 @@ TEST(loader, linked_symbols)
     const char filename[] = "hello.elf";
     dyn_object_t dynobj{};
 
+    const int expect_num_links = 1;
     ASSERT_TRUE(dyn_load(&dynobj, filename));
-    ASSERT_EQ(dynobj.num_links, 1);
+    ASSERT_EQ(dynobj.num_links, expect_num_links);
 
-    const char *symbols[dynobj.num_links]{};
+    const char *symbols[expect_num_links]{};
     dyn_get_symbols(&dynobj, symbols);
     ASSERT_STREQ(symbols[0], "rpm_puts");
 
