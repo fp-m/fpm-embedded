@@ -10,7 +10,7 @@ static void tokenize_test(const char *input, int expect_argc, const char *expect
     char *argv[32] = { (char*)"some", (char*)"garbage" };
     int argc = 12345;
 
-    strlcpy(buffer, input, sizeof(buffer));
+    strncpy(buffer, input, sizeof(buffer));
     const char *error = rpm_tokenize(argv, &argc, buffer);
 
     if (expect_error) {
