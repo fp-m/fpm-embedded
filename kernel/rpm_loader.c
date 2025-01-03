@@ -293,3 +293,18 @@ void dyn_get_symbols(dyn_object_t *dynobj, const char *result[])
         dyn_get_symbols_rel(dynobj, section, result);
     }
 }
+
+//
+// Invoke entry address of the ELF binary with argc, argv arguments.
+// Bind dynamic symbols of the binary to the given vocabulary.
+// Assume the entry has signature:
+//
+//      int main(int argc, char *argv[])
+//
+// Return the exit code.
+//
+int dyn_execv(dyn_object_t *dynobj, dyn_export_t vocabulary[], int argc, const char *argv[])
+{
+    //TODO
+    return -1;
+}

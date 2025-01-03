@@ -8,11 +8,10 @@
 
 TEST(loader, elf_binary)
 {
-    const char filename[] = "hello.elf";
     dyn_object_t dynobj{};
 
     // Map ELF file into memory.
-    bool load_status = dyn_load(&dynobj, filename);
+    bool load_status = dyn_load(&dynobj, "hello.elf");
     ASSERT_TRUE(load_status);
 
     dyn_unload(&dynobj);
@@ -20,17 +19,43 @@ TEST(loader, elf_binary)
 
 TEST(loader, linked_symbols)
 {
-    const char filename[] = "hello.elf";
     dyn_object_t dynobj{};
 
     const int expect_num_links = 1;
-    ASSERT_TRUE(dyn_load(&dynobj, filename));
+    ASSERT_TRUE(dyn_load(&dynobj, "hello.elf"));
     ASSERT_EQ(dynobj.num_links, expect_num_links);
 
     // Get names of dynamically linked routines.
     const char *symbols[expect_num_links]{};
     dyn_get_symbols(&dynobj, symbols);
     ASSERT_STREQ(symbols[0], "rpm_puts");
+
+    dyn_unload(&dynobj);
+}
+
+static void mock_puts(const char *message)
+{
+    fputs(message, stdout);
+    fflush(stdout);
+    // TODO: save output.
+}
+
+TEST(loader, run_puts)
+{
+    dyn_object_t dynobj{};
+    ASSERT_TRUE(dyn_load(&dynobj, "hello.elf"));
+
+    // Export dynamically linked routines.
+    static dyn_export_t vocabulary[] = {
+        { "", NULL },
+        { "rpm_puts", (void*) mock_puts },
+        {},
+    };
+    const char *argv[] = { "hello" };
+
+    auto ret_value = dyn_execv(&dynobj, vocabulary, 1, argv);
+    ASSERT_EQ(ret_value, 0);
+    // TODO: check output.
 
     dyn_unload(&dynobj);
 }

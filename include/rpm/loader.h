@@ -21,6 +21,14 @@ typedef struct {
 } dyn_object_t;
 
 //
+// Definition of exported procedure for dynamic linking.
+//
+typedef struct {
+    const char *name;       // Name of procedure
+    void *func;             // Address of procedure
+} dyn_export_t;
+
+//
 // Load dynamic binary.
 // Return true on success.
 //
@@ -37,12 +45,15 @@ void dyn_unload(dyn_object_t *dynobj);
 void dyn_get_symbols(dyn_object_t *dynobj, const char *symbols[]);
 
 //
-// dyn_symbol symtab[] = { ... };
-// dyn_bind(&dynobj, symtab);
-// dyn_run(&dynobj, argc, argv);
-// dyn_call(&dynobj, name, argc, argv);
-// dyn_locate(&dynobj, name) -> pointer
+// Invoke entry address of the ELF binary with argc, argv arguments.
+// Bind dynamic symbols of the binary to the given vocabulary.
+// Assume the entry has signature:
 //
+//      int main(int argc, char *argv[])
+//
+// Return the exit code.
+//
+int dyn_execv(dyn_object_t *dynobj, dyn_export_t vocabulary[], int argc, const char *argv[]);
 
 #ifdef __cplusplus
 }
