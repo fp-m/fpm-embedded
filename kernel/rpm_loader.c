@@ -14,6 +14,11 @@
 #   error "This platform is not supported"
 #endif
 
+#if __x86_64__ || __i386__
+#   include <asm/prctl.h>
+#   include <sys/syscall.h>
+#endif
+
 #if __SIZE_WIDTH__ == 64
     typedef Elf64_Ehdr Native_Ehdr;
     typedef Elf64_Shdr Native_Shdr;
@@ -133,10 +138,10 @@ err:    close(dynobj->fd);
     static const unsigned NATIVE_MACHINE = EM_X86_64;
 #elif __i386__
     static const unsigned NATIVE_MACHINE = EM_386;
-#elif __ARM_ARCH_ISA_ARM
-    static const unsigned NATIVE_MACHINE = EM_ARM;
 #elif __ARM_ARCH_ISA_A64
     static const unsigned NATIVE_MACHINE = EM_AARCH64;
+#elif __ARM_ARCH_ISA_ARM
+    static const unsigned NATIVE_MACHINE = EM_ARM;
 #elif __mips__
     static const unsigned NATIVE_MACHINE = EM_MIPS;
 #elif __riscv
@@ -249,6 +254,33 @@ static void *find_address_by_name(const dyn_linkmap_t *linkmap, const char *name
 }
 
 //
+// Setup arch-dependent GOT register.
+//
+static void set_got_pointer(void *addr)
+{
+#if __ARM_ARCH_6M__
+    // For RP2040: use slot #4 of the interrupt vector table,
+    // at address 0x2000 0010. This vector is unused by hardware.
+    *(volatile void**) 0x20000010 = addr;
+
+#elif __x86_64__ || __i386__
+    // For x86-64 or i386 Linux: use %gs register.
+    syscall(SYS_arch_prctl, ARCH_SET_GS, addr);
+
+#elif __ARM_ARCH_ISA_A64
+    // For arm64 Linux or MacOS: use TPIDR_EL0 register.
+    asm volatile("msr tpidr_el0, %0" : : "r" (addr) : "memory");
+
+#elif __ARM_ARCH_ISA_ARM
+    // For arm32 Linux: use TPIDRURW register.
+    asm volatile("mcr p15, 0, %0, c13, c0, 2" : : "r" (addr) : "memory");
+#else
+    //TODO: other platforms.
+#   error "This platform is not supported"
+#endif
+}
+
+//
 // Invoke entry address of the ELF binary with argc, argv arguments.
 // Bind dynamic symbols of the binary according to the given linkmap.
 // Assume the entry has signature:
@@ -280,8 +312,7 @@ bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const ch
         // Cannot map some symbols.
         return false;
     }
-
-    //TODO: Setup arch-dependent GOT register.
+    set_got_pointer(got);
 
     // Compute entry address.
     typedef int (*entry_t)(int, const char **);

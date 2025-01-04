@@ -18,7 +18,6 @@ typedef struct {
     unsigned num_links;      // Number of linked procedures
     const void *rel_section; // Header of .rela.plt section
     int exit_code;           // Return value of invoked object
-
 } dyn_object_t;
 
 //
