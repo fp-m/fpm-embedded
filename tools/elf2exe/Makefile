@@ -1,0 +1,1 @@
+all:    elf2exe

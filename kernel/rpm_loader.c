@@ -321,5 +321,7 @@ bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const ch
 
     // Invoke ELF binary.
     dynobj->exit_code = (*entry)(argc, argv);
+
+    set_got_pointer(NULL);
     return true;
 }
