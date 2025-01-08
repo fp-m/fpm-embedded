@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <fcntl.h>
@@ -29,6 +30,9 @@ int class_type;
 // Machine type: Intel or ARM or others.
 int machine_type;
 
+// Verbose mode: flag -v.
+int verbose;
+
 //
 // Print usage message.
 //
@@ -45,6 +49,9 @@ void usage()
 void open_file()
 {
     // Open file in read/write mode
+    if (verbose) {
+        printf("Open %s\n", filename);
+    }
     file_desc = open(filename, O_RDWR);
     if (file_desc < 0) {
         fprintf(stderr, "%s: Cannot open\n", filename);
@@ -58,12 +65,28 @@ void open_file()
         exit(EXIT_FAILURE);
     }
     file_size = sb.st_size;
+    if (verbose) {
+        printf("Size %zu bytes\n", file_size);
+    }
 
     // Map the file into memory
     base = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_desc, 0);
     if (base == MAP_FAILED) {
         fprintf(stderr, "%s: Cannot map to memory\n", filename);
         exit(EXIT_FAILURE);
+    }
+}
+
+const char *machine_name()
+{
+    switch (machine_type) {
+    case EM_X86_64: return "amd64";
+    case EM_AARCH64: return "arm64";
+    case EM_MIPS: return "mips";
+    case EM_RISCV: return "risc-v";
+    case EM_ARM: return "arm32";
+    case EM_386: return "i386";
+    default: return "unknown";
     }
 }
 
@@ -99,8 +122,17 @@ void check_file_format()
         exit(EXIT_FAILURE);
     }
 
+    // Check OSABI field: when Standalone, it means we have already processed this ELF file.
+    if (id[EI_OSABI] == (char)ELFOSABI_STANDALONE) {
+        fprintf(stderr, "%s: Already processed\n", filename);
+        exit(EXIT_SUCCESS);
+    }
+
     class_type = id[EI_CLASS];
     machine_type = hdr->e_machine;
+    if (verbose) {
+        printf("Class %s, machine %s\n", (class_type == ELFCLASS64) ? "elf64" : "elf32", machine_name());
+    }
 }
 
 //
@@ -174,7 +206,37 @@ const Elf32_Shdr *find_elf32_section(const char *wanted_name)
 }
 
 //
+// Elf64 format: parse REL/RELA section and build the symbol map.
+//
+void parse_elf64_relocation()
+{
+    //TODO
+}
+
+//
+// Elf32 format: parse REL/RELA section and build the symbol map.
+//
+void parse_elf32_relocation()
+{
+    //TODO
+}
+
+//
+// Detect PLT entry for x86_64 machine, for example:
+//      f3 0f 1e fa        endbr64
+//      ff 25 d6 2f 00 00  jmp  *0x2fd6(%rip)
+//      66 0f 1f 44 00 00  nopw (%rax,%rax,1)
+//
+bool is_amd64_entry(const unsigned char *code)
+{
+    return code[0] == 0xf3 && code[1] == 0x0f && code[2] == 0x1e && code[3] == 0xfa &&   // endbr64
+           code[4] == 0xff && code[5] == 0x25 &&                                         // jmp *NUM(%rip)
+           code[10] == 0x66 && code[11] == 0x0f && code[12] == 0x1f && code[13] == 0x44; // nopw (%rax,%rax,1)
+}
+
+//
 // X86_64 machine: process the Procedure Linkage Table.
+// Update num_links.
 //
 void process_amd64_plt(const Elf64_Shdr *hdr)
 {
@@ -196,7 +258,43 @@ void process_amd64_plt(const Elf64_Shdr *hdr)
     // 1024: ff 25 d6 2f 00 00  jmp    *0x2fd6(%rip)    # 4000 <rpm_puts>
     // 102a: 66 0f 1f 44 00 00  nopw   0x0(%rax,%rax,1)
 
-    //TODO
+    //
+    // Scan contents of the PLT section, find entries and replace
+    // with jumps via a table pointed by %gs register.
+    // For example:
+    //      f3 0f 1e fa              endbr64
+    //      65 ff 24 25 08 00 00 00  jmp    *%gs:0x8
+    //      0f 1f 04 00              nopl   (%rax,%rax,1)
+    //
+    unsigned const entry_size = 16;
+    for (unsigned offset = 0; offset < hdr->sh_size; offset += entry_size) {
+        unsigned char *code = hdr->sh_offset + (unsigned char*)base;
+        if (!is_amd64_entry(code)) {
+            fprintf(stderr, "Bad PLT entry at offset %u: %02x %02x %02x %02x %02x %02x %02x %02x...\n",
+                offset, code[0], code[1], code[2], code[3], code[4], code[5], code[6], code[7]);
+            exit(EXIT_FAILURE);
+        }
+
+        unsigned index = 0; // TODO
+
+        // jmp *%gs:NUM
+        code[4] = 0x65;
+        code[5] = 0xff;
+        code[6] = 0x24;
+        code[7] = 0x25;
+        code[8] = (index * 8);
+        code[9] = (index * 8) >> 8;
+        code[10] = (index * 8) >> 16;
+        code[11] = (index * 8) >> 24;
+
+        // nopl (%rax,%rax,1)
+        code[12] = 0x0f;
+        code[13] = 0x1f;
+        code[14] = 0x04;
+        code[15] = 0x00;
+
+        num_links++;
+    }
 }
 
 //
@@ -257,8 +355,6 @@ void process_intel32_plt(const Elf32_Shdr *hdr)
 
 int main(int argc, char **argv)
 {
-    int verbose = 0;
-
     // Parse arguments.
     for (;;) {
         switch (getopt(argc, argv, "v")) {
@@ -290,7 +386,10 @@ int main(int argc, char **argv)
     open_file();
     check_file_format();
 
-    if (class_type) {
+    if (class_type == ELFCLASS64) {
+        //
+        // 64-bit architecture.
+        //
         const Elf64_Shdr *plt = find_elf64_section(".plt.sec");
         if (plt == NULL) {
             plt = find_elf64_section(".plt");
@@ -299,6 +398,7 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
         }
+        parse_elf64_relocation();
         switch (machine_type) {
         case EM_X86_64:
             process_amd64_plt(plt);
@@ -313,11 +413,15 @@ int main(int argc, char **argv)
             exit(EXIT_FAILURE);
         }
     } else {
+        //
+        // 32-bit architecture.
+        //
         const Elf32_Shdr *plt = find_elf32_section(".plt");
         if (plt == NULL) {
             fprintf(stderr, "%s: No procedure linkage table\n", filename);
             exit(EXIT_FAILURE);
         }
+        parse_elf32_relocation();
         switch (machine_type) {
         case EM_ARM:
             process_arm32_plt(plt);
@@ -333,5 +437,12 @@ int main(int argc, char **argv)
         }
     }
 
+    if (num_links > 0) {
+        printf("%s: %u linked procedures\n", filename, num_links);
+
+        // Mark this file as ready for RP/M.
+        char *id = base;
+        id[EI_OSABI] = ELFOSABI_STANDALONE;
+    }
     close_file();
 }

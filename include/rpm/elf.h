@@ -89,6 +89,38 @@
 #define SELFMAG 4
 
 /*
+ * ELF OS ABI field.
+ */
+
+#define ELFOSABI_NONE       0
+#define ELFOSABI_SYSV       0
+#define ELFOSABI_HPUX       1
+#define ELFOSABI_NETBSD     2
+#define ELFOSABI_GNU        3
+#define ELFOSABI_HURD       4
+#define ELFOSABI_86OPEN     5
+#define ELFOSABI_SOLARIS    6
+#define ELFOSABI_AIX        7
+#define ELFOSABI_IRIX       8
+#define ELFOSABI_FREEBSD    9
+#define ELFOSABI_TRU64      10
+#define ELFOSABI_MODESTO    11
+#define ELFOSABI_OPENBSD    12
+#define ELFOSABI_OPENVMS    13
+#define ELFOSABI_NSK        14
+#define ELFOSABI_AROS       15
+#define ELFOSABI_FENIXOS    16
+#define ELFOSABI_CLOUDABI   17
+#define ELFOSABI_OPENVOS    18
+#define ELFOSABI_ARM_AEABI  64
+#define ELFOSABI_ARM        97
+#define ELFOSABI_STANDALONE 255
+
+/* OS ABI Aliases. */
+
+#define ELFOSABI_LINUX ELFOSABI_GNU
+
+/*
  * ELF Machine types: (EM_*).
  */
 
