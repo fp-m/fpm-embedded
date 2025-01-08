@@ -23,6 +23,12 @@ void *base;
 // Number of linked procedures.
 unsigned num_links;
 
+// Class type: 64-bit or 32-bit.
+int class_type;
+
+// Machine type: Intel or ARM or others.
+int machine_type;
+
 //
 // Print usage message.
 //
@@ -34,7 +40,7 @@ void usage()
 
 //
 // Open ELF file and map it to memory.
-// Update file_desc, file_size and base.
+// Set file_desc, file_size and base.
 //
 void open_file()
 {
@@ -63,9 +69,9 @@ void open_file()
 
 //
 // Check file format.
-// Return ELF class value.
+// Set class_type and machine_type.
 //
-int check_file_format()
+void check_file_format()
 {
     const char *id = (const char*) base;
     if (id[EI_MAG0] != ELFMAG0 || id[EI_MAG1] != ELFMAG1 ||
@@ -93,42 +99,8 @@ int check_file_format()
         exit(EXIT_FAILURE);
     }
 
-    switch (id[EI_CLASS]) {
-    case ELFCLASS64:
-        switch (hdr->e_machine) {
-        case EM_X86_64:
-            // Intel/AMD 64-bit machine.
-            break;
-        case EM_AARCH64:
-            // ARM64 machine.
-            break;
-        case EM_MIPS:
-        case EM_RISCV:
-        default:
-            fprintf(stderr, "%s: Unsupported 64-bit machine type\n", filename);
-            exit(EXIT_FAILURE);
-        }
-        break;
-    case ELFCLASS32:
-        switch (hdr->e_machine) {
-        case EM_ARM:
-            // ARM32 machine.
-            break;
-        case EM_386:
-            // Intel 32-bit machine.
-            break;
-        case EM_MIPS:
-        case EM_RISCV:
-        default:
-            fprintf(stderr, "%s: Unsupported 32-bit machine type\n", filename);
-            exit(EXIT_FAILURE);
-        }
-        break;
-    default:
-        fprintf(stderr, "%s: Incompatible word size\n", filename);
-        exit(EXIT_FAILURE);
-    }
-    return id[EI_CLASS];
+    class_type = id[EI_CLASS];
+    machine_type = hdr->e_machine;
 }
 
 //
@@ -136,6 +108,7 @@ int check_file_format()
 //
 void close_file()
 {
+    msync(base, file_size, MS_SYNC);
     munmap(base, file_size);
     close(file_desc);
 }
@@ -201,17 +174,83 @@ const Elf32_Shdr *find_elf32_section(const char *wanted_name)
 }
 
 //
-// Elf64 format: process the Procedure Linkage Table.
+// X86_64 machine: process the Procedure Linkage Table.
 //
-void process_elf64_plt(const Elf64_Shdr *hdr)
+void process_amd64_plt(const Elf64_Shdr *hdr)
 {
+    // Example of .plt section on x86_64 (or amd64) architecture:
+    //
+    // Disassembly of section .plt:
+    // 0000000000001000 <.plt>:
+    // 1000: ff 35 ea 2f 00 00  push   0x2fea(%rip)     # 3ff0 <_GLOBAL_OFFSET_TABLE_+0x8>
+    // 1006: ff 25 ec 2f 00 00  jmp    *0x2fec(%rip)    # 3ff8 <_GLOBAL_OFFSET_TABLE_+0x10>
+    // 100c: 0f 1f 40 00        nopl   0x0(%rax)
+    // 1010: f3 0f 1e fa        endbr64
+    // 1014: 68 00 00 00 00     push   $0x0
+    // 1019: e9 e2 ff ff ff     jmp    1000 <rpm_puts@plt-0x20>
+    // 101e: 66 90              xchg   %ax,%ax
+    //
+    // Disassembly of section .plt.sec:
+    // 0000000000001020 <rpm_puts@plt>:
+    // 1020: f3 0f 1e fa        endbr64
+    // 1024: ff 25 d6 2f 00 00  jmp    *0x2fd6(%rip)    # 4000 <rpm_puts>
+    // 102a: 66 0f 1f 44 00 00  nopw   0x0(%rax,%rax,1)
+
     //TODO
 }
 
 //
-// Elf32 format: process the Procedure Linkage Table.
+// ARM-64 machine: process the Procedure Linkage Table.
 //
-void process_elf32_plt(const Elf32_Shdr *hdr)
+void process_arm64_plt(const Elf64_Shdr *hdr)
+{
+    // Example of .plt section on arm64 architecture:
+    //
+    // 0000000000000220 <.plt>:
+    //  220: a9bf7bf0  stp  x16, x30, [sp, #-16]!
+    //  224: f00000f0  adrp x16, 1f000 <main+0x1edb0>
+    //  228: f947fe11  ldr  x17, [x16, #4088]
+    //  22c: 913fe210  add  x16, x16, #0xff8
+    //  230: d61f0220  br   x17
+    //  234: d503201f  nop
+    //  238: d503201f  nop
+    //  23c: d503201f  nop
+    //
+    // 0000000000000240 <rpm_puts@plt>:
+    //  240: 90000110  adrp x16, 20000 <rpm_puts>
+    //  244: f9400211  ldr  x17, [x16]
+    //  248: 91000210  add  x16, x16, #0x0
+    //  24c: d61f0220  br   x17
+
+    //TODO
+}
+
+//
+// ARM-32 machine: process the Procedure Linkage Table.
+//
+void process_arm32_plt(const Elf32_Shdr *hdr)
+{
+    // Disassembly of section .plt:
+    //
+    // 00000160 <.plt>:
+    //  160: e52de004  push  {lr}             @ (str lr, [sp, #-4]!)
+    //  164: e59fe004  ldr   lr, [pc, #4]     @ 170 <.plt+0x10>
+    //  168: e08fe00e  add   lr, pc, lr
+    //  16c: e5bef008  ldr   pc, [lr, #8]!
+    //  170: 00001e90  .word 0x00001e90
+    //
+    // 00000174 <rpm_puts@plt>:
+    //  174: e28fc600  add   ip, pc, #0, 12
+    //  178: e28cca01  add   ip, ip, #4096    @ 0x1000
+    //  17c: e5bcfe90  ldr   pc, [ip, #3728]! @ 0xe90
+
+    //TODO
+}
+
+//
+// Intel i386 machine: process the Procedure Linkage Table.
+//
+void process_intel32_plt(const Elf32_Shdr *hdr)
 {
     //TODO
 }
@@ -249,30 +288,50 @@ int main(int argc, char **argv)
 
     filename = argv[0];
     open_file();
+    check_file_format();
 
-    switch (check_file_format()) {
-        case ELFCLASS64: {
-            const Elf64_Shdr *hdr = find_elf64_section(".plt.sec");
-            if (hdr == NULL) {
-                hdr = find_elf64_section(".plt");
-                if (hdr == NULL) {
-                    fprintf(stderr, "%s: No procedure linkage table\n", filename);
-                    exit(EXIT_FAILURE);
-                }
-            }
-            process_elf64_plt(hdr);
-            break;
-        }
-
-        case ELFCLASS32: {
-            const Elf32_Shdr *hdr = find_elf32_section(".plt");
-            if (hdr == NULL) {
+    if (class_type) {
+        const Elf64_Shdr *plt = find_elf64_section(".plt.sec");
+        if (plt == NULL) {
+            plt = find_elf64_section(".plt");
+            if (plt == NULL) {
                 fprintf(stderr, "%s: No procedure linkage table\n", filename);
                 exit(EXIT_FAILURE);
             }
-            process_elf32_plt(hdr);
+        }
+        switch (machine_type) {
+        case EM_X86_64:
+            process_amd64_plt(plt);
             break;
+        case EM_AARCH64:
+            process_arm64_plt(plt);
+            break;
+        case EM_MIPS:
+        case EM_RISCV:
+        default:
+            fprintf(stderr, "%s: Unsupported 64-bit machine type\n", filename);
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        const Elf32_Shdr *plt = find_elf32_section(".plt");
+        if (plt == NULL) {
+            fprintf(stderr, "%s: No procedure linkage table\n", filename);
+            exit(EXIT_FAILURE);
+        }
+        switch (machine_type) {
+        case EM_ARM:
+            process_arm32_plt(plt);
+            break;
+        case EM_386:
+            process_intel32_plt(plt);
+            break;
+        case EM_MIPS:
+        case EM_RISCV:
+        default:
+            fprintf(stderr, "%s: Unsupported 32-bit machine type\n", filename);
+            exit(EXIT_FAILURE);
         }
     }
+
     close_file();
 }
