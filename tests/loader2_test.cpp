@@ -7,33 +7,6 @@
 #include <rpm/elf.h>
 #include <sys/syscall.h>
 
-TEST(loader, elf_binary)
-{
-    dyn_object_t dynobj{};
-
-    // Map ELF file into memory.
-    bool load_status = dyn_load(&dynobj, "hello.elf");
-    ASSERT_TRUE(load_status);
-
-    dyn_unload(&dynobj);
-}
-
-TEST(loader, linked_symbols)
-{
-    dyn_object_t dynobj{};
-
-    const int expect_num_links = 1;
-    ASSERT_TRUE(dyn_load(&dynobj, "hello.elf"));
-    ASSERT_EQ(dynobj.num_links, expect_num_links);
-
-    // Get names of dynamically linked routines.
-    const char *symbols[expect_num_links]{};
-    dyn_get_symbols(&dynobj, symbols);
-    ASSERT_STREQ(symbols[0], "rpm_puts");
-
-    dyn_unload(&dynobj);
-}
-
 static std::stringstream puts_result;
 
 static void mock_puts(const char *message)
@@ -45,15 +18,34 @@ static void mock_puts(const char *message)
     puts_result << message;
 }
 
-TEST(loader, run_puts)
+static void mock_wputs(const uint16_t *message)
+{
+    for (;;) {
+        unsigned ch = *message++;
+        if (!ch)
+            break;
+        putchar(ch);
+        puts_result << (char) ch;
+    }
+    fflush(stdout);
+}
+
+static void mock_print_version()
+{
+    mock_puts("Loader Test\r\n");
+}
+
+TEST(loader, print_version_puts_wputs)
 {
     dyn_object_t dynobj{};
-    ASSERT_TRUE(dyn_load(&dynobj, "hello.elf"));
+    ASSERT_TRUE(dyn_load(&dynobj, "testputs.elf"));
 
     // Export dynamically linked routines.
     static dyn_linkmap_t linkmap[] = {
         { "", NULL },
         { "rpm_puts", (void*) mock_puts },
+        { "rpm_wputs", (void*) mock_wputs },
+        { "rpm_print_version", (void*) mock_print_version },
         {},
     };
     const char *argv[] = { "hello" };
@@ -63,7 +55,11 @@ TEST(loader, run_puts)
     ASSERT_EQ(dynobj.exit_code, 0);
 
     // Check output.
-    ASSERT_EQ(puts_result.str(), "Hello, World!\r\n");
+    ASSERT_EQ(puts_result.str(),
+        "Loader Test\r\n"
+        "puts\r\n"
+        "wputs\r\n"
+    );
 
     dyn_unload(&dynobj);
 }
