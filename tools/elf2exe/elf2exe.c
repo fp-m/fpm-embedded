@@ -38,6 +38,7 @@ int verbose;
 //
 void usage()
 {
+    printf("Modify ELF binary for RP/M operating system\n");
     printf("Usage:\n");
     printf("    elf2exe [-v] executable.elf\n");
 }
@@ -268,7 +269,7 @@ void process_amd64_plt(const Elf64_Shdr *hdr)
     //
     unsigned const entry_size = 16;
     for (unsigned offset = 0; offset < hdr->sh_size; offset += entry_size) {
-        unsigned char *code = hdr->sh_offset + (unsigned char*)base;
+        unsigned char *code = offset + hdr->sh_offset + (unsigned char*)base;
         if (!is_amd64_entry(code)) {
             fprintf(stderr, "Bad PLT entry at offset %u: %02x %02x %02x %02x %02x %02x %02x %02x...\n",
                 offset, code[0], code[1], code[2], code[3], code[4], code[5], code[6], code[7]);
@@ -298,6 +299,21 @@ void process_amd64_plt(const Elf64_Shdr *hdr)
 }
 
 //
+// Detect PLT entry for arm64 machine, for example:
+//      90000110  adrp x16, 20000
+//      f9400211  ldr  x17, [x16]
+//      91000210  add  x16, x16, #0x0
+//      d61f0220  br   x17
+//
+bool is_arm64_entry(const uint32_t *code)
+{
+    return (code[0] & 0x9f000000) == 0x90000000 && // adrp x16, NUM
+           code[1] == 0xf9400211 &&                // ldr x17, [x16]
+           (code[2] & 0xff800000) == 0x91000000 && // add x16, x16, #NUM
+           code[3] == 0xd61f0220;                  // br x17
+}
+
+//
 // ARM-64 machine: process the Procedure Linkage Table.
 //
 void process_arm64_plt(const Elf64_Shdr *hdr)
@@ -320,7 +336,33 @@ void process_arm64_plt(const Elf64_Shdr *hdr)
     //  248: 91000210  add  x16, x16, #0x0
     //  24c: d61f0220  br   x17
 
-    //TODO
+    //
+    // Scan contents of the PLT section, find entries and replace
+    // with jumps via a table pointed by TPIDR_EL0 register.
+    // For example:
+    //      d53bd050  mrs x16, tpidr_el0
+    //      91002210  add x16, x16, #0x8
+    //      d61f0200  br  x16
+    //      d503201f  nop
+    //
+    unsigned const entry_size = 16;
+    for (unsigned offset = 32; offset < hdr->sh_size; offset += entry_size) {
+        uint32_t *code = (uint32_t *)(offset + hdr->sh_offset + (char*)base);
+        if (!is_arm64_entry(code)) {
+            fprintf(stderr, "Bad PLT entry at offset %u: %08x %08x %08x %08x\n",
+                offset, code[0], code[1], code[2], code[3]);
+            exit(EXIT_FAILURE);
+        }
+
+        unsigned index = 0; // TODO
+
+        code[0] = 0xd53bd050;                 // mrs x16, tpidr_el0
+        code[1] = 0x91000210 | (index << 13); // add x16, x16, #NUM
+        code[2] = 0xf9400211;                 // ldr x17, [x16]
+        code[3] = 0xd61f0220;                 // br  x17
+
+        num_links++;
+    }
 }
 
 //
@@ -343,14 +385,18 @@ void process_arm32_plt(const Elf32_Shdr *hdr)
     //  17c: e5bcfe90  ldr   pc, [ip, #3728]! @ 0xe90
 
     //TODO
+    fprintf(stderr, "ARM-32 machine is not supported yet\n");
+    exit(EXIT_FAILURE);
 }
 
 //
-// Intel i386 machine: process the Procedure Linkage Table.
+// RISC-V 64-bit machine: process the Procedure Linkage Table.
 //
-void process_intel32_plt(const Elf32_Shdr *hdr)
+void process_riscv64_plt(const Elf64_Shdr *hdr)
 {
     //TODO
+    fprintf(stderr, "RISC-V machine is not supported yet\n");
+    exit(EXIT_FAILURE);
 }
 
 int main(int argc, char **argv)
@@ -406,10 +452,11 @@ int main(int argc, char **argv)
         case EM_AARCH64:
             process_arm64_plt(plt);
             break;
-        case EM_MIPS:
         case EM_RISCV:
+            process_riscv64_plt(plt);
+            break;
         default:
-            fprintf(stderr, "%s: Unsupported 64-bit machine type\n", filename);
+            fprintf(stderr, "%s: Unsupported 64-bit machine: %s\n", filename, machine_name());
             exit(EXIT_FAILURE);
         }
     } else {
@@ -426,13 +473,8 @@ int main(int argc, char **argv)
         case EM_ARM:
             process_arm32_plt(plt);
             break;
-        case EM_386:
-            process_intel32_plt(plt);
-            break;
-        case EM_MIPS:
-        case EM_RISCV:
         default:
-            fprintf(stderr, "%s: Unsupported 32-bit machine type\n", filename);
+            fprintf(stderr, "%s: Unsupported 32-bit machine: %s\n", filename, machine_name());
             exit(EXIT_FAILURE);
         }
     }
