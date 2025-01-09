@@ -15,8 +15,12 @@
 #endif
 
 #if __x86_64__ || __i386__
-#   include <asm/prctl.h>
-#   include <sys/syscall.h>
+#   if !__APPLE__
+#       include <asm/prctl.h>
+#       include <sys/syscall.h>
+#   else
+#       error "MacOS/x86 is not supported"
+#   endif
 #endif
 
 #if __SIZE_WIDTH__ == 64
