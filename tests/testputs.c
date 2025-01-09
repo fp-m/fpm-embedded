@@ -1,5 +1,8 @@
 //
-// Print simple text message.
+// Invoke three RP/M calls:
+//      rpm_print_version()
+//      rpm_puts()
+//      rpm_wputs()
 //
 #include <rpm/api.h>
 

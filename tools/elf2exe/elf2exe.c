@@ -36,7 +36,7 @@ int verbose;
 //
 // Print usage message.
 //
-void usage()
+static void usage()
 {
     printf("Modify ELF binary for RP/M operating system\n");
     printf("Usage:\n");
@@ -47,7 +47,7 @@ void usage()
 // Open ELF file and map it to memory.
 // Set file_desc, file_size and base.
 //
-void open_file()
+static void open_file()
 {
     // Open file in read/write mode
     if (verbose) {
@@ -78,7 +78,7 @@ void open_file()
     }
 }
 
-const char *machine_name()
+static const char *machine_name()
 {
     switch (machine_type) {
     case EM_X86_64: return "amd64";
@@ -95,7 +95,7 @@ const char *machine_name()
 // Check file format.
 // Set class_type and machine_type.
 //
-void check_file_format()
+static void check_file_format()
 {
     const char *id = (const char*) base;
     if (id[EI_MAG0] != ELFMAG0 || id[EI_MAG1] != ELFMAG1 ||
@@ -139,7 +139,7 @@ void check_file_format()
 //
 // Unmap ELF binary from memory.
 //
-void close_file()
+static void close_file()
 {
     msync(base, file_size, MS_SYNC);
     munmap(base, file_size);
@@ -175,7 +175,7 @@ static const char *get_elf32_section_name(unsigned name_offset)
 //
 // Elf64 format: find section by name.
 //
-const Elf64_Shdr *find_elf64_section(const char *wanted_name)
+static const Elf64_Shdr *find_elf64_section(const char *wanted_name)
 {
     const Elf64_Ehdr *hdr     = base;
     const Elf64_Shdr *section = (const Elf64_Shdr *) (hdr->e_shoff + (char*)base);
@@ -192,7 +192,7 @@ const Elf64_Shdr *find_elf64_section(const char *wanted_name)
 //
 // Elf32 format: find section by name.
 //
-const Elf32_Shdr *find_elf32_section(const char *wanted_name)
+static const Elf32_Shdr *find_elf32_section(const char *wanted_name)
 {
     const Elf32_Ehdr *hdr     = base;
     const Elf32_Shdr *section = (const Elf32_Shdr *) (hdr->e_shoff + (char*)base);
@@ -209,7 +209,7 @@ const Elf32_Shdr *find_elf32_section(const char *wanted_name)
 //
 // Elf64 format: parse REL/RELA section and build the symbol map.
 //
-void parse_elf64_relocation()
+static void parse_elf64_relocation()
 {
     //TODO
 }
@@ -217,7 +217,7 @@ void parse_elf64_relocation()
 //
 // Elf32 format: parse REL/RELA section and build the symbol map.
 //
-void parse_elf32_relocation()
+static void parse_elf32_relocation()
 {
     //TODO
 }
@@ -228,7 +228,7 @@ void parse_elf32_relocation()
 //      ff 25 d6 2f 00 00  jmp  *0x2fd6(%rip)
 //      66 0f 1f 44 00 00  nopw (%rax,%rax,1)
 //
-bool is_amd64_entry(const unsigned char *code)
+static bool is_amd64_entry(const unsigned char *code)
 {
     return code[0] == 0xf3 && code[1] == 0x0f && code[2] == 0x1e && code[3] == 0xfa &&   // endbr64
            code[4] == 0xff && code[5] == 0x25 &&                                         // jmp *NUM(%rip)
@@ -239,7 +239,7 @@ bool is_amd64_entry(const unsigned char *code)
 // X86_64 machine: process the Procedure Linkage Table.
 // Update num_links.
 //
-void process_amd64_plt(const Elf64_Shdr *hdr)
+static void process_amd64_plt(const Elf64_Shdr *hdr)
 {
     // Example of .plt section on x86_64 (or amd64) architecture:
     //
@@ -305,7 +305,7 @@ void process_amd64_plt(const Elf64_Shdr *hdr)
 //      91000210  add  x16, x16, #0x0
 //      d61f0220  br   x17
 //
-bool is_arm64_entry(const uint32_t *code)
+static bool is_arm64_entry(const uint32_t *code)
 {
     return (code[0] & 0x9f000000) == 0x90000000 && // adrp x16, NUM
            code[1] == 0xf9400211 &&                // ldr x17, [x16]
@@ -316,7 +316,7 @@ bool is_arm64_entry(const uint32_t *code)
 //
 // ARM-64 machine: process the Procedure Linkage Table.
 //
-void process_arm64_plt(const Elf64_Shdr *hdr)
+static void process_arm64_plt(const Elf64_Shdr *hdr)
 {
     // Example of .plt section on arm64 architecture:
     //
@@ -371,7 +371,7 @@ void process_arm64_plt(const Elf64_Shdr *hdr)
 //      e28cca01  add ip, ip, #4096
 //      e5bcfe90  ldr pc, [ip, #3728]!
 //
-bool is_arm32_entry(const uint32_t *code)
+static bool is_arm32_entry(const uint32_t *code)
 {
     return (code[0] & 0xfffff000) == 0xe28fc000 && // add ip, pc, #NUM, 12
            (code[1] & 0xfffff000) == 0xe28cc000 && // add ip, ip, #NUM
@@ -381,7 +381,7 @@ bool is_arm32_entry(const uint32_t *code)
 //
 // ARM-32 machine: process the Procedure Linkage Table.
 //
-void process_arm32_plt(const Elf32_Shdr *hdr)
+static void process_arm32_plt(const Elf32_Shdr *hdr)
 {
     // Disassembly of section .plt:
     //
@@ -435,7 +435,7 @@ void process_arm32_plt(const Elf32_Shdr *hdr)
 //
 // RISC-V 64-bit machine: process the Procedure Linkage Table.
 //
-void process_riscv64_plt(const Elf64_Shdr *hdr)
+static void process_riscv64_plt(const Elf64_Shdr *hdr)
 {
     //TODO
     fprintf(stderr, "RISC-V machine is not supported yet\n");

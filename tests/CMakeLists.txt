@@ -9,6 +9,7 @@ add_compile_options(-Wall -Werror)
 
 add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
 add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)
+add_subdirectory(../tools/elf2exe elf2exe)
 
 #
 # Download GoogleTest
@@ -129,3 +130,28 @@ add_executable(loader2_tests
     ../kernel/rpm_loader.c
 )
 gtest_discover_tests(loader2_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
+# Build elf binaries for tests.
+#
+add_custom_command(OUTPUT hello.elf
+    COMMAND gcc -fPIC -g -O1 -c -I${CMAKE_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/hello.c -o hello.o
+    COMMAND ld -shared -fPIC -g -e main hello.o -o hello.elf
+    COMMAND elf2exe/elf2exe hello.elf
+    COMMAND objdump -d hello.elf > hello.dis
+    COMMAND nm -n hello.elf > hello.nm
+    COMMAND readelf -a hello.elf > hello.readelf
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hello.c elf2exe
+    VERBATIM
+)
+add_custom_command(OUTPUT testputs.elf
+    COMMAND gcc -fPIC -g -O1 -c -I${CMAKE_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c -o testputs.o
+    COMMAND ld -shared -fPIC -g -e main testputs.o -o testputs.elf
+    COMMAND elf2exe/elf2exe testputs.elf
+    COMMAND objdump -d testputs.elf > testputs.dis
+    COMMAND nm -n testputs.elf > testputs.nm
+    COMMAND readelf -a testputs.elf > testputs.readelf
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c elf2exe
+    VERBATIM
+)
+add_custom_target(generate-elf ALL DEPENDS hello.elf testputs.elf)
