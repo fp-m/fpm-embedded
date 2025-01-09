@@ -342,8 +342,8 @@ void process_arm64_plt(const Elf64_Shdr *hdr)
     // For example:
     //      d53bd050  mrs x16, tpidr_el0
     //      91002210  add x16, x16, #0x8
-    //      d61f0200  br  x16
-    //      d503201f  nop
+    //      f9400211  ldr x17, [x16]
+    //      d61f0220  br  x17
     //
     unsigned const entry_size = 16;
     for (unsigned offset = 32; offset < hdr->sh_size; offset += entry_size) {
@@ -366,6 +366,19 @@ void process_arm64_plt(const Elf64_Shdr *hdr)
 }
 
 //
+// Detect PLT entry for arm32 machine, for example:
+//      e28fc600  add ip, pc, #0, 12
+//      e28cca01  add ip, ip, #4096
+//      e5bcfe90  ldr pc, [ip, #3728]!
+//
+bool is_arm32_entry(const uint32_t *code)
+{
+    return (code[0] & 0xfffff000) == 0xe28fc000 && // add ip, pc, #NUM, 12
+           (code[1] & 0xfffff000) == 0xe28cc000 && // add ip, ip, #NUM
+           (code[2] & 0xffff0000) == 0xe5bc0000;   // ldr pc, [ip, #NUM]!
+}
+
+//
 // ARM-32 machine: process the Procedure Linkage Table.
 //
 void process_arm32_plt(const Elf32_Shdr *hdr)
@@ -380,13 +393,43 @@ void process_arm32_plt(const Elf32_Shdr *hdr)
     //  170: 00001e90  .word 0x00001e90
     //
     // 00000174 <rpm_puts@plt>:
-    //  174: e28fc600  add   ip, pc, #0, 12
-    //  178: e28cca01  add   ip, ip, #4096    @ 0x1000
-    //  17c: e5bcfe90  ldr   pc, [ip, #3728]! @ 0xe90
+    //  174: e28fc600  add ip, pc, #0, 12
+    //  178: e28cca01  add ip, ip, #4096    @ 0x1000
+    //  17c: e5bcfe90  ldr pc, [ip, #3728]! @ 0xe90
 
-    //TODO
-    fprintf(stderr, "ARM-32 machine is not supported yet\n");
-    exit(EXIT_FAILURE);
+    //
+    // Scan contents of the PLT section, find entries and replace
+    // with jumps via a table pointed by TPIDRURW register.
+    // For example:
+    //      ee1dcf50  mrc 15, 0, ip, cr13, cr0, 2   -- read TPIDRURW
+    //      e59cf001  ldr pc, [ip, #1]
+    //      e320f000  nop
+    //
+
+    // Skip preamble.
+    unsigned offset = 0;
+    for (; offset < hdr->sh_size; offset += 4) {
+        uint32_t *code = (uint32_t *)(offset + hdr->sh_offset + (char*)base);
+        if (is_arm32_entry(code)) {
+            break;
+        }
+    }
+    for (; offset < hdr->sh_size; offset += 12) {
+        uint32_t *code = (uint32_t *)(offset + hdr->sh_offset + (char*)base);
+        if (!is_arm32_entry(code)) {
+            fprintf(stderr, "Bad PLT entry at offset %u: %08x %08x %08x\n",
+                offset, code[0], code[1], code[2]);
+            exit(EXIT_FAILURE);
+        }
+
+        unsigned index = 0; // TODO
+
+        code[0] = 0xee1dcf50;         // mrc p15, 0, ip, c13, c0, 2
+        code[1] = 0xe59cf000 | index; // ldr pc, [ip, #NUM]
+        code[2] = 0xe320f000;         // nop
+
+        num_links++;
+    }
 }
 
 //
