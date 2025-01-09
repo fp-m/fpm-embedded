@@ -256,7 +256,7 @@ static void *find_address_by_name(const dyn_linkmap_t *linkmap, const char *name
 //
 // Setup arch-dependent GOT register.
 //
-static void set_got_pointer(void *addr)
+static inline void set_got_pointer(void *addr)
 {
 #if __ARM_ARCH_6M__
     // For RP2040: use slot #4 of the interrupt vector table,
@@ -278,6 +278,19 @@ static void set_got_pointer(void *addr)
     //TODO: other platforms.
 #   error "This platform is not supported"
 #endif
+}
+
+//
+// Read arch-dependent GOT register.
+//
+static inline void *get_got_pointer()
+{
+    void *addr = NULL;
+#if __ARM_ARCH_ISA_A64
+    // For arm64 Linux or MacOS: use TPIDR_EL0 register.
+    asm volatile("mrs %0, tpidr_el0" : "=r" (addr) : : "memory");
+#endif
+    return addr;
 }
 
 //
@@ -312,6 +325,7 @@ bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const ch
         // Cannot map some symbols.
         return false;
     }
+    void *save_got = get_got_pointer();
     set_got_pointer(got);
 
     // Compute entry address.
@@ -322,6 +336,6 @@ bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const ch
     // Invoke ELF binary.
     dynobj->exit_code = (*entry)(argc, argv);
 
-    set_got_pointer(NULL);
+    set_got_pointer(save_got);
     return true;
 }
