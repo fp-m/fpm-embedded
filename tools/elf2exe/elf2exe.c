@@ -207,22 +207,6 @@ static const Elf32_Shdr *find_elf32_section(const char *wanted_name)
 }
 
 //
-// Elf64 format: parse REL/RELA section and build the symbol map.
-//
-static void parse_elf64_relocation()
-{
-    //TODO
-}
-
-//
-// Elf32 format: parse REL/RELA section and build the symbol map.
-//
-static void parse_elf32_relocation()
-{
-    //TODO
-}
-
-//
 // Detect PLT entry for x86_64 machine, for example:
 //      f3 0f 1e fa        endbr64
 //      ff 25 d6 2f 00 00  jmp  *0x2fd6(%rip)
@@ -276,7 +260,7 @@ static void process_amd64_plt(const Elf64_Shdr *hdr)
             exit(EXIT_FAILURE);
         }
 
-        unsigned index = 0; // TODO
+        unsigned index = num_links;
 
         // jmp *%gs:NUM
         code[4] = 0x65;
@@ -354,7 +338,7 @@ static void process_arm64_plt(const Elf64_Shdr *hdr)
             exit(EXIT_FAILURE);
         }
 
-        unsigned index = 0; // TODO
+        unsigned index = num_links;
 
         code[0] = 0xd53bd050;                 // mrs x16, tpidr_el0
         code[1] = 0x91000210 | (index << 13); // add x16, x16, #NUM
@@ -422,7 +406,7 @@ static void process_arm32_plt(const Elf32_Shdr *hdr)
             exit(EXIT_FAILURE);
         }
 
-        unsigned index = 0; // TODO
+        unsigned index = num_links;
 
         code[0] = 0xee1dcf50;         // mrc p15, 0, ip, c13, c0, 2
         code[1] = 0xe59cf000 | index; // ldr pc, [ip, #NUM]
@@ -487,7 +471,6 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
         }
-        parse_elf64_relocation();
         switch (machine_type) {
         case EM_X86_64:
             process_amd64_plt(plt);
@@ -511,7 +494,6 @@ int main(int argc, char **argv)
             fprintf(stderr, "%s: No procedure linkage table\n", filename);
             exit(EXIT_FAILURE);
         }
-        parse_elf32_relocation();
         switch (machine_type) {
         case EM_ARM:
             process_arm32_plt(plt);
