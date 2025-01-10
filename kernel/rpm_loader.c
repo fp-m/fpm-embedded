@@ -10,6 +10,8 @@
 #   include <fcntl.h>
 #   include <sys/mman.h>
 #   include <sys/stat.h>
+#elif __ARM_ARCH_6M__
+    // FP/M on RP2040 microcontroller
 #else
 #   error "This platform is not supported"
 #endif
@@ -44,7 +46,7 @@
 //
 // Find section by type.
 //
-static const Native_Shdr *dyn_section_by_type(dyn_object_t *dynobj, unsigned type)
+static const Native_Shdr *rpm_section_by_type(rpm_executable_t *dynobj, unsigned type)
 {
     const Native_Ehdr *hdr     = dynobj->base;
     const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
@@ -60,7 +62,7 @@ static const Native_Shdr *dyn_section_by_type(dyn_object_t *dynobj, unsigned typ
 //
 // Get section by index.
 //
-static const Native_Shdr *dyn_section_by_index(dyn_object_t *dynobj, unsigned index)
+static const Native_Shdr *rpm_section_by_index(rpm_executable_t *dynobj, unsigned index)
 {
     const Native_Ehdr *hdr     = dynobj->base;
     const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
@@ -71,7 +73,7 @@ static const Native_Shdr *dyn_section_by_index(dyn_object_t *dynobj, unsigned in
 //
 // Map ELF binary into memory.
 //
-bool dyn_load(dyn_object_t *dynobj, const char *filename)
+bool rpm_load(rpm_executable_t *dynobj, const char *filename)
 {
 #if __unix__ || __APPLE__
     // Open the shared library file in read-only mode
@@ -96,6 +98,12 @@ err:    close(dynobj->fd);
         rpm_printf("%s: Cannot mmap\r\n", filename);
         goto err;
     }
+#elif __ARM_ARCH_6M__
+    // FP/M on RP2040 microcontroller
+    //TODO: find address of file contents
+err:
+    rpm_printf("%s: Cannot open\r\n", filename);
+    return false;
 #endif
 
     //
@@ -144,7 +152,7 @@ err:    close(dynobj->fd);
     static const unsigned NATIVE_MACHINE = EM_386;
 #elif __ARM_ARCH_ISA_A64
     static const unsigned NATIVE_MACHINE = EM_AARCH64;
-#elif __ARM_ARCH_ISA_ARM
+#elif __ARM_ARCH_ISA_ARM || __ARM_ARCH_6M__
     static const unsigned NATIVE_MACHINE = EM_ARM;
 #elif __mips__
     static const unsigned NATIVE_MACHINE = EM_MIPS;
@@ -159,9 +167,9 @@ err:    close(dynobj->fd);
     }
 
     // Find relocation section.
-    const Native_Shdr *rel_section = dyn_section_by_type(dynobj, SHT_RELA);
+    const Native_Shdr *rel_section = rpm_section_by_type(dynobj, SHT_RELA);
     if (rel_section == NULL) {
-        rel_section = dyn_section_by_type(dynobj, SHT_REL);
+        rel_section = rpm_section_by_type(dynobj, SHT_REL);
         if (rel_section == NULL) {
             rpm_printf("%s: No relocation section\r\n", filename);
             goto err;
@@ -177,18 +185,22 @@ err:    close(dynobj->fd);
 //
 // Unmap ELF binary from memory.
 //
-void dyn_unload(dyn_object_t *dynobj)
+void rpm_unload(rpm_executable_t *dynobj)
 {
     // Unmap the file from memory.
     if (dynobj->base != NULL) {
+#if __unix__ || __APPLE__
          munmap(dynobj->base, dynobj->file_size);
+#endif
          dynobj->base = NULL;
     }
 
     // Close file.
     // Note: descriptor cannot be zero.
     if (dynobj->fd > 0) {
+#if __unix__ || __APPLE__
         close(dynobj->fd);
+#endif
         dynobj->fd = 0;
     }
 }
@@ -196,7 +208,7 @@ void dyn_unload(dyn_object_t *dynobj)
 //
 // Get name from .dynsym section.
 //
-static const char *dyn_get_name(dyn_object_t *dynobj, unsigned reloc_index)
+static const char *rpm_get_name(rpm_executable_t *dynobj, unsigned reloc_index)
 {
     // Get pointer to REL or RELA section.
     const Native_Shdr *rel_section = (const Native_Shdr *) dynobj->rel_section;
@@ -212,11 +224,11 @@ static const char *dyn_get_name(dyn_object_t *dynobj, unsigned reloc_index)
     }
 
     // Get pointer to .dynsym contents.
-    const Native_Shdr *dyn_section = dyn_section_by_index(dynobj, rel_section->sh_link);
-    const Native_Sym *symbols      = (const Native_Sym *) (dyn_section->sh_offset + (char*)dynobj->base);
+    const Native_Shdr *rpm_section = rpm_section_by_index(dynobj, rel_section->sh_link);
+    const Native_Sym *symbols      = (const Native_Sym *) (rpm_section->sh_offset + (char*)dynobj->base);
 
     // Get pointer to .dynstr contents.
-    const Native_Shdr *str_section = dyn_section_by_index(dynobj, dyn_section->sh_link);
+    const Native_Shdr *str_section = rpm_section_by_index(dynobj, rpm_section->sh_link);
     const char *strings            = str_section->sh_offset + (char*)dynobj->base;
 
     // Get name from .dynsym section.
@@ -227,10 +239,10 @@ static const char *dyn_get_name(dyn_object_t *dynobj, unsigned reloc_index)
 // Get names of linked procedures.
 // Array result[] must have dynobj->num_links entries.
 //
-void dyn_get_symbols(dyn_object_t *dynobj, const char *result[])
+void rpm_get_symbols(rpm_executable_t *dynobj, const char *result[])
 {
     for (unsigned index = 0; index < dynobj->num_links; index++) {
-        result[index] = dyn_get_name(dynobj, index);
+        result[index] = rpm_get_name(dynobj, index);
     }
 }
 
@@ -238,7 +250,7 @@ void dyn_get_symbols(dyn_object_t *dynobj, const char *result[])
 // Search linkmap for a given name.
 // Return address of the symbol, or NULL on failure.
 //
-static void *find_address_by_name(const dyn_linkmap_t *linkmap, const char *name)
+static void *find_address_by_name(const rpm_binding_t *linkmap, const char *name)
 {
     for (;;) {
         // Skip first entry - it's a parent link.
@@ -250,7 +262,7 @@ static void *find_address_by_name(const dyn_linkmap_t *linkmap, const char *name
 
         // Name not found in this link map.
         // Search parent recursively.
-        linkmap = (const dyn_linkmap_t *) linkmap[0].address;
+        linkmap = (const rpm_binding_t *) linkmap[0].address;
         if (linkmap == NULL) {
             return NULL;
         }
@@ -306,7 +318,7 @@ static inline void *get_got_pointer()
 //
 // Return the exit code.
 //
-bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const char *argv[])
+bool rpm_execv(rpm_executable_t *dynobj, rpm_binding_t linkmap[], int argc, char *argv[])
 {
     // Build a Global Offset Table on stack.
     void **got = alloca(dynobj->num_links);
@@ -316,7 +328,7 @@ bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const ch
     for (unsigned index = 0; index < dynobj->num_links; index++) {
 
         // Find symbol's name and address.
-        const char *name = dyn_get_name(dynobj, index);
+        const char *name = rpm_get_name(dynobj, index);
         void *address    = find_address_by_name(linkmap, name);
 
         got[index] = address;
@@ -333,7 +345,7 @@ bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const ch
     set_got_pointer(got);
 
     // Compute entry address.
-    typedef int (*entry_t)(int, const char **);
+    typedef int (*entry_t)(int, char **);
     const Native_Ehdr *hdr = dynobj->base;
     const entry_t entry    = (entry_t) (hdr->e_entry + (char*)dynobj->base);
 

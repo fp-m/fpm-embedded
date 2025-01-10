@@ -9,29 +9,29 @@
 
 TEST(loader, elf_binary)
 {
-    dyn_object_t dynobj{};
+    rpm_executable_t dynobj{};
 
     // Map ELF file into memory.
-    bool load_status = dyn_load(&dynobj, "hello.elf");
+    bool load_status = rpm_load(&dynobj, "hello.elf");
     ASSERT_TRUE(load_status);
 
-    dyn_unload(&dynobj);
+    rpm_unload(&dynobj);
 }
 
 TEST(loader, linked_symbols)
 {
-    dyn_object_t dynobj{};
+    rpm_executable_t dynobj{};
 
     const int expect_num_links = 1;
-    ASSERT_TRUE(dyn_load(&dynobj, "hello.elf"));
+    ASSERT_TRUE(rpm_load(&dynobj, "hello.elf"));
     ASSERT_EQ(dynobj.num_links, expect_num_links);
 
     // Get names of dynamically linked routines.
     const char *symbols[expect_num_links]{};
-    dyn_get_symbols(&dynobj, symbols);
+    rpm_get_symbols(&dynobj, symbols);
     ASSERT_STREQ(symbols[0], "rpm_puts");
 
-    dyn_unload(&dynobj);
+    rpm_unload(&dynobj);
 }
 
 static std::stringstream puts_result;
@@ -47,23 +47,24 @@ static void mock_puts(const char *message)
 
 TEST(loader, run_puts)
 {
-    dyn_object_t dynobj{};
-    ASSERT_TRUE(dyn_load(&dynobj, "hello.elf"));
+    rpm_executable_t dynobj{};
+    ASSERT_TRUE(rpm_load(&dynobj, "hello.elf"));
 
     // Export dynamically linked routines.
-    static dyn_linkmap_t linkmap[] = {
+    static rpm_binding_t linkmap[] = {
         { "", NULL },
         { "rpm_puts", (void*) mock_puts },
         {},
     };
-    const char *argv[] = { "hello" };
+    char filename[] = { "hello" };
+    char *argv[] = { filename };
 
-    bool exec_status = dyn_execv(&dynobj, linkmap, 1, argv);
+    bool exec_status = rpm_execv(&dynobj, linkmap, 1, argv);
     ASSERT_TRUE(exec_status);
     ASSERT_EQ(dynobj.exit_code, 0);
 
     // Check output.
     ASSERT_EQ(puts_result.str(), "Hello, World!\r\n");
 
-    dyn_unload(&dynobj);
+    rpm_unload(&dynobj);
 }

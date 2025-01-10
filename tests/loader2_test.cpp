@@ -37,20 +37,21 @@ static void mock_print_version()
 
 TEST(loader, print_version_puts_wputs)
 {
-    dyn_object_t dynobj{};
-    ASSERT_TRUE(dyn_load(&dynobj, "testputs.elf"));
+    rpm_executable_t dynobj{};
+    ASSERT_TRUE(rpm_load(&dynobj, "testputs.elf"));
 
     // Export dynamically linked routines.
-    static dyn_linkmap_t linkmap[] = {
+    static rpm_binding_t linkmap[] = {
         { "", NULL },
         { "rpm_puts", (void*) mock_puts },
         { "rpm_wputs", (void*) mock_wputs },
         { "rpm_print_version", (void*) mock_print_version },
         {},
     };
-    const char *argv[] = { "hello" };
+    char filename[] = { "hello" };
+    char *argv[] = { filename };
 
-    bool exec_status = dyn_execv(&dynobj, linkmap, 1, argv);
+    bool exec_status = rpm_execv(&dynobj, linkmap, 1, argv);
     ASSERT_TRUE(exec_status);
     ASSERT_EQ(dynobj.exit_code, 0);
 
@@ -61,5 +62,5 @@ TEST(loader, print_version_puts_wputs)
         "wputs\r\n"
     );
 
-    dyn_unload(&dynobj);
+    rpm_unload(&dynobj);
 }

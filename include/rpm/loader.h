@@ -18,7 +18,7 @@ typedef struct {
     unsigned num_links;      // Number of linked procedures
     const void *rel_section; // Header of .rela.plt section
     int exit_code;           // Return value of invoked object
-} dyn_object_t;
+} rpm_executable_t;
 
 //
 // Definition of exported procedure for dynamic linking.
@@ -26,23 +26,23 @@ typedef struct {
 typedef struct {
     const char *name;       // Name of procedure
     void *address;          // Address of procedure
-} dyn_linkmap_t;
+} rpm_binding_t;
 
 //
 // Load dynamic binary.
 // Return true on success.
 //
-bool dyn_load(dyn_object_t *dynobj, const char *filename);
+bool rpm_load(rpm_executable_t *dynobj, const char *filename);
 
 //
 // Unmap ELF binary from memory.
 //
-void dyn_unload(dyn_object_t *dynobj);
+void rpm_unload(rpm_executable_t *dynobj);
 
 //
 // Get names of linked procedures.
 //
-void dyn_get_symbols(dyn_object_t *dynobj, const char *symbols[]);
+void rpm_get_symbols(rpm_executable_t *dynobj, const char *symbols[]);
 
 //
 // Invoke entry address of the ELF binary with argc, argv arguments.
@@ -53,7 +53,7 @@ void dyn_get_symbols(dyn_object_t *dynobj, const char *symbols[]);
 //
 // Return the exit code.
 //
-bool dyn_execv(dyn_object_t *dynobj, dyn_linkmap_t linkmap[], int argc, const char *argv[]);
+bool rpm_execv(rpm_executable_t *dynobj, rpm_binding_t linkmap[], int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

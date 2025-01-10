@@ -4,11 +4,29 @@
 #include <rpm/api.h>
 #include <rpm/internal.h>
 #include <rpm/fs.h>
+#include <rpm/loader.h>
+#include <alloca.h>
 
 //
 // Debug options.
 //
 static const bool debug_trace = false;
+
+//
+// Export dynamically linked routines.
+//
+static rpm_binding_t bindings[] = {
+    { "", NULL },
+    { "rpm_puts", (void*) rpm_puts },
+    //TODO: add all rpm_xxx routines.
+    {},
+};
+
+static const char *find_exe(const char *cmdname, char *buf)
+{
+    //TODO: find path
+    return NULL;
+}
 
 //
 // Execute internal command or external program with given arguments.
@@ -81,11 +99,33 @@ void rpm_exec(int argc, char *argv[])
         }
     }
 
-    //TODO: Run external command.elf from filesystem.
+    // Find file path of external command.
+    // Try .exe extension, search flash:/bin directory.
+    char *buf = alloca(strlen(argv[0]) + sizeof(".exe") + sizeof("flash:/bin"));
+    const char *path = find_exe(argv[0], buf);
+    if (!path) {
+        rpm_puts(argv[0]);
+        rpm_puts(": Command not found\r\n\n");
+        return;
+    }
 
-    // No such command.
-    rpm_puts(argv[0]);
-    rpm_puts(": Command not found\r\n\n");
+    // Load external executable.
+    rpm_executable_t dynobj;
+    memset(&dynobj, 0, sizeof(dynobj));
+    if (!rpm_load(&dynobj, path)) {
+        // Failed: error message already printed.
+        return;
+    }
+
+    bool success = rpm_execv(&dynobj, bindings, argc, argv);
+    rpm_unload(&dynobj);
+    if (!success) {
+        // Failed: error message already printed.
+        return;
+    }
+
+    // External binary successfully executed.
+    //TODO: save dynobj.exit_code somehow.
 }
 
 #if 0
