@@ -2,9 +2,9 @@
 // Compute the length of the Unicode string s.
 // Return the number of characters that precede the terminating NUL character.
 //
-#include <rpm/api.h>
+#include <fpm/api.h>
 
-size_t rpm_strwlen(const uint16_t *input)
+size_t fpm_strwlen(const uint16_t *input)
 {
     const uint16_t *s;
 
@@ -14,7 +14,7 @@ size_t rpm_strwlen(const uint16_t *input)
     return s - input;
 }
 
-size_t rpm_utf8len(const char *input)
+size_t fpm_utf8len(const char *input)
 {
     size_t count = 0;
 

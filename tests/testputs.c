@@ -1,17 +1,17 @@
 //
-// Invoke three RP/M calls:
-//      rpm_print_version()
-//      rpm_puts()
-//      rpm_wputs()
+// Invoke three FP/M calls:
+//      fpm_print_version()
+//      fpm_puts()
+//      fpm_wputs()
 //
-#include <rpm/api.h>
+#include <fpm/api.h>
 
 int main()
 {
-    rpm_print_version();
+    fpm_print_version();
 
-    rpm_puts("puts\r\n");
+    fpm_puts("puts\r\n");
 
     static const uint16_t wmessage[] = { 'w', 'p', 'u', 't', 's', '\r', '\n' };
-    rpm_wputs(wmessage);
+    fpm_wputs(wmessage);
 }

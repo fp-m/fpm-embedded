@@ -20,8 +20,8 @@
 
 #include "fatfs.h" // Definitions of FatFs structures
 
-#include <rpm/api.h>    // Declaration of rpm_get_datetime()
-#include <rpm/diskio.h> // Declarations of device I/O functions
+#include <fpm/api.h>    // Declaration of fpm_get_datetime()
+#include <fpm/diskio.h> // Declarations of device I/O functions
 #include <string.h>
 
 extern int printf(const char *, ...); // for debug
@@ -3390,7 +3390,7 @@ fs_result_t f_unmount(const char *path) // Logical drive number to be unmounted
 static uint32_t get_fattime(void)
 {
     int year, month, day, dotw, hour, min, sec;
-    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
+    fpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
 
     uint32_t fattime = 0;
     // bit31:25

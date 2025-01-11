@@ -1,10 +1,10 @@
 //
 // Execute a command or external program.
 //
-#include <rpm/api.h>
-#include <rpm/internal.h>
-#include <rpm/fs.h>
-#include <rpm/loader.h>
+#include <fpm/api.h>
+#include <fpm/internal.h>
+#include <fpm/fs.h>
+#include <fpm/loader.h>
 #include <alloca.h>
 
 //
@@ -15,10 +15,10 @@ static const bool debug_trace = false;
 //
 // Export dynamically linked routines.
 //
-static rpm_binding_t bindings[] = {
+static fpm_binding_t bindings[] = {
     { "", NULL },
-    { "rpm_puts", (void*) rpm_puts },
-    //TODO: add all rpm_xxx routines.
+    { "fpm_puts", (void*) fpm_puts },
+    //TODO: add all fpm_xxx routines.
     {},
 };
 
@@ -31,7 +31,7 @@ static const char *find_exe(const char *cmdname, char *buf)
 //
 // Execute internal command or external program with given arguments.
 //
-void rpm_exec(int argc, char *argv[])
+void fpm_exec(int argc, char *argv[])
 {
     // Table of internal commands.
     typedef struct {
@@ -39,44 +39,44 @@ void rpm_exec(int argc, char *argv[])
         void (*func)(int argc, char *argv[]);
     } command_table_t;
     static const command_table_t cmd_tab[] = {
-        { "?",      rpm_cmd_help },   // also HELP
-        { "cat",    rpm_cmd_cat },    // also TYPE
-        { "cd",     rpm_cmd_cd },     //
-        { "clear",  rpm_cmd_clear },  // also CLS
-        { "cls",    rpm_cmd_clear },  // also CLEAR
-        { "copy",   rpm_cmd_copy },   // also CP
-        { "cp",     rpm_cmd_copy },   // also COPY
-        { "date",   rpm_cmd_date },   //
-        { "dir",    rpm_cmd_dir },    // also LS
-        { "echo",   rpm_cmd_echo },   //
-        { "eject",  rpm_cmd_eject },  //
-        { "erase",  rpm_cmd_remove }, // also RM
-        { "format", rpm_cmd_format }, //
-        { "help",   rpm_cmd_help },   // also ?
-        { "ls",     rpm_cmd_dir },    // also DIR
-        { "mkdir",  rpm_cmd_mkdir },  //
-        { "mount",  rpm_cmd_mount },  //
-        { "mv",     rpm_cmd_rename }, // also RENAME
-        { "reboot", rpm_cmd_reboot }, //
-        { "rename", rpm_cmd_rename }, // also MV
-        { "rm",     rpm_cmd_remove }, // also ERASE
-        { "rmdir",  rpm_cmd_rmdir },  //
-        { "time",   rpm_cmd_time },   //
-        { "type",   rpm_cmd_cat },    // also CAT
-        { "ver",    rpm_cmd_ver },    //
-        { "vol",    rpm_cmd_vol },    //
+        { "?",      fpm_cmd_help },   // also HELP
+        { "cat",    fpm_cmd_cat },    // also TYPE
+        { "cd",     fpm_cmd_cd },     //
+        { "clear",  fpm_cmd_clear },  // also CLS
+        { "cls",    fpm_cmd_clear },  // also CLEAR
+        { "copy",   fpm_cmd_copy },   // also CP
+        { "cp",     fpm_cmd_copy },   // also COPY
+        { "date",   fpm_cmd_date },   //
+        { "dir",    fpm_cmd_dir },    // also LS
+        { "echo",   fpm_cmd_echo },   //
+        { "eject",  fpm_cmd_eject },  //
+        { "erase",  fpm_cmd_remove }, // also RM
+        { "format", fpm_cmd_format }, //
+        { "help",   fpm_cmd_help },   // also ?
+        { "ls",     fpm_cmd_dir },    // also DIR
+        { "mkdir",  fpm_cmd_mkdir },  //
+        { "mount",  fpm_cmd_mount },  //
+        { "mv",     fpm_cmd_rename }, // also RENAME
+        { "reboot", fpm_cmd_reboot }, //
+        { "rename", fpm_cmd_rename }, // also MV
+        { "rm",     fpm_cmd_remove }, // also ERASE
+        { "rmdir",  fpm_cmd_rmdir },  //
+        { "time",   fpm_cmd_time },   //
+        { "type",   fpm_cmd_cat },    // also CAT
+        { "ver",    fpm_cmd_ver },    //
+        { "vol",    fpm_cmd_vol },    //
         { 0,        0 },
     };
 
     if (debug_trace) {
         // Print command before execution.
-        rpm_printf("[%d] ", argc);
+        fpm_printf("[%d] ", argc);
         for (int i=0; i<argc; i++) {
             if (i > 0)
-                rpm_putchar(' ');
-            rpm_puts(argv[i]);
+                fpm_putchar(' ');
+            fpm_puts(argv[i]);
         }
-        rpm_puts("\r\n");
+        fpm_puts("\r\n");
     }
 
     // Command ends with colon?
@@ -84,8 +84,8 @@ void rpm_exec(int argc, char *argv[])
         // Switch to another drive.
         fs_result_t result = f_chdrive(argv[0]);
         if (result != FR_OK) {
-            rpm_puts(f_strerror(result));
-            rpm_puts("\r\n\n");
+            fpm_puts(f_strerror(result));
+            fpm_puts("\r\n\n");
         }
         return;
     }
@@ -104,21 +104,21 @@ void rpm_exec(int argc, char *argv[])
     char *buf = alloca(strlen(argv[0]) + sizeof(".exe") + sizeof("flash:/bin"));
     const char *path = find_exe(argv[0], buf);
     if (!path) {
-        rpm_puts(argv[0]);
-        rpm_puts(": Command not found\r\n\n");
+        fpm_puts(argv[0]);
+        fpm_puts(": Command not found\r\n\n");
         return;
     }
 
     // Load external executable.
-    rpm_executable_t dynobj;
+    fpm_executable_t dynobj;
     memset(&dynobj, 0, sizeof(dynobj));
-    if (!rpm_load(&dynobj, path)) {
+    if (!fpm_load(&dynobj, path)) {
         // Failed: error message already printed.
         return;
     }
 
-    bool success = rpm_execv(&dynobj, bindings, argc, argv);
-    rpm_unload(&dynobj);
+    bool success = fpm_execv(&dynobj, bindings, argc, argv);
+    fpm_unload(&dynobj);
     if (!success) {
         // Failed: error message already printed.
         return;

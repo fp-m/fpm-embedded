@@ -19,7 +19,7 @@ specific language governing permissions and limitations under the License.
 #define _SD_CARD_H_
 
 #include <stdint.h>
-#include <rpm/diskio.h> /* Declarations of media status */
+#include <fpm/diskio.h> /* Declarations of media status */
 #include "pico/mutex.h"
 #include "spi.h"
 

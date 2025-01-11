@@ -1,9 +1,9 @@
 //
-// Test rpm_editline() - command line editor.
+// Test fpm_editline() - command line editor.
 //
 #include <gtest/gtest.h>
-#include <rpm/api.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/internal.h>
 
 static const char *input;       // Input stream for the current test, utf-8 encoded
 static char output[1000];       // Output from the current test, utf-8 encoded
@@ -13,11 +13,11 @@ static char result[1000];       // Resulting command line, utf-8 encoded
 //
 // Get Unicode character from input buffer.
 //
-char rpm_getchar()
+char fpm_getchar()
 {
     if (input == nullptr || *input == 0) {
         // Should not happen.
-        throw std::runtime_error("No input in rpm_getchar()");
+        throw std::runtime_error("No input in fpm_getchar()");
     }
     return *input++;
 }
@@ -25,7 +25,7 @@ char rpm_getchar()
 //
 // Write Unicode character to output buffer.
 //
-void rpm_putchar(char ch)
+void fpm_putchar(char ch)
 {
     // Note extra space for zero byte.
     if (output_ptr >= sizeof(output) - 3) {
@@ -40,35 +40,35 @@ void rpm_putchar(char ch)
 //
 static void editline_test(const char *prompt, const char *inp)
 {
-    uint16_t cmd_line[RPM_CMDLINE_SIZE];
+    uint16_t cmd_line[FPM_CMDLINE_SIZE];
     input = inp;
     output_ptr = 0;
     output[0] = 0;
-    rpm_editline(cmd_line, sizeof(cmd_line), true, prompt, NULL);
-    rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
+    fpm_editline(cmd_line, sizeof(cmd_line), true, prompt, NULL);
+    fpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
 }
 
 static void editline_append(const char *initial, const char *inp)
 {
-    uint16_t cmd_line[RPM_CMDLINE_SIZE];
+    uint16_t cmd_line[FPM_CMDLINE_SIZE];
     input = inp;
     output_ptr = 0;
     output[0] = 0;
-    rpm_strlcpy_from_utf8(cmd_line, initial, sizeof(cmd_line));
-    rpm_editline(cmd_line, sizeof(cmd_line), false, ">", NULL);
-    rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
+    fpm_strlcpy_from_utf8(cmd_line, initial, sizeof(cmd_line));
+    fpm_editline(cmd_line, sizeof(cmd_line), false, ">", NULL);
+    fpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
 }
 
 static void editline_history(const char *prev_line, const char *inp)
 {
-    uint16_t cmd_line[RPM_CMDLINE_SIZE];
-    uint16_t history[RPM_CMDLINE_SIZE];
+    uint16_t cmd_line[FPM_CMDLINE_SIZE];
+    uint16_t history[FPM_CMDLINE_SIZE];
     input = inp;
     output_ptr = 0;
     output[0] = 0;
-    rpm_strlcpy_from_utf8(history, prev_line, sizeof(history)/sizeof(uint16_t));
-    rpm_editline(cmd_line, sizeof(cmd_line), true, ">", history);
-    rpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
+    fpm_strlcpy_from_utf8(history, prev_line, sizeof(history)/sizeof(uint16_t));
+    fpm_editline(cmd_line, sizeof(cmd_line), true, ">", history);
+    fpm_strlcpy_to_utf8(result, cmd_line, sizeof(result));
 }
 
 TEST(editline, empty_input)

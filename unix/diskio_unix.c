@@ -1,8 +1,8 @@
 //
 // Emulation of disk I/O functions for Unix demo.
 //
-#include <rpm/fs.h>
-#include <rpm/diskio.h>
+#include <fpm/fs.h>
+#include <fpm/diskio.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

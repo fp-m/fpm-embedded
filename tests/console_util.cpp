@@ -1,8 +1,8 @@
 //
-// Test rpm_editline() - command line editor.
+// Test fpm_editline() - command line editor.
 //
 #include <gtest/gtest.h>
-#include <rpm/api.h>
+#include <fpm/api.h>
 #include "util.h"
 
 const char *input;       // Input stream for the current test, utf-8 encoded
@@ -10,11 +10,11 @@ const char *input;       // Input stream for the current test, utf-8 encoded
 //
 // Get Unicode character from input buffer.
 //
-char rpm_getchar()
+char fpm_getchar()
 {
     if (input == nullptr || *input == 0) {
         // Should not happen.
-        throw std::runtime_error("No input in rpm_getchar()");
+        throw std::runtime_error("No input in fpm_getchar()");
     }
     return *input++;
 }
@@ -22,7 +22,7 @@ char rpm_getchar()
 //
 // Write Unicode character to output buffer.
 //
-void rpm_putchar(char ch)
+void fpm_putchar(char ch)
 {
     putchar(ch);
     fflush(stdout);
@@ -31,7 +31,7 @@ void rpm_putchar(char ch)
 //
 // Posix-compatible formatted output to string.
 //
-int rpm_snprintf(char *str, size_t size, const char *format, ...)
+int fpm_snprintf(char *str, size_t size, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -43,7 +43,7 @@ int rpm_snprintf(char *str, size_t size, const char *format, ...)
 //
 // Posix-compatible formatted output to console.
 //
-int rpm_printf(const char *format, ...)
+int fpm_printf(const char *format, ...)
 {
     va_list args;
     va_start(args, format);

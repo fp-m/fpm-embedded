@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 
 #pragma once
 
-#include <rpm/api.h>
+#include <fpm/api.h>
 #include <stdbool.h>
 
 // Pico includes
@@ -65,7 +65,7 @@ void set_spi_dma_irq_channel(bool useChannel1, bool shared);
 #define DBG_PRINTF(fmt, args...)
 #else
 // Enable debug output
-#define DBG_PRINTF rpm_printf
+#define DBG_PRINTF fpm_printf
 #endif
 
 //#define myASSERT(__e) ((__e) ? (void)0 : my_assert_func(__FILE__, __LINE__, __func__, #__e))

@@ -24,13 +24,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
 #include <stdlib.h>
 #include <string.h>
 
-int rpm_getopt(int argc, char *const argv[], const char *shortopts,
-               const struct rpm_option *longopts, struct rpm_opt *opt)
+int fpm_getopt(int argc, char *const argv[], const char *shortopts,
+               const struct fpm_option *longopts, struct fpm_opt *opt)
 {
     int optindex = 0;
     size_t match_chars = 0;
@@ -127,14 +127,14 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
                 if (longopt_match >= 0) {
                     // We have ambiguous options.
                     if (!opt->silent) {
-                        rpm_puts(argv[0]);
-                        rpm_puts(": Option `");
-                        rpm_puts(argv[opt->ind]);
-                        rpm_puts("' is ambiguous (could be `--");
-                        rpm_puts(longopts[longopt_match].name);
-                        rpm_puts("' or `--");
-                        rpm_puts(longopts[optindex].name);
-                        rpm_puts("')\r\n");
+                        fpm_puts(argv[0]);
+                        fpm_puts(": Option `");
+                        fpm_puts(argv[opt->ind]);
+                        fpm_puts("' is ambiguous (could be `--");
+                        fpm_puts(longopts[longopt_match].name);
+                        fpm_puts("' or `--");
+                        fpm_puts(longopts[optindex].name);
+                        fpm_puts("')\r\n");
                     }
                     return (opt->ret = opt->opt = '?');
                 }
@@ -147,10 +147,10 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
         } else {
             // Couldn't find long option.
             if (!opt->silent) {
-                rpm_puts(argv[0]);
-                rpm_puts(": Unknown option `");
-                rpm_puts(argv[opt->ind]);
-                rpm_puts("`\r\n");
+                fpm_puts(argv[0]);
+                fpm_puts(": Unknown option `");
+                fpm_puts(argv[opt->ind]);
+                fpm_puts("`\r\n");
             }
             opt->ind++;
             return (opt->ret = opt->opt = '?');
@@ -163,10 +163,10 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
         if (cp == 0) {
             // Couldn't find option in shortopts.
             if (!opt->silent) {
-                rpm_puts(argv[0]);
-                rpm_puts(": Unknown option `-");
-                rpm_putchar(argv[opt->ind][opt->where]);
-                rpm_puts("`\r\n");
+                fpm_puts(argv[0]);
+                fpm_puts(": Unknown option `-");
+                fpm_putchar(argv[opt->ind][opt->where]);
+                fpm_puts("`\r\n");
             }
             opt->where++;
             if (argv[opt->ind][opt->where] == '\0') {
@@ -178,12 +178,12 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 
         if (cp[1] == ':') {
             if (cp[2] == ':') {
-                has_arg = RPM_OPTIONAL_ARG;
+                has_arg = FPM_OPTIONAL_ARG;
             } else {
-                has_arg = RPM_REQUIRED_ARG;
+                has_arg = FPM_REQUIRED_ARG;
             }
         } else {
-            has_arg = RPM_NO_ARG;
+            has_arg = FPM_NO_ARG;
         }
 
         possible_arg = argv[opt->ind] + opt->where + 1;
@@ -193,7 +193,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     // Get argument and reset opt->where.
     arg_next = 0;
     switch (has_arg) {
-    case RPM_OPTIONAL_ARG:
+    case FPM_OPTIONAL_ARG:
         if (*possible_arg == '=') {
             possible_arg++;
         }
@@ -201,7 +201,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
         opt->where = 1;
         break;
 
-    case RPM_REQUIRED_ARG:
+    case FPM_REQUIRED_ARG:
         if (*possible_arg == '=') {
             possible_arg++;
         }
@@ -210,17 +210,17 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
             opt->where = 1;
         } else if (opt->ind + 1 >= argc) {
             if (!opt->silent) {
-                rpm_puts(argv[0]);
-                rpm_puts(": Argument required for option `-");
+                fpm_puts(argv[0]);
+                fpm_puts(": Argument required for option `-");
                 if (longopt_match >= 0) {
-                    rpm_putchar('-');
-                    rpm_puts(longopts[longopt_match].name);
+                    fpm_putchar('-');
+                    fpm_puts(longopts[longopt_match].name);
                     opt->opt = initial_colon ? ':' : '\?';
                 } else {
-                    rpm_putchar(*cp);
+                    fpm_putchar(*cp);
                     opt->opt = *cp;
                 }
-                rpm_puts("`\r\n");
+                fpm_puts("`\r\n");
             }
             opt->ind++;
             return (opt->ret = initial_colon ? ':' : '\?');
@@ -232,7 +232,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
         break;
 
     default: // shouldn't happen
-    case RPM_NO_ARG:
+    case FPM_NO_ARG:
         if (longopt_match < 0) {
             opt->where++;
             if (argv[opt->ind][opt->where] == '\0')
@@ -264,7 +264,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
     }
 }
 
-// The rpm_getopt() function parses the command line arguments.  Its arguments argc
+// The fpm_getopt() function parses the command line arguments.  Its arguments argc
 // and argv are the argument count and array as passed to the main() function
 // on program invocation.  The argument optstring is a list of available option
 // characters.  If such a character is followed by a colon (`:'), the option
@@ -276,7 +276,7 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 // to be processed; it communicates from one call to the next which element to
 // process.
 //
-// The rpm_getopt() function also accepts long options started
+// The fpm_getopt() function also accepts long options started
 // by two dashes `--'. If these take values, it is either in the form
 //
 //      --arg=value
@@ -286,13 +286,13 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 //      --arg value
 //
 // It takes the additional arguments longopts which is a pointer to the first
-// element of an array of type struct rpm_option.  The last element of the array
+// element of an array of type struct fpm_option.  The last element of the array
 // has to be filled with NULL for the name field.
 //
 // The long_index field shows the index of the current long option relative
 // to longopts.
 //
-// The rpm_getopt() function returns the option character if the option was found
+// The fpm_getopt() function returns the option character if the option was found
 // successfully, `:' if there was a missing parameter for one of the options,
 // `?' for an unknown option character, and -1 for the end of the option list.
 //
@@ -301,11 +301,11 @@ int rpm_getopt(int argc, char *const argv[], const char *shortopts,
 // as if it were the argument of an option with character code 1.
 //
 // The special argument `--' forces an end of option-scanning.
-// Only `--' can cause rpm_getopt() to return -1 with optind != argc.
+// Only `--' can cause fpm_getopt() to return -1 with optind != argc.
 //
 // 2012-08-26: Tried to make the error handling more sus4-like. The functions
-// return a colon if rpm_getopt() and friends detect a missing argument and the
-// first character of shortopts/optstring starts with a colon (`:'). If rpm_getopt()
+// return a colon if fpm_getopt() and friends detect a missing argument and the
+// first character of shortopts/optstring starts with a colon (`:'). If fpm_getopt()
 // and friends detect a missing argument and shortopts/optstring does not start
 // with a colon, the function returns a question mark (`?'). If it was a missing
 // argument to a short option, optopt is set to the character in question. The

@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#include <rpm/api.h>    // Declarations of disk functions
-#include <rpm/diskio.h> // Declarations of disk functions
+#include <fpm/api.h>    // Declarations of disk functions
+#include <fpm/diskio.h> // Declarations of disk functions
 #include <stdio.h>      // For debug printfs
 #include "pico/stdlib.h"
 #include "flash.h"
@@ -87,7 +87,7 @@ static void flash_probe()
     // Assume 2 Mbytes by default.
     flash_info.num_bytes = 2 * 1024 * 1024;
 
-    rpm_snprintf(flash_info.product_name, sizeof(flash_info.product_name), "mf%02x-dev%04x", mf_id, dev_id);
+    fpm_snprintf(flash_info.product_name, sizeof(flash_info.product_name), "mf%02x-dev%04x", mf_id, dev_id);
 
     switch (mf_id) {
     case 0xef: // Winbond

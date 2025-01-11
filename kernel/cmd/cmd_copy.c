@@ -1,10 +1,10 @@
 //
 // Copy files or directories
 //
-#include <rpm/api.h>
-#include <rpm/fs.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/fs.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 #include <stdlib.h>
 
 //
@@ -30,12 +30,12 @@ static void copy_file(const char *source, const char *destination, const options
         if (result == FR_OK) {
             char prompt[32 + strlen(destination)];
             uint16_t reply[32];
-            rpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? y/n [n] ", destination);
-            rpm_editline(reply, sizeof(reply), 1, prompt, 0);
-            rpm_puts("\r\n");
+            fpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? y/n [n] ", destination);
+            fpm_editline(reply, sizeof(reply), 1, prompt, 0);
+            fpm_puts("\r\n");
 
             if (reply[0] != 'y' && reply[0] != 'Y') {
-                rpm_puts("Not overwritten.\r\n");
+                fpm_puts("Not overwritten.\r\n");
                 return;
             }
         }
@@ -45,7 +45,7 @@ static void copy_file(const char *source, const char *destination, const options
     file_t *fsrc = alloca(f_sizeof_file_t());
     result = f_open(fsrc, source, FA_READ);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", source, f_strerror(result));
+        fpm_printf("%s: %s\r\n", source, f_strerror(result));
         return;
     }
 
@@ -53,7 +53,7 @@ static void copy_file(const char *source, const char *destination, const options
     file_t *fdest = alloca(f_sizeof_file_t());
     result = f_open(fdest, destination, FA_WRITE | FA_CREATE_ALWAYS);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", destination, f_strerror(result));
+        fpm_printf("%s: %s\r\n", destination, f_strerror(result));
         f_close(fsrc);
         return;
     }
@@ -65,7 +65,7 @@ static void copy_file(const char *source, const char *destination, const options
         result = f_read(fsrc, buf, sizeof(buf), &nbytes_read);
         if (result != FR_OK) {
             // Read error.
-            rpm_printf("%s: %s\r\n", source, f_strerror(result));
+            fpm_printf("%s: %s\r\n", source, f_strerror(result));
 fatal:      f_close(fsrc);
             f_close(fdest);
             return;
@@ -78,12 +78,12 @@ fatal:      f_close(fsrc);
         result = f_write(fdest, buf, nbytes_read, &nbytes_written);
         if (result != FR_OK) {
             // Write error.
-            rpm_printf("%s: %s\r\n", destination, f_strerror(result));
+            fpm_printf("%s: %s\r\n", destination, f_strerror(result));
             goto fatal;
         }
         if (nbytes_written != nbytes_read) {
             // Out of disk space.
-            rpm_printf("%s: Not enough space on device\r\n", destination);
+            fpm_printf("%s: Not enough space on device\r\n", destination);
             goto fatal;
         }
     }
@@ -92,7 +92,7 @@ fatal:      f_close(fsrc);
     f_close(fsrc);
     f_close(fdest);
     if (options->verbose)
-        rpm_printf("%s -> %s\r\n", source, destination);
+        fpm_printf("%s -> %s\r\n", source, destination);
 }
 
 //
@@ -122,13 +122,13 @@ static void copy_recursive(const char *source, const char *destination, const op
         result = f_mkdir(destination);
         if (result != FR_OK) {
             // Cannot create destination directory.
-            rpm_printf("%s: %s\r\n", destination, f_strerror(result));
+            fpm_printf("%s: %s\r\n", destination, f_strerror(result));
             return;
         }
     } else {
         if (!(info.fattrib & AM_DIR)) {
             // Destination must be a directory.
-            rpm_printf("%s: Destination is not a directory, cannot copy\r\n", destination);
+            fpm_printf("%s: Destination is not a directory, cannot copy\r\n", destination);
             return;
         }
     }
@@ -137,7 +137,7 @@ static void copy_recursive(const char *source, const char *destination, const op
     directory_t *dir = alloca(f_sizeof_directory_t());
     result = f_opendir(dir, source);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", source, f_strerror(result));
+        fpm_printf("%s: %s\r\n", source, f_strerror(result));
         return;
     }
     for (;;) {
@@ -172,14 +172,14 @@ static void copy_object(const char *source, const char *destination, const optio
     // Source can be a file or a directory.
     result = f_stat(source, &info);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", source, f_strerror(result));
+        fpm_printf("%s: %s\r\n", source, f_strerror(result));
         return;
     }
     if (info.fattrib & AM_DIR) {
         if (options->recursive) {
             copy_recursive(source, destination, options);
         } else {
-            rpm_printf("%s: Cannot copy directory without -r option\r\n", source);
+            fpm_printf("%s: Cannot copy directory without -r option\r\n", source);
         }
     } else {
         copy_file(source, destination, options);
@@ -237,19 +237,19 @@ static void copy_to_directory(const char *source[], unsigned num_sources,
     }
 }
 
-void rpm_cmd_copy(int argc, char *argv[])
+void fpm_cmd_copy(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
     const char *destination = 0;
     const char *source[argc];
     unsigned num_sources = 0;
     options_t options = {};
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
 
-    while (rpm_getopt(argc, argv, "frvh", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "frvh", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             // Last argument is destination.
@@ -273,11 +273,11 @@ void rpm_cmd_copy(int argc, char *argv[])
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
-usage:      rpm_puts("Usage:\r\n"
+usage:      fpm_puts("Usage:\r\n"
                      "    cp [options] source ... destination\r\n"
                      "    copy [options] source ... destination\r\n"
                      "Options:\r\n"
@@ -304,7 +304,7 @@ usage:      rpm_puts("Usage:\r\n"
         // The destination doesn't exist or isn't a directory.
         // More than 2 arguments is an error in this case.
         if (num_sources != 1) {
-            rpm_printf("%s is not a directory\r\n", destination);
+            fpm_printf("%s is not a directory\r\n", destination);
         } else {
             // Copy one file.
             copy_object(source[0], destination, &options);
@@ -312,5 +312,5 @@ usage:      rpm_puts("Usage:\r\n"
     } else {
         copy_to_directory(source, num_sources, destination, &options);
     }
-    rpm_puts("\r\n");
+    fpm_puts("\r\n");
 }

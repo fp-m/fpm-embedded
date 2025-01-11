@@ -4,9 +4,9 @@
 // Fill an argument vector.
 // On error, return a message.
 //
-#include <rpm/api.h>
+#include <fpm/api.h>
 
-const char *rpm_tokenize(char *argv[], int *argc, char *cmd_line)
+const char *fpm_tokenize(char *argv[], int *argc, char *cmd_line)
 {
     const char *src = cmd_line; // Copy from here...
     char *dest = cmd_line;      // ...to there

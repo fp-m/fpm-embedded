@@ -1,8 +1,8 @@
 //
 // Dynamic Loader Interface.
 //
-#ifndef RPM_LOADER_H
-#define RPM_LOADER_H
+#ifndef FPM_LOADER_H
+#define FPM_LOADER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +18,7 @@ typedef struct {
     unsigned num_links;      // Number of linked procedures
     const void *rel_section; // Header of .rela.plt section
     int exit_code;           // Return value of invoked object
-} rpm_executable_t;
+} fpm_executable_t;
 
 //
 // Definition of exported procedure for dynamic linking.
@@ -26,23 +26,23 @@ typedef struct {
 typedef struct {
     const char *name;       // Name of procedure
     void *address;          // Address of procedure
-} rpm_binding_t;
+} fpm_binding_t;
 
 //
 // Load dynamic binary.
 // Return true on success.
 //
-bool rpm_load(rpm_executable_t *dynobj, const char *filename);
+bool fpm_load(fpm_executable_t *dynobj, const char *filename);
 
 //
 // Unmap ELF binary from memory.
 //
-void rpm_unload(rpm_executable_t *dynobj);
+void fpm_unload(fpm_executable_t *dynobj);
 
 //
 // Get names of linked procedures.
 //
-void rpm_get_symbols(rpm_executable_t *dynobj, const char *symbols[]);
+void fpm_get_symbols(fpm_executable_t *dynobj, const char *symbols[]);
 
 //
 // Invoke entry address of the ELF binary with argc, argv arguments.
@@ -53,10 +53,10 @@ void rpm_get_symbols(rpm_executable_t *dynobj, const char *symbols[]);
 //
 // Return the exit code.
 //
-bool rpm_execv(rpm_executable_t *dynobj, rpm_binding_t linkmap[], int argc, char *argv[]);
+bool fpm_execv(fpm_executable_t *dynobj, fpm_binding_t linkmap[], int argc, char *argv[]);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // RPM_LOADER_H
+#endif // FPM_LOADER_H

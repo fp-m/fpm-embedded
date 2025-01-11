@@ -1,28 +1,28 @@
 //
 // Show or change current directory
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
-#include <rpm/fs.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
+#include <fpm/fs.h>
 
 static void chdir(const char *path)
 {
     fs_result_t result = f_chdir(path);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n\n", path, f_strerror(result));
+        fpm_printf("%s: %s\r\n\n", path, f_strerror(result));
     }
 }
 
-void rpm_cmd_cd(int argc, char *argv[])
+void fpm_cmd_cd(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
 
-    while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             chdir(opt.arg);
@@ -30,11 +30,11 @@ void rpm_cmd_cd(int argc, char *argv[])
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
+            fpm_puts("Usage:\r\n"
                      "    cd\r\n"
                      "    cd path\r\n"
                      "    cd ..\r\n"
@@ -46,9 +46,9 @@ void rpm_cmd_cd(int argc, char *argv[])
     char path[4096];
     fs_result_t result = f_getcwd(path, sizeof(path));
     if (result == FR_OK) {
-        rpm_puts(path);
+        fpm_puts(path);
     } else {
-        rpm_puts(f_strerror(result));
+        fpm_puts(f_strerror(result));
     }
-    rpm_puts("\r\n\n");
+    fpm_puts("\r\n\n");
 }

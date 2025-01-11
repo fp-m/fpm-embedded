@@ -1,8 +1,8 @@
 //
-// API for RP/M, implemented with Posix.
+// API for FP/M, implemented with Posix.
 //
-#include <rpm/api.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/internal.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@
 //
 // Read byte from the console.
 //
-char rpm_getchar()
+char fpm_getchar()
 {
     char ch;
     if (read(0, &ch, 1) != 1) {
@@ -23,8 +23,8 @@ char rpm_getchar()
 
     // ^C - kill the process.
     if (ch == '\3') {
-        rpm_puts("^C\r\n");
-        longjmp(rpm_saved_point, 1);
+        fpm_puts("^C\r\n");
+        longjmp(fpm_saved_point, 1);
     }
     return ch;
 }
@@ -32,7 +32,7 @@ char rpm_getchar()
 //
 // Write byte to the console.
 //
-void rpm_putchar(char ch)
+void fpm_putchar(char ch)
 {
     putchar(ch);
     fflush(stdout);
@@ -41,7 +41,7 @@ void rpm_putchar(char ch)
 //
 // Posix-compatible formatted output to console.
 //
-int rpm_printf(const char *format, ...)
+int fpm_printf(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -51,7 +51,7 @@ int rpm_printf(const char *format, ...)
     return retval;
 }
 
-int rpm_vprintf(const char *format, va_list args)
+int fpm_vprintf(const char *format, va_list args)
 {
     int retval = vprintf(format, args);
     fflush(stdout);
@@ -61,7 +61,7 @@ int rpm_vprintf(const char *format, va_list args)
 //
 // Posix-compatible formatted output to string.
 //
-int rpm_snprintf(char *str, size_t size, const char *format, ...)
+int fpm_snprintf(char *str, size_t size, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -70,7 +70,7 @@ int rpm_snprintf(char *str, size_t size, const char *format, ...)
     return retval;
 }
 
-int rpm_vsnprintf(char *str, size_t size, const char *format , va_list args)
+int fpm_vsnprintf(char *str, size_t size, const char *format , va_list args)
 {
     return vsnprintf(str, size, format, args);
 }
@@ -78,7 +78,7 @@ int rpm_vsnprintf(char *str, size_t size, const char *format , va_list args)
 //
 // Posix-compatible formatted input.
 //
-int rpm_sscanf(const char *str, const char *format, ...)
+int fpm_sscanf(const char *str, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -87,26 +87,26 @@ int rpm_sscanf(const char *str, const char *format, ...)
     return retval;
 }
 
-int rpm_vsscanf(const char *str, const char *format, va_list args)
+int fpm_vsscanf(const char *str, const char *format, va_list args)
 {
     return vsscanf(str, format, args);
 }
 
-void rpm_print_version()
+void fpm_print_version()
 {
-    rpm_puts("RP/M version "RPM_VERSION"."GIT_REVCOUNT"\r\n");
-    rpm_puts("Git commit "GIT_COMMIT", built on "__DATE__" at "__TIME__"\r\n");
+    fpm_puts("FP/M version "FPM_VERSION"."GIT_REVCOUNT"\r\n");
+    fpm_puts("Git commit "GIT_COMMIT", built on "__DATE__" at "__TIME__"\r\n");
 
     struct utsname u;
     if (uname(&u) == 0) {
-        rpm_printf("Unix %s %s version %s\r\n", u.sysname, u.machine, u.release);
+        fpm_printf("Unix %s %s version %s\r\n", u.sysname, u.machine, u.release);
     }
 }
 
 //
 // Get date and time (local).
 //
-void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
+void fpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
 {
     struct timeval tv;
     gettimeofday(&tv, 0);
@@ -126,7 +126,7 @@ void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int
 //
 // Set date and time.
 //
-void rpm_set_datetime(int year, int month, int day, int hour, int min, int sec)
+void fpm_set_datetime(int year, int month, int day, int hour, int min, int sec)
 {
     // Ignore.
 }
@@ -134,15 +134,15 @@ void rpm_set_datetime(int year, int month, int day, int hour, int min, int sec)
 //
 // Reboot the processor.
 //
-void rpm_reboot()
+void fpm_reboot()
 {
-    rpm_puts("Cannot reboot Unix, sorry.\r\n\r\n");
+    fpm_puts("Cannot reboot Unix, sorry.\r\n\r\n");
 }
 
 //
 // Return the current 64-bit timestamp value in microseconds.
 //
-uint64_t rpm_time_usec()
+uint64_t fpm_time_usec()
 {
     struct timeval t;
 
@@ -153,7 +153,7 @@ uint64_t rpm_time_usec()
 //
 // Busy wait for the given 64-bit number of microseconds.
 //
-void rpm_delay_usec(uint64_t microseconds)
+void fpm_delay_usec(uint64_t microseconds)
 {
      usleep(microseconds);
 }
@@ -161,7 +161,7 @@ void rpm_delay_usec(uint64_t microseconds)
 //
 // Busy wait for the given number of milliseconds.
 //
-void rpm_delay_msec(unsigned milliseconds)
+void fpm_delay_msec(unsigned milliseconds)
 {
      usleep(milliseconds * 1000ULL);
 }

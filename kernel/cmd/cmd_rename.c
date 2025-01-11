@@ -1,10 +1,10 @@
 //
 // Rename files or directories
 //
-#include <rpm/api.h>
-#include <rpm/fs.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/fs.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 
 //
 // Options for renaming.
@@ -30,19 +30,19 @@ static void rename_file(const char *source, const char *destination, const optio
             // Prompt only if source exist.
             result = f_stat(source, &info);
             if (result != FR_OK) {
-                rpm_printf("%s: %s\r\n", source, f_strerror(result));
+                fpm_printf("%s: %s\r\n", source, f_strerror(result));
                 return;
             }
 
             // Ask user.
             char prompt[32 + strlen(destination)];
             uint16_t reply[32];
-            rpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? y/n [n] ", destination);
-            rpm_editline(reply, sizeof(reply), 1, prompt, 0);
-            rpm_puts("\r\n");
+            fpm_snprintf(prompt, sizeof(prompt), "Overwrite %s? y/n [n] ", destination);
+            fpm_editline(reply, sizeof(reply), 1, prompt, 0);
+            fpm_puts("\r\n");
 
             if (reply[0] != 'y' && reply[0] != 'Y') {
-                rpm_printf("Not overwritten.\r\n");
+                fpm_printf("Not overwritten.\r\n");
                 return;
             }
         }
@@ -50,13 +50,13 @@ static void rename_file(const char *source, const char *destination, const optio
 
     result = f_rename(source, destination);
     if (result != FR_OK) {
-        rpm_printf("%s -> %s: %s\r\n", source, destination, f_strerror(result));
+        fpm_printf("%s -> %s: %s\r\n", source, destination, f_strerror(result));
         return;
     }
 
     // Renamed successfully.
     if (options->verbose)
-        rpm_printf("%s -> %s\r\n", source, destination);
+        fpm_printf("%s -> %s\r\n", source, destination);
 }
 
 //
@@ -91,19 +91,19 @@ static void move_files_to_directory(const char *source[], unsigned num_sources,
     }
 }
 
-void rpm_cmd_rename(int argc, char *argv[])
+void fpm_cmd_rename(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
     const char *destination = 0;
     const char *source[argc];
     unsigned num_sources = 0;
     options_t options = {};
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
 
-    while (rpm_getopt(argc, argv, "fhv", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "fhv", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             // Last argument is destination.
@@ -123,11 +123,11 @@ void rpm_cmd_rename(int argc, char *argv[])
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
-usage:      rpm_puts("Usage:\r\n"
+usage:      fpm_puts("Usage:\r\n"
                      "    mv [options] filename ...\r\n"
                      "    rename [options] filename ...\r\n"
                      "Options:\r\n"
@@ -144,7 +144,7 @@ usage:      rpm_puts("Usage:\r\n"
 
     // No disk name is allowed in destination.
     if (strchr(destination, ':') != 0) {
-        rpm_printf("%s: cannot move across devices, sorry\r\n\n", destination);
+        fpm_printf("%s: cannot move across devices, sorry\r\n\n", destination);
         return;
     }
 
@@ -159,7 +159,7 @@ usage:      rpm_puts("Usage:\r\n"
         // The destination doesn't exist or isn't a directory.
         // More than 2 arguments is an error in this case.
         if (num_sources != 1) {
-            rpm_printf("%s is not a directory\r\n", destination);
+            fpm_printf("%s is not a directory\r\n", destination);
         } else {
             // Rename one file.
             rename_file(source[0], destination, &options);
@@ -167,5 +167,5 @@ usage:      rpm_puts("Usage:\r\n"
     } else {
         move_files_to_directory(source, num_sources, destination, &options);
     }
-    rpm_puts("\r\n");
+    fpm_puts("\r\n");
 }

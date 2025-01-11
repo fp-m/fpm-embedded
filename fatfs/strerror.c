@@ -1,5 +1,5 @@
-#include <rpm/api.h>
-#include <rpm/fs.h>
+#include <fpm/api.h>
+#include <fpm/fs.h>
 
 const char *f_strerror(fs_result_t errnum)
 {
@@ -28,6 +28,6 @@ const char *f_strerror(fs_result_t errnum)
     }
 
     static char buf[40];
-    rpm_snprintf(buf, sizeof(buf), "Unknown error: %u", errnum);
+    fpm_snprintf(buf, sizeof(buf), "Unknown error: %u", errnum);
     return buf;
 }

@@ -3,12 +3,12 @@ extern const char *input;   // Input stream for the current test, utf-8 encoded
 //
 // Get Unicode character from input buffer.
 //
-char rpm_getchar();
+char fpm_getchar();
 
 //
 // Write Unicode character to output buffer.
 //
-void rpm_putchar(char ch);
+void fpm_putchar(char ch);
 
 //
 // Create a file with given name and contents.

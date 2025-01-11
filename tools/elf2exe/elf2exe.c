@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include "rpm/elf.h"
+#include "fpm/elf.h"
 
 // Name of the file being processed.
 const char *filename;
@@ -38,7 +38,7 @@ int verbose;
 //
 static void usage()
 {
-    printf("Modify ELF binary for RP/M operating system\n");
+    printf("Modify ELF binary for FP/M operating system\n");
     printf("Usage:\n");
     printf("    elf2exe [-v] executable.elf\n");
 }
@@ -234,13 +234,13 @@ static void process_amd64_plt(const Elf64_Shdr *hdr)
     // 100c: 0f 1f 40 00        nopl   0x0(%rax)
     // 1010: f3 0f 1e fa        endbr64
     // 1014: 68 00 00 00 00     push   $0x0
-    // 1019: e9 e2 ff ff ff     jmp    1000 <rpm_puts@plt-0x20>
+    // 1019: e9 e2 ff ff ff     jmp    1000 <fpm_puts@plt-0x20>
     // 101e: 66 90              xchg   %ax,%ax
     //
     // Disassembly of section .plt.sec:
-    // 0000000000001020 <rpm_puts@plt>:
+    // 0000000000001020 <fpm_puts@plt>:
     // 1020: f3 0f 1e fa        endbr64
-    // 1024: ff 25 d6 2f 00 00  jmp    *0x2fd6(%rip)    # 4000 <rpm_puts>
+    // 1024: ff 25 d6 2f 00 00  jmp    *0x2fd6(%rip)    # 4000 <fpm_puts>
     // 102a: 66 0f 1f 44 00 00  nopw   0x0(%rax,%rax,1)
 
     //
@@ -314,8 +314,8 @@ static void process_arm64_plt(const Elf64_Shdr *hdr)
     //  238: d503201f  nop
     //  23c: d503201f  nop
     //
-    // 0000000000000240 <rpm_puts@plt>:
-    //  240: 90000110  adrp x16, 20000 <rpm_puts>
+    // 0000000000000240 <fpm_puts@plt>:
+    //  240: 90000110  adrp x16, 20000 <fpm_puts>
     //  244: f9400211  ldr  x17, [x16]
     //  248: 91000210  add  x16, x16, #0x0
     //  24c: d61f0220  br   x17
@@ -376,7 +376,7 @@ static void process_arm32_plt(const Elf32_Shdr *hdr)
     //  16c: e5bef008  ldr   pc, [lr, #8]!
     //  170: 00001e90  .word 0x00001e90
     //
-    // 00000174 <rpm_puts@plt>:
+    // 00000174 <fpm_puts@plt>:
     //  174: e28fc600  add ip, pc, #0, 12
     //  178: e28cca01  add ip, ip, #4096    @ 0x1000
     //  17c: e5bcfe90  ldr pc, [ip, #3728]! @ 0xe90
@@ -507,7 +507,7 @@ int main(int argc, char **argv)
     if (num_links > 0) {
         printf("%s: %u linked procedures\n", filename, num_links);
 
-        // Mark this file as ready for RP/M.
+        // Mark this file as ready for FP/M.
         char *id = base;
         id[EI_OSABI] = ELFOSABI_STANDALONE;
     }

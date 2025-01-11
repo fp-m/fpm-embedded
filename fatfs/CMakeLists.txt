@@ -1,8 +1,8 @@
-add_library(rpm_fatfs STATIC
+add_library(fpm_fatfs STATIC
     fatfs.c
     unicode.c
     strerror.c
 )
-target_include_directories(rpm_fatfs BEFORE PUBLIC
+target_include_directories(fpm_fatfs BEFORE PUBLIC
     ../include
 )

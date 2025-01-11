@@ -1,11 +1,11 @@
 //
 // Engage removable disk device
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
-#include <rpm/fs.h>
-#include <rpm/diskio.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
+#include <fpm/fs.h>
+#include <fpm/diskio.h>
 
 //
 // Convert statfs returned filesystem size into 1-kbyte units.
@@ -26,8 +26,8 @@ static void mount(const char *path)
 {
     fs_result_t result = f_mount(path);
     if (result != FR_OK) {
-        rpm_puts(f_strerror(result));
-        rpm_puts("\r\n\n");
+        fpm_puts(f_strerror(result));
+        fpm_puts("\r\n\n");
     }
 }
 
@@ -40,52 +40,52 @@ static void show(int i)
     fs_info_t info;
     fs_result_t result = f_statfs(path, &info);
 
-    rpm_printf("%5s:  ", disk_name[i]);
+    fpm_printf("%5s:  ", disk_name[i]);
     if (result != FR_OK) {
         // Drive not mounted.
-        rpm_puts("   ---\r\n");
+        fpm_puts("   ---\r\n");
         return;
     }
 
     switch (info.f_type) {
-    case FS_FAT12: rpm_puts("FAT-12"); break;
-    case FS_FAT16: rpm_puts("FAT-16"); break;
-    case FS_FAT32: rpm_puts("FAT-32"); break;
-    case FS_EXFAT: rpm_puts(" exFAT"); break;
-    default:       rpm_puts("Unknwn"); break;
+    case FS_FAT12: fpm_puts("FAT-12"); break;
+    case FS_FAT16: fpm_puts("FAT-16"); break;
+    case FS_FAT32: fpm_puts("FAT-32"); break;
+    case FS_EXFAT: fpm_puts(" exFAT"); break;
+    default:       fpm_puts("Unknwn"); break;
     }
 
     unsigned used = info.f_blocks - info.f_bfree;
     unsigned avail = info.f_bavail + used;
-    rpm_printf(" %10lu", blk_to_kbytes(info.f_blocks, info.f_bsize));
-    rpm_printf(" %9lu", blk_to_kbytes(used, info.f_bsize));
-    rpm_printf(" %9lu", blk_to_kbytes(info.f_bavail, info.f_bsize));
+    fpm_printf(" %10lu", blk_to_kbytes(info.f_blocks, info.f_bsize));
+    fpm_printf(" %9lu", blk_to_kbytes(used, info.f_bsize));
+    fpm_printf(" %9lu", blk_to_kbytes(info.f_bavail, info.f_bsize));
 
     if (avail == 0) {
-        rpm_puts("   100%");
+        fpm_puts("   100%");
     } else {
-        rpm_printf(" %5u%%", (unsigned) ((used * 200ULL + avail) / avail / 2));
+        fpm_printf(" %5u%%", (unsigned) ((used * 200ULL + avail) / avail / 2));
     }
-    rpm_puts("\r\n");
+    fpm_puts("\r\n");
 }
 
-void rpm_cmd_mount(int argc, char *argv[])
+void fpm_cmd_mount(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
 
     if (argc > 2) {
 usage:
-        rpm_puts("Usage:\r\n"
+        fpm_puts("Usage:\r\n"
                  "    mount [sd: | flash:]\r\n"
                  "\n");
         return;
     }
 
-    while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             mount(opt.arg);
@@ -93,7 +93,7 @@ usage:
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
@@ -104,9 +104,9 @@ usage:
     //
     // Show mounted volumes.
     //
-    rpm_printf(" Drive    Type  1k-blocks      Used Available Capacity\r\n");
+    fpm_printf(" Drive    Type  1k-blocks      Used Available Capacity\r\n");
     for (int i = 0; i < DISK_VOLUMES; i++) {
         show(i);
     }
-    rpm_puts("\n");
+    fpm_puts("\n");
 }

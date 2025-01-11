@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <rpm/fs.h>
-#include <rpm/diskio.h>
+#include <fpm/fs.h>
+#include <fpm/diskio.h>
 #include <alloca.h>
 #include <string.h>
 #include "util.h"
@@ -130,7 +130,7 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
 // Get date and time (local).
 //
 extern "C" {
-void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
+void fpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
 {
     *year = 2023;
     *month = 2;

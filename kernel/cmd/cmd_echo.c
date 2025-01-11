@@ -1,27 +1,27 @@
 //
 // Copy text directly to the console output
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 
-void rpm_cmd_echo(int argc, char *argv[])
+void fpm_cmd_echo(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
     bool no_newline = false;
     int count = 0;
 
-    while (rpm_getopt(argc, argv, "hn", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "hn", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             // Display arguments.
             if (count > 0)
-                rpm_putchar(' ');
-            rpm_puts(opt.arg);
+                fpm_putchar(' ');
+            fpm_puts(opt.arg);
             count++;
             continue;
 
@@ -34,7 +34,7 @@ void rpm_cmd_echo(int argc, char *argv[])
             continue;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
+            fpm_puts("Usage:\r\n"
                      "    echo [-n] [string ...]\r\n"
                      "\n"
                      "    -n            Do not output the trailing newline\r\n"
@@ -44,6 +44,6 @@ void rpm_cmd_echo(int argc, char *argv[])
     }
 
     if (!no_newline) {
-        rpm_puts("\r\n");
+        fpm_puts("\r\n");
     }
 }

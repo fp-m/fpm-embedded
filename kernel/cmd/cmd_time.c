@@ -1,39 +1,39 @@
 //
 // Set or show the current system time
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 
 static void set_time(const char *str)
 {
     int year, month, day, dotw, hour, min, sec;
-    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
+    fpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
 
-    if (rpm_sscanf(str, "%d:%d:%d", &hour, &min, &sec) != 3 ||
+    if (fpm_sscanf(str, "%d:%d:%d", &hour, &min, &sec) != 3 ||
         hour < 0 || hour > 23 ||
         min < 0 || min > 59 ||
         sec < 0 || sec > 59) {
-        rpm_puts("The specified time is not correct.\r\n"
+        fpm_puts("The specified time is not correct.\r\n"
                  "\n");
         return;
     }
 
     // Set time.
-    rpm_set_datetime(year, month, day, hour, min, sec);
-    rpm_puts("\r\n");
+    fpm_set_datetime(year, month, day, hour, min, sec);
+    fpm_puts("\r\n");
 }
 
-void rpm_cmd_time(int argc, char *argv[])
+void fpm_cmd_time(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
     bool terse = false;
 
-    while (rpm_getopt(argc, argv, "ht", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "ht", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             set_time(opt.arg);
@@ -41,7 +41,7 @@ void rpm_cmd_time(int argc, char *argv[])
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 't':
@@ -49,7 +49,7 @@ void rpm_cmd_time(int argc, char *argv[])
             continue;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
+            fpm_puts("Usage:\r\n"
                      "    time [-t]\r\n"
                      "    time hh:mm:ss\r\n"
                      "\n"
@@ -62,10 +62,10 @@ void rpm_cmd_time(int argc, char *argv[])
 
     // Display current time.
     int year, month, day, dotw, hour, min, sec;
-    rpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
+    fpm_get_datetime(&year, &month, &day, &dotw, &hour, &min, &sec);
 
     if (terse) {
-        rpm_printf("%02d:%02d:%02d\r\n", hour, min, sec);
+        fpm_printf("%02d:%02d:%02d\r\n", hour, min, sec);
     } else {
         // Convert 24-hour clock time to 12-hour clock.
         char am_pm = (hour <= 11) ? 'A' : 'P';
@@ -74,8 +74,8 @@ void rpm_cmd_time(int argc, char *argv[])
         } else if (hour > 12) {
             hour -= 12;
         }
-        rpm_printf("Current Time: %02d:%02d:%02d %cM\r\n", hour, min, sec, am_pm);
-        rpm_puts("Type 'time hh:mm:ss' to change.\r\n");
+        fpm_printf("Current Time: %02d:%02d:%02d %cM\r\n", hour, min, sec, am_pm);
+        fpm_puts("Type 'time hh:mm:ss' to change.\r\n");
     }
-    rpm_puts("\r\n");
+    fpm_puts("\r\n");
 }

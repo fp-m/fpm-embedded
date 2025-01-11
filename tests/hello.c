@@ -1,9 +1,9 @@
 //
 // Print simple text message.
 //
-#include <rpm/api.h>
+#include <fpm/api.h>
 
 int main()
 {
-    rpm_puts("Hello, World!\r\n");
+    fpm_puts("Hello, World!\r\n");
 }

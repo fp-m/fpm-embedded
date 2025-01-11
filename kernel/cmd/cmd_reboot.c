@@ -1,35 +1,35 @@
 //
-// Restart the RP/M kernel
+// Restart the FP/M kernel
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 
-void rpm_cmd_reboot(int argc, char *argv[])
+void fpm_cmd_reboot(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
 
-    while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
-            rpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
+            fpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
             return;
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
-            rpm_puts("Usage: reboot\r\n\n");
+            fpm_puts("Usage: reboot\r\n\n");
             return;
         }
     }
 
-    rpm_puts("Reboot....\r\n\r\n");
-    rpm_reboot();
+    fpm_puts("Reboot....\r\n\r\n");
+    fpm_reboot();
 }

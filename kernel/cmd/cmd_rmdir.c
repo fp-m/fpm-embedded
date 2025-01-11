@@ -1,39 +1,39 @@
 //
 // Remove a directory
 //
-#include <rpm/api.h>
-#include <rpm/fs.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/fs.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 
 static void remove_directory(const char *path)
 {
     file_info_t info;
     fs_result_t result = f_stat(path, &info);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", path, f_strerror(result));
+        fpm_printf("%s: %s\r\n", path, f_strerror(result));
         return;
     }
     if (!(info.fattrib & AM_DIR)) {
-        rpm_printf("%s: Not a directory\r\n", path);
+        fpm_printf("%s: Not a directory\r\n", path);
         return;
     }
     result = f_unlink(path);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", path, f_strerror(result));
+        fpm_printf("%s: %s\r\n", path, f_strerror(result));
     }
 }
 
-void rpm_cmd_rmdir(int argc, char *argv[])
+void fpm_cmd_rmdir(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
     unsigned argcount = 0;
 
-    while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             remove_directory(opt.arg);
@@ -42,11 +42,11 @@ void rpm_cmd_rmdir(int argc, char *argv[])
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
-usage:      rpm_puts("Usage:\r\n"
+usage:      fpm_puts("Usage:\r\n"
                      "    rmdir directory ...\r\n"
                      "\n");
             return;
@@ -57,5 +57,5 @@ usage:      rpm_puts("Usage:\r\n"
         // Nothing to remove.
         goto usage;
     }
-    rpm_puts("\r\n");
+    fpm_puts("\r\n");
 }

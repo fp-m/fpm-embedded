@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#include <rpm/diskio.h> // Declarations of disk functions
+#include <fpm/diskio.h> // Declarations of disk functions
 #include <stdio.h>      // For debug printfs
 #include "sd_card.h"
 #include "flash.h"

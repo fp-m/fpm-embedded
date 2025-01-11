@@ -6,8 +6,8 @@
 // This memory allocator minimizes memory waste, which can make things
 // run a little slower, but it also increases the chances of things running smoothly.
 //
-#include <rpm/api.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/internal.h>
 
 //
 // Debug configuration.
@@ -66,9 +66,9 @@ static inline size_t size_align(size_t nbytes)
 // Allocate memory of given size.
 // Fill it with zeroes.
 //
-void *rpm_alloc(size_t nbytes)
+void *fpm_alloc(size_t nbytes)
 {
-    void *p = rpm_alloc_dirty(nbytes);
+    void *p = fpm_alloc_dirty(nbytes);
     if (p && nbytes > 0) {
         memset(p, 0, nbytes);
     }
@@ -79,7 +79,7 @@ void *rpm_alloc(size_t nbytes)
 // Allocate memory of given size.
 // The memory may contain garbage.
 //
-void *rpm_alloc_dirty(size_t nbytes)
+void *fpm_alloc_dirty(size_t nbytes)
 {
     heap_header_t *h, **hprev, *newh;
 
@@ -95,14 +95,14 @@ void *rpm_alloc_dirty(size_t nbytes)
 
     // Scan the list of all available memory gaps and find the first
     // one that meets our requirement.
-    h = (heap_header_t *)rpm_pad.free_list;
-    hprev = (heap_header_t **)(void *)&rpm_pad.free_list;
+    h = (heap_header_t *)fpm_pad.free_list;
+    hprev = (heap_header_t **)(void *)&fpm_pad.free_list;
     while (h) {
 #if MEM_DEBUG
         if (h->magic != HEAP_GAP_MAGIC) {
-            rpm_printf("mem: bad gap magic at 0x%x\n", h);
-            rpm_printf("     size=%d\n", h->size);
-            rpm_reboot();
+            fpm_printf("mem: bad gap magic at 0x%x\n", h);
+            fpm_printf("     size=%d\n", h->size);
+            fpm_reboot();
         }
 #endif
         if (h->size >= nbytes) {
@@ -115,7 +115,7 @@ void *rpm_alloc_dirty(size_t nbytes)
 
     // Did we find any space available?
     if (!h) {
-        // rpm_printf ("rpm_alloc failed, size=%d bytes\n", nbytes);
+        // fpm_printf ("fpm_alloc failed, size=%d bytes\n", nbytes);
         return 0;
     }
 
@@ -138,8 +138,8 @@ void *rpm_alloc_dirty(size_t nbytes)
 #if MEM_DEBUG
     h->magic = HEAP_BUSY_MAGIC;
 #endif
-    rpm_pad.free_size -= h->size;
-    // rpm_printf ("mem %d bytes returned 0x%x\n", h->size, h+1);
+    fpm_pad.free_size -= h->size;
+    // fpm_printf ("mem %d bytes returned 0x%x\n", h->size, h+1);
     return h + 1;
 }
 
@@ -148,7 +148,7 @@ void *rpm_alloc_dirty(size_t nbytes)
 //
 static void make_gap(heap_header_t *newh)
 {
-    rpm_pad.free_size += newh->size;
+    fpm_pad.free_size += newh->size;
 #if MEM_DEBUG
     newh->magic = HEAP_GAP_MAGIC;
 #endif
@@ -159,8 +159,8 @@ static void make_gap(heap_header_t *newh)
     // happens, we still ensure that the list is ordered lowest-addressed
     // gap first through to highest-addressed-gap last.
     //
-    heap_header_t *h = (heap_header_t *)rpm_pad.free_list;
-    heap_header_t **hprev = (heap_header_t **)(void *)&rpm_pad.free_list;
+    heap_header_t *h = (heap_header_t *)fpm_pad.free_list;
+    heap_header_t **hprev = (heap_header_t **)(void *)&fpm_pad.free_list;
     for (;;) {
         if (!h) {
             // At the end of free list
@@ -199,7 +199,7 @@ static void make_gap(heap_header_t *newh)
 //
 // Release previously allocated block of memory.
 //
-void rpm_free(void *block)
+void fpm_free(void *block)
 {
     if (!block) {
         return;
@@ -209,8 +209,8 @@ void rpm_free(void *block)
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        rpm_printf("free: bad block magic 0x%x\n", h->magic);
-        rpm_reboot();
+        fpm_printf("free: bad block magic 0x%x\n", h->magic);
+        fpm_reboot();
     }
 #endif
 
@@ -222,7 +222,7 @@ void rpm_free(void *block)
 // Change size of previosly allocated block of memory.
 // Return new pointer.
 //
-void *rpm_realloc(void *old_block, size_t bytes)
+void *fpm_realloc(void *old_block, size_t bytes)
 {
     if (!old_block) {
         return 0;
@@ -232,8 +232,8 @@ void *rpm_realloc(void *old_block, size_t bytes)
     heap_header_t *h = (heap_header_t *)old_block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        rpm_printf("realloc: bad block magic 0x%x\n", h->magic);
-        rpm_reboot();
+        fpm_printf("realloc: bad block magic 0x%x\n", h->magic);
+        fpm_reboot();
     }
 #endif
     size_t old_size = h->size - sizeof(heap_header_t);
@@ -241,7 +241,7 @@ void *rpm_realloc(void *old_block, size_t bytes)
         return old_block;
     }
 
-    void *block = rpm_alloc(bytes);
+    void *block = fpm_alloc(bytes);
     if (!block) {
         make_gap(h);
         return 0;
@@ -255,7 +255,7 @@ void *rpm_realloc(void *old_block, size_t bytes)
 // Reduce memory block to a given size.
 // The pointer is not changed.
 //
-void rpm_truncate(void *block, size_t nbytes)
+void fpm_truncate(void *block, size_t nbytes)
 {
     if (!block) {
         return;
@@ -271,8 +271,8 @@ void rpm_truncate(void *block, size_t nbytes)
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        rpm_printf("truncate: bad block magic 0x%x\n", h->magic);
-        rpm_reboot();
+        fpm_printf("truncate: bad block magic 0x%x\n", h->magic);
+        fpm_reboot();
     }
 #endif
     // Is there enough space to split?
@@ -289,15 +289,15 @@ void rpm_truncate(void *block, size_t nbytes)
 //
 // Return the amount of heap space that's still available.
 //
-size_t rpm_heap_available()
+size_t fpm_heap_available()
 {
-    return rpm_pad.free_size;
+    return fpm_pad.free_size;
 }
 
 //
 // Return size of the previosly allocated block of memory.
 //
-size_t rpm_sizeof(void *block)
+size_t fpm_sizeof(void *block)
 {
     if (!block) {
         return 0;
@@ -307,8 +307,8 @@ size_t rpm_sizeof(void *block)
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        rpm_printf("size: bad block magic 0x%x\n", h->magic);
-        rpm_reboot();
+        fpm_printf("size: bad block magic 0x%x\n", h->magic);
+        fpm_reboot();
     }
 #endif
     return h->size - sizeof(heap_header_t);
@@ -318,29 +318,29 @@ size_t rpm_sizeof(void *block)
 // Print list of free blocks in the heap, for debug.
 //
 #if MEM_DEBUG
-void rpm_heap_print_free_list()
+void fpm_heap_print_free_list()
 {
-    rpm_printf("free list:");
-    for (heap_header_t *h = rpm_pad.free_list; h; h = NEXT(h)) {
-        rpm_printf(" %p-%p", h, (char *)h + h->size - 1);
+    fpm_printf("free list:");
+    for (heap_header_t *h = fpm_pad.free_list; h; h = NEXT(h)) {
+        fpm_printf(" %p-%p", h, (char *)h + h->size - 1);
     }
-    rpm_printf("\n");
+    fpm_printf("\n");
 }
 #endif
 
 //
 // Initialize the heap for dynamic allocation.
 //
-void rpm_heap_init(size_t start, size_t nbytes)
+void fpm_heap_init(size_t start, size_t nbytes)
 {
-    // rpm_printf ("heap_init start=0x%x, size %d bytes\n", start, nbytes);
+    // fpm_printf ("heap_init start=0x%x, size %d bytes\n", start, nbytes);
 
     heap_header_t *h = (heap_header_t *)start;
     h->size = nbytes;
 #if MEM_DEBUG
     h->magic = HEAP_GAP_MAGIC;
 #endif
-    NEXT(h) = rpm_pad.free_list;
-    rpm_pad.free_list = h;
-    rpm_pad.free_size += h->size;
+    NEXT(h) = fpm_pad.free_list;
+    fpm_pad.free_list = h;
+    fpm_pad.free_size += h->size;
 }

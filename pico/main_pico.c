@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <rpm/fs.h>
-#include <rpm/internal.h>
-#include <rpm/diskio.h>
+#include <fpm/fs.h>
+#include <fpm/internal.h>
+#include <fpm/diskio.h>
 #include <pico/stdlib.h>
 #include "hardware/rtc.h"
 
@@ -45,6 +45,6 @@ int main()
             sleep_ms(100);
         }
 #endif
-        rpm_shell();
+        fpm_shell();
     }
 }

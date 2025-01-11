@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Set name of project (as PROJECT_NAME) and C/C++ standards
-project(rpm-demo C CXX)
+project(fpm-demo C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Werror -Wmissing-prototypes -Wshadow)
@@ -10,7 +10,7 @@ add_compile_options(-Wall -Werror -Wmissing-prototypes -Wshadow)
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
     main_unix.c
-    rpm_unix.c
+    fpm_unix.c
     diskio_unix.c
 )
 add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
@@ -22,8 +22,8 @@ target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME}
-    rpm_kernel
-    rpm_fatfs
+    fpm_kernel
+    fpm_fatfs
 )
 
 # Get git commit hash and revision count
@@ -39,7 +39,7 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
     OUTPUT_VARIABLE GIT_REVCOUNT
 )
-set_source_files_properties(rpm_unix.c
+set_source_files_properties(fpm_unix.c
     PROPERTIES COMPILE_FLAGS "-DGIT_REVCOUNT=\\\"${GIT_REVCOUNT}\\\" -DGIT_COMMIT=\\\"${GIT_COMMIT}\\\""
 )
 

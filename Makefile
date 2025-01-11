@@ -4,7 +4,7 @@
 #
 # make test     -- run unit tests
 #
-# make install  -- install RP/M binaries to /usr/local
+# make install  -- install FP/M binaries to /usr/local
 #
 # make clean    -- remove build files
 #

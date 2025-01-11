@@ -1,9 +1,9 @@
 //
-// Test rpm_get_dotw() - Day Of The Week function.
+// Test fpm_get_dotw() - Day Of The Week function.
 //
 #include <gtest/gtest.h>
-#include <rpm/api.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/internal.h>
 
 //
 // Allocate about this amount of data in total.
@@ -43,7 +43,7 @@ typedef struct {
 //
 // Program area descriptor.
 //
-rpm_pad_t rpm_pad;
+fpm_pad_t fpm_pad;
 
 //
 // Convert value to string as hex number.
@@ -62,7 +62,7 @@ static std::string to_hex_string(T val)
 void *my_malloc(unsigned nbytes)
 {
     //std::cout << "--- malloc " << nbytes << " bytes" << std::endl;
-    return rpm_alloc_dirty(nbytes);
+    return fpm_alloc_dirty(nbytes);
 }
 
 //
@@ -72,7 +72,7 @@ void *my_calloc(unsigned count, unsigned size)
 {
     size_t nbytes = count * size;
     //std::cout << "--- calloc " << nbytes << " bytes" << std::endl;
-    return rpm_alloc(nbytes);
+    return fpm_alloc(nbytes);
 }
 
 //
@@ -84,7 +84,7 @@ static void my_free(void *ptr, unsigned nbytes)
         memset(ptr, 0, nbytes);
     }
     //std::cout << "--- free " << nbytes << " bytes" << std::endl;
-    rpm_free(ptr);
+    fpm_free(ptr);
 }
 
 //
@@ -93,7 +93,7 @@ static void my_free(void *ptr, unsigned nbytes)
 static void *my_realloc(void *ptr, unsigned nbytes)
 {
     //std::cout << "--- realloc " << nbytes << " bytes" << std::endl;
-    return rpm_realloc(ptr, nbytes);
+    return fpm_realloc(ptr, nbytes);
 }
 
 //
@@ -203,7 +203,7 @@ static void test_loop(unsigned max_count)
     }
 }
 
-void rpm_reboot()
+void fpm_reboot()
 {
     throw std::runtime_error("Program aborted");
 }
@@ -221,7 +221,7 @@ TEST(mem, alloc_free)
     signal(SIGSEGV, sig_segv);
 
     char buf[TOTAL_BYTES_THRESHOLD];
-    rpm_heap_init((size_t) &buf[0], TOTAL_BYTES_THRESHOLD);
+    fpm_heap_init((size_t) &buf[0], TOTAL_BYTES_THRESHOLD);
 
     const unsigned MAX_COUNT = 1000000;
     test_loop(MAX_COUNT);

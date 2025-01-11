@@ -1,10 +1,10 @@
 //
 // List the contents of a directory
 //
-#include <rpm/api.h>
-#include <rpm/fs.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/fs.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 #include <stdlib.h>
 
 //
@@ -83,14 +83,14 @@ static void list_append_file_info(file_list_t *list, const file_info_t *info)
     // Allocate list item.
     list_item_t *file = calloc(1, sizeof(*file) + name_nbytes);
     if (!file) {
-        rpm_printf("%s: Out of memory\r\n", file_name);
+        fpm_printf("%s: Out of memory\r\n", file_name);
         return;
     }
 
     // Fill file data.
     strcpy(file->name, file_name);
     file->next = 0;
-    file->namelen = rpm_utf8len(file_name);
+    file->namelen = fpm_utf8len(file_name);
     file->nbytes = info->fsize;
     file->mtime = (uint32_t)info->fdate << 16 | info->ftime;
     file->attrib = info->fattrib;
@@ -119,7 +119,7 @@ static void list_append_name(file_list_t *list, const char *name)
         info.fattrib = AM_DIR;
         strcpy(info.fname, name);
     } else if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", name, f_strerror(result));
+        fpm_printf("%s: %s\r\n", name, f_strerror(result));
         return;
     }
 
@@ -231,7 +231,7 @@ static void list_sort(file_list_t *list, options_t *options)
 //
 static bool is_link(list_item_t *item)
 {
-    // TODO: implement symlinks in RP/M.
+    // TODO: implement symlinks in FP/M.
     return false;
 }
 
@@ -241,11 +241,11 @@ static bool is_link(list_item_t *item)
 static int print_type(list_item_t *item)
 {
     if (item->attrib & AM_DIR) {
-        rpm_putchar('/');
+        fpm_putchar('/');
         return 1;
     }
     if (is_link(item)) {
-        rpm_putchar('@');
+        fpm_putchar('@');
         return 1;
     }
     return 0;
@@ -257,7 +257,7 @@ static int print_type(list_item_t *item)
 //
 static int print_filename(list_item_t *item, options_t *options)
 {
-    rpm_puts(item->name);
+    fpm_puts(item->name);
     int chcnt = item->namelen;
     if (options->type)
         chcnt += print_type(item);
@@ -269,11 +269,11 @@ static int print_filename(list_item_t *item, options_t *options)
 //
 static void print_attrib(unsigned attrib)
 {
-    rpm_putchar((attrib & AM_ARC) ? 'a' : '-');
-    rpm_putchar((attrib & AM_DIR) ? 'd' : '-');
-    rpm_putchar((attrib & AM_SYS) ? 's' : '-');
-    rpm_putchar((attrib & AM_HID) ? 'h' : '-');
-    rpm_putchar((attrib & AM_RDO) ? 'r' : '-');
+    fpm_putchar((attrib & AM_ARC) ? 'a' : '-');
+    fpm_putchar((attrib & AM_DIR) ? 'd' : '-');
+    fpm_putchar((attrib & AM_SYS) ? 's' : '-');
+    fpm_putchar((attrib & AM_HID) ? 'h' : '-');
+    fpm_putchar((attrib & AM_RDO) ? 'r' : '-');
 }
 
 //
@@ -294,12 +294,12 @@ static void print_time(unsigned mtime)
     } u;
     u.word = mtime;
 
-    rpm_printf("%4u/%u/%u ", u.field.year1980 + 1980, u.field.month, u.field.day);
+    fpm_printf("%4u/%u/%u ", u.field.year1980 + 1980, u.field.month, u.field.day);
     if (u.field.month < 10)
-        rpm_putchar(' ');
+        fpm_putchar(' ');
     if (u.field.day < 10)
-        rpm_putchar(' ');
-    rpm_printf("%2u:%02u  ", u.field.hour, u.field.minute);
+        fpm_putchar(' ');
+    fpm_printf("%2u:%02u  ", u.field.hour, u.field.minute);
 }
 
 //
@@ -321,7 +321,7 @@ static void print_single_column(file_list_t *list, options_t *options)
             continue;
 
         print_filename(item, options);
-        rpm_puts("\r\n");
+        fpm_puts("\r\n");
     }
 }
 
@@ -338,12 +338,12 @@ static void print_size(uint64_t n, unsigned width)
         scale *= 1000;
         width -= 4;
     }
-    rpm_printf("%*u", width, (unsigned)n);
+    fpm_printf("%*u", width, (unsigned)n);
     while (scale != 1) {
         scale /= 1000;
         n = n2 / scale;
         n2 = n2 % scale;
-        rpm_printf(",%03u", (unsigned)n);
+        fpm_printf(",%03u", (unsigned)n);
     }
 }
 
@@ -368,7 +368,7 @@ static void print_long(file_list_t *list, options_t *options, uint64_t kbytes_to
                        uint64_t maxsize)
 {
     if (!options->toplevel && options->longform)
-        rpm_printf("Total %ju kbytes\r\n", (uintmax_t)kbytes_total);
+        fpm_printf("Total %ju kbytes\r\n", (uintmax_t)kbytes_total);
 
     unsigned size_width = size_len(maxsize);
     list_item_t *item;
@@ -377,22 +377,22 @@ static void print_long(file_list_t *list, options_t *options, uint64_t kbytes_to
             continue;
 
         print_attrib(item->attrib);
-        rpm_puts("  ");
+        fpm_puts("  ");
         if (item->attrib & AM_DIR) {
-            rpm_printf("%*s", size_width, "-");
+            fpm_printf("%*s", size_width, "-");
         } else {
             print_size(item->nbytes, size_width);
         }
-        rpm_puts("  ");
+        fpm_puts("  ");
         print_time(item->mtime);
-        rpm_puts(item->name);
+        fpm_puts(item->name);
         if (options->type) {
             print_type(item);
         }
         if (is_link(item)) {
             print_link(item);
         }
-        rpm_puts("\r\n");
+        fpm_puts("\r\n");
     }
 }
 
@@ -434,7 +434,7 @@ static void print_columnized(file_list_t *list, options_t *options, int printabl
     }
 
     if (!options->toplevel && options->longform)
-        rpm_printf("Total %ju kbytes\r\n", (uintmax_t)kbytes_total);
+        fpm_printf("Total %ju kbytes\r\n", (uintmax_t)kbytes_total);
 
     unsigned row;
     for (row = 0; row < numrows; ++row) {
@@ -450,12 +450,12 @@ static void print_columnized(file_list_t *list, options_t *options, int printabl
                 break;
 
             while (char_count < endcol) {
-                rpm_putchar(' ');
+                fpm_putchar(' ');
                 char_count++;
             }
             endcol += colwidth;
         }
-        rpm_puts("\r\n");
+        fpm_puts("\r\n");
     }
 }
 
@@ -541,10 +541,10 @@ static void show_directories(file_list_t *list, options_t *options, const char *
             // Print directory path.
             if (options->any_output) {
                 // If already output something, put out a newline as a separator.
-                rpm_printf("\r\n%s:\r\n", path);
+                fpm_printf("\r\n%s:\r\n", path);
             } else if (!options->toplevel || list->head->next != 0) {
                 // If multiple arguments, precede each directory with its name.
-                rpm_printf("%s:\r\n", path);
+                fpm_printf("%s:\r\n", path);
                 options->any_output = 1;
             }
 
@@ -562,7 +562,7 @@ static void scan_directory(file_list_t *list, const char *path)
     directory_t *dir = alloca(f_sizeof_directory_t());
     fs_result_t result = f_opendir(dir, path);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n", path, f_strerror(result));
+        fpm_printf("%s: %s\r\n", path, f_strerror(result));
         return;
     }
     file_info_t info = {};
@@ -596,15 +596,15 @@ static void show_dir(const char *path, options_t *options)
     list_delete(&list);
 }
 
-void rpm_cmd_dir(int argc, char *argv[])
+void fpm_cmd_dir(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
     file_list_t list = {};
     options_t options = {};
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
     unsigned argcount = 0;
 
     options.termwidth = 80; // Default terminal width
@@ -618,7 +618,7 @@ void rpm_cmd_dir(int argc, char *argv[])
         options.columnated = true;
     }
 
-    while (rpm_getopt(argc, argv, "1lRahrt", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "1lRahrt", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             list_append_name(&list, opt.arg);
@@ -648,10 +648,10 @@ void rpm_cmd_dir(int argc, char *argv[])
             break;
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
         case 'h':
-            rpm_puts(
+            fpm_puts(
                 "Usage:\r\n"
                 "    ls [options] [file ...]\r\n"
                 "    dir [options] [file ...]\r\n"
@@ -682,5 +682,5 @@ void rpm_cmd_dir(int argc, char *argv[])
     list_delete(&list);
 
     if (options.any_output)
-        rpm_puts("\r\n");
+        fpm_puts("\r\n");
 }

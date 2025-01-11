@@ -1,8 +1,8 @@
 //
-// Test rpm_tokenize() - split a command line into arguments.
+// Test fpm_tokenize() - split a command line into arguments.
 //
 #include <gtest/gtest.h>
-#include <rpm/api.h>
+#include <fpm/api.h>
 
 static void tokenize_test(const char *input, int expect_argc, const char *expect_argv[], const char *expect_error)
 {
@@ -11,7 +11,7 @@ static void tokenize_test(const char *input, int expect_argc, const char *expect
     int argc = 12345;
 
     strncpy(buffer, input, sizeof(buffer));
-    const char *error = rpm_tokenize(argv, &argc, buffer);
+    const char *error = fpm_tokenize(argv, &argc, buffer);
 
     if (expect_error) {
         // Error is expected.

@@ -2,9 +2,9 @@
 // Compute day of the week.
 // Sunday is 0.
 //
-#include <rpm/api.h>
+#include <fpm/api.h>
 
-int rpm_get_dotw(int year, int month, int day)
+int fpm_get_dotw(int year, int month, int day)
 {
     // Solution by Tomohiko Sakamoto.
     static const int offset[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };

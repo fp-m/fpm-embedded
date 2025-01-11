@@ -1,11 +1,11 @@
 //
 // Show the volume label of a disk device
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
-#include <rpm/fs.h>
-#include <rpm/diskio.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
+#include <fpm/fs.h>
+#include <fpm/diskio.h>
 #include <alloca.h>
 
 //
@@ -25,7 +25,7 @@ static void print_volume_info(const char *drive_name)
     const char *path = drive_name;
     int drive = f_getdrive(&path);
     if (drive < 0 || *path != '\0') {
-        rpm_printf("%s: Invalid drive name\r\n\n", drive_name);
+        fpm_printf("%s: Invalid drive name\r\n\n", drive_name);
         return;
     }
 
@@ -35,34 +35,34 @@ static void print_volume_info(const char *drive_name)
     uint32_t serial_number;
     fs_result_t result = f_getlabel(drive_name, label, &serial_number);
     if (result != FR_OK && result != FR_NO_FILESYSTEM) {
-        rpm_puts(f_strerror(result));
-        rpm_puts("\r\n\n");
+        fpm_puts(f_strerror(result));
+        fpm_puts("\r\n\n");
         return;
     }
 
     // Print drive name.
-    rpm_printf("      Disk Drive: %s\r\n", disk_name[drive]);
+    fpm_printf("      Disk Drive: %s\r\n", disk_name[drive]);
 
     //
     // Print disk name, size and unique id.
     //
     disk_info_t info;
     if (disk_identify(drive, &info) == DISK_OK) {
-        rpm_printf("      Disk Model: '%s'\r\n", info.product_name);
-        rpm_printf("       Disk Size: %u.%u Mbytes\r\n",
+        fpm_printf("      Disk Model: '%s'\r\n", info.product_name);
+        fpm_printf("       Disk Size: %u.%u Mbytes\r\n",
                    (unsigned) (info.num_bytes / 1024 / 1024),
                    (unsigned) (info.num_bytes * 10 / 1024 / 1024 % 10));
-        rpm_printf("       Unique Id: %08jx\r\n", (intmax_t) info.serial_number);
+        fpm_printf("       Unique Id: %08jx\r\n", (intmax_t) info.serial_number);
     }
 
     //
     // Print filesystem label and serial number.
     //
     if (result == FR_OK) {
-        rpm_printf("Filesystem Label: '%s'\r\n", label);
-        rpm_printf("   Serial Number: %08x\r\n", serial_number);
+        fpm_printf("Filesystem Label: '%s'\r\n", label);
+        fpm_printf("   Serial Number: %08x\r\n", serial_number);
     }
-    rpm_puts("\r\n");
+    fpm_puts("\r\n");
 }
 
 //
@@ -70,7 +70,7 @@ static void print_volume_info(const char *drive_name)
 //
 static uint64_t elapsed_usec(uint64_t t0)
 {
-    uint64_t usec = rpm_time_usec() - t0;
+    uint64_t usec = fpm_time_usec() - t0;
     if (usec < 1)
         usec = 1;
     return usec;
@@ -78,7 +78,7 @@ static uint64_t elapsed_usec(uint64_t t0)
 
 static void print_speed(const char *title, unsigned mbytes, uint64_t usec)
 {
-    rpm_printf("%s speed: %u Mbytes in %u.%03u seconds = %u kbytes/sec\r\n",
+    fpm_printf("%s speed: %u Mbytes in %u.%03u seconds = %u kbytes/sec\r\n",
         title, mbytes, (unsigned) (usec / 1000000), (unsigned) (usec / 1000 % 1000),
         (unsigned) (mbytes * 1024000000ULL / usec));
 }
@@ -92,7 +92,7 @@ static void test_speed(const char *drive_name)
     const char *path = drive_name;
     int drive_index = f_getdrive(&path);
     if (drive_index < 0 || *path != '\0') {
-        rpm_printf("%s: Invalid drive name\r\n\n", drive_name);
+        fpm_printf("%s: Invalid drive name\r\n\n", drive_name);
         return;
     }
 
@@ -101,15 +101,15 @@ static void test_speed(const char *drive_name)
     fs_result_t result = f_statfs(drive_name, &info);
     if (result != FR_OK) {
         // Drive not mounted.
-        rpm_puts(f_strerror(result));
-        rpm_puts("\r\n\n");
+        fpm_puts(f_strerror(result));
+        fpm_puts("\r\n\n");
         return;
     }
 
     // Check free space.
     unsigned free_mbytes = (uint64_t) info.f_bavail * info.f_bsize / 1024 / 1024;
     if (free_mbytes < 1) {
-        rpm_printf("%s: Insufficient free space\r\n\n", drive_name);
+        fpm_printf("%s: Insufficient free space\r\n\n", drive_name);
         return;
     }
 
@@ -123,7 +123,7 @@ static void test_speed(const char *drive_name)
     const unsigned BLOCKSIZE_KBYTES = 4;
     unsigned const bytes_per_block = BLOCKSIZE_KBYTES * 1024;
     unsigned nblocks = datasize_mbytes * 1024 / BLOCKSIZE_KBYTES;
-    rpm_printf("Testing %u-kbyte block size.\r\n", BLOCKSIZE_KBYTES);
+    fpm_printf("Testing %u-kbyte block size.\r\n", BLOCKSIZE_KBYTES);
 
     // Build path of temporary file.
     char filename[FF_LFN_BUF+1];
@@ -134,8 +134,8 @@ static void test_speed(const char *drive_name)
     file_t *fd = alloca(f_sizeof_file_t());
     result = f_open(fd, filename, FA_WRITE | FA_READ | FA_CREATE_ALWAYS);
     if (result != FR_OK) {
-        rpm_printf("Cannot create temporary file.\r\n\r\n");
-        rpm_printf("%s: %s\r\n\n", filename, f_strerror(result));
+        fpm_printf("Cannot create temporary file.\r\n\r\n");
+        fpm_printf("%s: %s\r\n\n", filename, f_strerror(result));
         return;
     }
 
@@ -147,13 +147,13 @@ static void test_speed(const char *drive_name)
     }
 
     // Write data to file.
-    rpm_delay_msec(500);
-    uint64_t t0 = rpm_time_usec();
+    fpm_delay_msec(500);
+    uint64_t t0 = fpm_time_usec();
     for (n = 0; n < nblocks; n++) {
         unsigned nbytes_written = 0;
         result = f_write(fd, buf, bytes_per_block, &nbytes_written);
         if (result != FR_OK || nbytes_written != bytes_per_block) {
-            rpm_printf("Write error at block %u.\r\n\n", n);
+            fpm_printf("Write error at block %u.\r\n\n", n);
             return;
         }
     }
@@ -162,18 +162,18 @@ static void test_speed(const char *drive_name)
     // Rewind.
     result = f_rewind(fd);
     if (result != FR_OK) {
-        rpm_printf("Rewind error.\r\n\n");
+        fpm_printf("Rewind error.\r\n\n");
         return;
     }
 
     // Read data from file.
-    rpm_delay_msec(500);
-    t0 = rpm_time_usec();
+    fpm_delay_msec(500);
+    t0 = fpm_time_usec();
     for (n = 0; n < nblocks; n++) {
         unsigned nbytes_read = 0;
         result = f_read(fd, buf, bytes_per_block, &nbytes_read);
         if (result != FR_OK || nbytes_read != bytes_per_block) {
-            rpm_printf("Read error at block %u.\r\n\n", n);
+            fpm_printf("Read error at block %u.\r\n\n", n);
             return;
         }
     }
@@ -183,10 +183,10 @@ static void test_speed(const char *drive_name)
     f_close(fd);
     result = f_unlink(filename);
     if (result != FR_OK) {
-        rpm_printf("%s: %s\r\n\n", filename, f_strerror(result));
+        fpm_printf("%s: %s\r\n\n", filename, f_strerror(result));
         return;
     }
-    rpm_puts("\r\n");
+    fpm_puts("\r\n");
 }
 
 //
@@ -196,23 +196,23 @@ static void set_label(const char *label)
 {
     fs_result_t result = f_setlabel(label);
     if (result != FR_OK) {
-        rpm_puts(f_strerror(result));
-        rpm_puts("\r\n\n");
+        fpm_puts(f_strerror(result));
+        fpm_puts("\r\n\n");
     }
 }
 
-void rpm_cmd_vol(int argc, char *argv[])
+void fpm_cmd_vol(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
-        { "label", RPM_REQUIRED_ARG, NULL, 'l' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
+        { "label", FPM_REQUIRED_ARG, NULL, 'l' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
     const char *path = "";
     bool test_flag = false;
 
-    while (rpm_getopt(argc, argv, "hl:t", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "hl:t", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             path = opt.arg;
@@ -228,11 +228,11 @@ void rpm_cmd_vol(int argc, char *argv[])
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
+            fpm_puts("Usage:\r\n"
                      "    vol [-t] [sd: | flash:]\r\n"
                      "    vol -l disk:label\r\n"
                      "Options:\r\n"

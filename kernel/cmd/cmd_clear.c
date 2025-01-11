@@ -1,31 +1,31 @@
 //
 // Clear the console screen
 //
-#include <rpm/api.h>
-#include <rpm/getopt.h>
-#include <rpm/internal.h>
+#include <fpm/api.h>
+#include <fpm/getopt.h>
+#include <fpm/internal.h>
 
-void rpm_cmd_clear(int argc, char *argv[])
+void fpm_cmd_clear(int argc, char *argv[])
 {
-    static const struct rpm_option long_opts[] = {
-        { "help", RPM_NO_ARG, NULL, 'h' },
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
         {},
     };
-    struct rpm_opt opt = {};
+    struct fpm_opt opt = {};
 
-    while (rpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
-            rpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
+            fpm_printf("%s: Unexpected argument `%s`\r\n\n", argv[0], opt.arg);
             return;
 
         case '?':
             // Unknown option: message already printed.
-            rpm_puts("\r\n");
+            fpm_puts("\r\n");
             return;
 
         case 'h':
-            rpm_puts("Usage:\r\n"
+            fpm_puts("Usage:\r\n"
                      "    clear\r\n"
                      "    cls\r\n"
                      "\n");
@@ -34,5 +34,5 @@ void rpm_cmd_clear(int argc, char *argv[])
     }
 
     // Clear screen.
-    rpm_puts("\33[H\33[J");
+    fpm_puts("\33[H\33[J");
 }

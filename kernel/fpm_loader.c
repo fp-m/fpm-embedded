@@ -1,9 +1,9 @@
 //
 // Test dynamic loader.
 //
-#include <rpm/api.h>
-#include <rpm/loader.h>
-#include <rpm/elf.h>
+#include <fpm/api.h>
+#include <fpm/loader.h>
+#include <fpm/elf.h>
 #include <alloca.h>
 #if __unix__ || __APPLE__
 #   include <unistd.h>
@@ -46,7 +46,7 @@
 //
 // Find section by type.
 //
-static const Native_Shdr *rpm_section_by_type(rpm_executable_t *dynobj, unsigned type)
+static const Native_Shdr *fpm_section_by_type(fpm_executable_t *dynobj, unsigned type)
 {
     const Native_Ehdr *hdr     = dynobj->base;
     const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
@@ -62,7 +62,7 @@ static const Native_Shdr *rpm_section_by_type(rpm_executable_t *dynobj, unsigned
 //
 // Get section by index.
 //
-static const Native_Shdr *rpm_section_by_index(rpm_executable_t *dynobj, unsigned index)
+static const Native_Shdr *fpm_section_by_index(fpm_executable_t *dynobj, unsigned index)
 {
     const Native_Ehdr *hdr     = dynobj->base;
     const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
@@ -73,20 +73,20 @@ static const Native_Shdr *rpm_section_by_index(rpm_executable_t *dynobj, unsigne
 //
 // Map ELF binary into memory.
 //
-bool rpm_load(rpm_executable_t *dynobj, const char *filename)
+bool fpm_load(fpm_executable_t *dynobj, const char *filename)
 {
 #if __unix__ || __APPLE__
     // Open the shared library file in read-only mode
     dynobj->fd = open(filename, O_RDONLY);
     if (dynobj->fd < 0) {
-        rpm_printf("%s: Cannot open\r\n", filename);
+        fpm_printf("%s: Cannot open\r\n", filename);
         return false;
     }
 
     // Get the size of the file
     struct stat sb;
     if (fstat(dynobj->fd, &sb) < 0) {
-        rpm_printf("%s: Cannot fstat\r\n", filename);
+        fpm_printf("%s: Cannot fstat\r\n", filename);
 err:    close(dynobj->fd);
         return false;
     }
@@ -95,14 +95,14 @@ err:    close(dynobj->fd);
     // Map the file into memory
     dynobj->base = mmap(NULL, dynobj->file_size, PROT_READ | PROT_EXEC, MAP_SHARED, dynobj->fd, 0);
     if (dynobj->base == MAP_FAILED) {
-        rpm_printf("%s: Cannot mmap\r\n", filename);
+        fpm_printf("%s: Cannot mmap\r\n", filename);
         goto err;
     }
 #elif __ARM_ARCH_6M__
     // FP/M on RP2040 microcontroller
     //TODO: find address of file contents
 err:
-    rpm_printf("%s: Cannot open\r\n", filename);
+    fpm_printf("%s: Cannot open\r\n", filename);
     return false;
 #endif
 
@@ -112,11 +112,11 @@ err:
     const char *id = (const char*) dynobj->base;
     if (id[EI_MAG0] != ELFMAG0 || id[EI_MAG1] != ELFMAG1 ||
         id[EI_MAG2] != ELFMAG2 || id[EI_MAG3] != ELFMAG3) {
-        rpm_printf("%s: Not ELF binary\r\n", filename);
+        fpm_printf("%s: Not ELF binary\r\n", filename);
         goto err;
     }
     if (id[EI_VERSION] != EV_CURRENT) {
-        rpm_printf("%s: Incompatible ELF version\r\n", filename);
+        fpm_printf("%s: Incompatible ELF version\r\n", filename);
         goto err;
     }
 
@@ -126,7 +126,7 @@ err:
     static const char NATIVE_ENDIANNESS = ELFDATA2MSB;
 #endif
     if (id[EI_DATA] != NATIVE_ENDIANNESS) {
-        rpm_printf("%s: Incompatible endianness\r\n", filename);
+        fpm_printf("%s: Incompatible endianness\r\n", filename);
         goto err;
     }
 
@@ -136,13 +136,13 @@ err:
     static const char NATIVE_CLASS = ELFCLASS32;
 #endif
     if (id[EI_CLASS] != NATIVE_CLASS) {
-        rpm_printf("%s: Incompatible word size\r\n", filename);
+        fpm_printf("%s: Incompatible word size\r\n", filename);
         goto err;
     }
 
     const Native_Ehdr *hdr = dynobj->base;
     if (hdr->e_type != ET_DYN) {
-        rpm_printf("%s: Bad exec type\r\n", filename);
+        fpm_printf("%s: Bad exec type\r\n", filename);
         goto err;
     }
 
@@ -162,16 +162,16 @@ err:
 #   error "This architecture is not supported"
 #endif
     if (hdr->e_machine != NATIVE_MACHINE) {
-        rpm_printf("%s: Incompatible machine\r\n", filename);
+        fpm_printf("%s: Incompatible machine\r\n", filename);
         goto err;
     }
 
     // Find relocation section.
-    const Native_Shdr *rel_section = rpm_section_by_type(dynobj, SHT_RELA);
+    const Native_Shdr *rel_section = fpm_section_by_type(dynobj, SHT_RELA);
     if (rel_section == NULL) {
-        rel_section = rpm_section_by_type(dynobj, SHT_REL);
+        rel_section = fpm_section_by_type(dynobj, SHT_REL);
         if (rel_section == NULL) {
-            rpm_printf("%s: No relocation section\r\n", filename);
+            fpm_printf("%s: No relocation section\r\n", filename);
             goto err;
         }
     }
@@ -185,7 +185,7 @@ err:
 //
 // Unmap ELF binary from memory.
 //
-void rpm_unload(rpm_executable_t *dynobj)
+void fpm_unload(fpm_executable_t *dynobj)
 {
     // Unmap the file from memory.
     if (dynobj->base != NULL) {
@@ -208,7 +208,7 @@ void rpm_unload(rpm_executable_t *dynobj)
 //
 // Get name from .dynsym section.
 //
-static const char *rpm_get_name(rpm_executable_t *dynobj, unsigned reloc_index)
+static const char *fpm_get_name(fpm_executable_t *dynobj, unsigned reloc_index)
 {
     // Get pointer to REL or RELA section.
     const Native_Shdr *rel_section = (const Native_Shdr *) dynobj->rel_section;
@@ -224,11 +224,11 @@ static const char *rpm_get_name(rpm_executable_t *dynobj, unsigned reloc_index)
     }
 
     // Get pointer to .dynsym contents.
-    const Native_Shdr *rpm_section = rpm_section_by_index(dynobj, rel_section->sh_link);
-    const Native_Sym *symbols      = (const Native_Sym *) (rpm_section->sh_offset + (char*)dynobj->base);
+    const Native_Shdr *fpm_section = fpm_section_by_index(dynobj, rel_section->sh_link);
+    const Native_Sym *symbols      = (const Native_Sym *) (fpm_section->sh_offset + (char*)dynobj->base);
 
     // Get pointer to .dynstr contents.
-    const Native_Shdr *str_section = rpm_section_by_index(dynobj, rpm_section->sh_link);
+    const Native_Shdr *str_section = fpm_section_by_index(dynobj, fpm_section->sh_link);
     const char *strings            = str_section->sh_offset + (char*)dynobj->base;
 
     // Get name from .dynsym section.
@@ -239,10 +239,10 @@ static const char *rpm_get_name(rpm_executable_t *dynobj, unsigned reloc_index)
 // Get names of linked procedures.
 // Array result[] must have dynobj->num_links entries.
 //
-void rpm_get_symbols(rpm_executable_t *dynobj, const char *result[])
+void fpm_get_symbols(fpm_executable_t *dynobj, const char *result[])
 {
     for (unsigned index = 0; index < dynobj->num_links; index++) {
-        result[index] = rpm_get_name(dynobj, index);
+        result[index] = fpm_get_name(dynobj, index);
     }
 }
 
@@ -250,7 +250,7 @@ void rpm_get_symbols(rpm_executable_t *dynobj, const char *result[])
 // Search linkmap for a given name.
 // Return address of the symbol, or NULL on failure.
 //
-static void *find_address_by_name(const rpm_binding_t *linkmap, const char *name)
+static void *find_address_by_name(const fpm_binding_t *linkmap, const char *name)
 {
     for (;;) {
         // Skip first entry - it's a parent link.
@@ -262,7 +262,7 @@ static void *find_address_by_name(const rpm_binding_t *linkmap, const char *name
 
         // Name not found in this link map.
         // Search parent recursively.
-        linkmap = (const rpm_binding_t *) linkmap[0].address;
+        linkmap = (const fpm_binding_t *) linkmap[0].address;
         if (linkmap == NULL) {
             return NULL;
         }
@@ -318,7 +318,7 @@ static inline void *get_got_pointer()
 //
 // Return the exit code.
 //
-bool rpm_execv(rpm_executable_t *dynobj, rpm_binding_t linkmap[], int argc, char *argv[])
+bool fpm_execv(fpm_executable_t *dynobj, fpm_binding_t linkmap[], int argc, char *argv[])
 {
     // Build a Global Offset Table on stack.
     void **got = alloca(dynobj->num_links);
@@ -328,12 +328,12 @@ bool rpm_execv(rpm_executable_t *dynobj, rpm_binding_t linkmap[], int argc, char
     for (unsigned index = 0; index < dynobj->num_links; index++) {
 
         // Find symbol's name and address.
-        const char *name = rpm_get_name(dynobj, index);
+        const char *name = fpm_get_name(dynobj, index);
         void *address    = find_address_by_name(linkmap, name);
 
         got[index] = address;
         if (address == NULL) {
-            rpm_printf("%s: Symbol not found\r\n", name);
+            fpm_printf("%s: Symbol not found\r\n", name);
             fail_count++;
         }
     }

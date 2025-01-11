@@ -1,4 +1,4 @@
-# RP/M - operating system for microcontrollers
+# FP/M - operating system for microcontrollers
 
 A goal of this project is to develop an embedded operating system
 for modern microcontrollers, similar to CP/M or DR-DOS.

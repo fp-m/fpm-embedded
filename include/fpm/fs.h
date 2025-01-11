@@ -1,8 +1,8 @@
 //
 // Filesystem Application Interface.
 //
-#ifndef RPM_FS_H
-#define RPM_FS_H
+#ifndef FPM_FS_H
+#define FPM_FS_H
 
 #include <stdint.h>
 
@@ -258,4 +258,4 @@ fs_result_t f_mkfs(const char *path, uint8_t fmt, void *work, unsigned len);
 }
 #endif
 
-#endif // RPM_FS_H
+#endif // FPM_FS_H

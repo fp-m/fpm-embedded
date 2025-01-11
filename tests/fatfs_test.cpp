@@ -2,8 +2,8 @@
 // Test FatFS routines.
 //
 #include <gtest/gtest.h>
-#include <rpm/fs.h>
-#include <rpm/diskio.h>
+#include <fpm/fs.h>
+#include <fpm/diskio.h>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -96,7 +96,7 @@ disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsi
 // Get date and time (local).
 //
 extern "C" {
-void rpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
+void fpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
 {
     *year = 2023;
     *month = 2;

@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
-#include <rpm/internal.h>
-#include <rpm/diskio.h>
-#include <rpm/fs.h>
+#include <fpm/internal.h>
+#include <fpm/diskio.h>
+#include <fpm/fs.h>
 
 static struct termios saved_term;
 
@@ -45,9 +45,9 @@ int main()
     f_mount("flash:");
     f_mount("sd:");
 
-    printf("Start RP/M on Unix\r\n");
+    printf("Start FP/M on Unix\r\n");
     printf("Use '?' for help or 'exit' to quit.\r\n\r\n");
 
     // Start interactive dialog.
-    rpm_shell();
+    fpm_shell();
 }

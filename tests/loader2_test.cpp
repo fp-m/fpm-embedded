@@ -2,9 +2,9 @@
 // Test dynamic loader.
 //
 #include <gtest/gtest.h>
-#include <rpm/api.h>
-#include <rpm/loader.h>
-#include <rpm/elf.h>
+#include <fpm/api.h>
+#include <fpm/loader.h>
+#include <fpm/elf.h>
 #include <sys/syscall.h>
 
 static std::stringstream puts_result;
@@ -37,21 +37,21 @@ static void mock_print_version()
 
 TEST(loader, print_version_puts_wputs)
 {
-    rpm_executable_t dynobj{};
-    ASSERT_TRUE(rpm_load(&dynobj, "testputs.elf"));
+    fpm_executable_t dynobj{};
+    ASSERT_TRUE(fpm_load(&dynobj, "testputs.elf"));
 
     // Export dynamically linked routines.
-    static rpm_binding_t linkmap[] = {
+    static fpm_binding_t linkmap[] = {
         { "", NULL },
-        { "rpm_puts", (void*) mock_puts },
-        { "rpm_wputs", (void*) mock_wputs },
-        { "rpm_print_version", (void*) mock_print_version },
+        { "fpm_puts", (void*) mock_puts },
+        { "fpm_wputs", (void*) mock_wputs },
+        { "fpm_print_version", (void*) mock_print_version },
         {},
     };
     char filename[] = { "hello" };
     char *argv[] = { filename };
 
-    bool exec_status = rpm_execv(&dynobj, linkmap, 1, argv);
+    bool exec_status = fpm_execv(&dynobj, linkmap, 1, argv);
     ASSERT_TRUE(exec_status);
     ASSERT_EQ(dynobj.exit_code, 0);
 
@@ -62,5 +62,5 @@ TEST(loader, print_version_puts_wputs)
         "wputs\r\n"
     );
 
-    rpm_unload(&dynobj);
+    fpm_unload(&dynobj);
 }

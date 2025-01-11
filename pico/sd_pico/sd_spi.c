@@ -28,7 +28,7 @@ specific language governing permissions and limitations under the License.
 #define TRACE_PRINTF(fmt, args...)
 #else
 // Enable trace output
-#define TRACE_PRINTF rpm_printf
+#define TRACE_PRINTF fpm_printf
 #endif
 
 void sd_spi_go_high_frequency(sd_card_t *pSD)

@@ -6,12 +6,12 @@
 // 110xxxxx, 10yyyyyy           -> 00000xxx.xxyyyyyy
 // 1110xxxx, 10yyyyyy, 10zzzzzz -> xxxxyyyy.yyzzzzzz
 //
-#include <rpm/api.h>
+#include <fpm/api.h>
 
-uint16_t rpm_getwch()
+uint16_t fpm_getwch()
 {
     // Read one byte.
-    uint8_t c1 = rpm_getchar();
+    uint8_t c1 = fpm_getchar();
     if (! (c1 & 0x80)) {
         return c1;
     }
@@ -21,12 +21,12 @@ uint16_t rpm_getwch()
     //
 
     // Read second byte.
-    uint8_t c2 = rpm_getchar();
+    uint8_t c2 = fpm_getchar();
     if (! (c1 & 0x20)) {
         return (c1 & 0x1f) << 6 | (c2 & 0x3f);
     }
 
     // Read third byte.
-    uint8_t c3 = rpm_getchar();
+    uint8_t c3 = fpm_getchar();
     return (c1 & 0x0f) << 12 | (c2 & 0x3f) << 6 | (c3 & 0x3f);
 }

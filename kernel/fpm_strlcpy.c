@@ -14,12 +14,12 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
-#include <rpm/api.h>
+#include <fpm/api.h>
 
 //
 // Decode UTF-8 string.
 //
-size_t rpm_strlcpy_from_utf8(uint16_t *dst, const char *src, size_t nitems)
+size_t fpm_strlcpy_from_utf8(uint16_t *dst, const char *src, size_t nitems)
 {
     uint16_t *d = dst;
     const char *s = src;
@@ -66,7 +66,7 @@ size_t rpm_strlcpy_from_utf8(uint16_t *dst, const char *src, size_t nitems)
 //
 // Encode as UTF-8 string.
 //
-size_t rpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems)
+size_t fpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems)
 {
     char *d = dst;
     const uint16_t *s = src;
@@ -120,7 +120,7 @@ size_t rpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems)
 // will be copied.  Always NUL terminates (unless nitems == 0).
 // Returns strwlen(src); if retval >= nitems, truncation occurred.
 //
-size_t rpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems)
+size_t fpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems)
 {
     uint16_t *d = dst;
     const uint16_t *s = src;
@@ -152,7 +152,7 @@ size_t rpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems)
 // will be copied.  Always NUL terminates (unless nitems == 0).
 // Returns strlen(src); if retval >= nitems, truncation occurred.
 //
-size_t rpm_strlcpy(char *dst, const char *src, size_t nitems)
+size_t fpm_strlcpy(char *dst, const char *src, size_t nitems)
 {
     char *d = dst;
     const char *s = src;

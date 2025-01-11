@@ -163,7 +163,7 @@ specific language governing permissions and limitations under the License.
 /* Standard includes. */
 #include <inttypes.h>
 #include <string.h>
-#include <rpm/diskio.h> /* Definitions of media status bits */
+#include <fpm/diskio.h> /* Definitions of media status bits */
 
 #include "hardware/gpio.h"
 #include "pico/mutex.h"
@@ -185,7 +185,7 @@ static bool crc_on = true;
 #define TRACE_PRINTF(fmt, args...)
 #else
 // Enable trace output
-#define TRACE_PRINTF rpm_printf
+#define TRACE_PRINTF fpm_printf
 #endif
 
 /* Control Tokens   */
@@ -636,7 +636,7 @@ bool sd_card_detect(sd_card_t *pSD)
         // The socket is now empty
         pSD->m_Status |= (MEDIA_NODISK | MEDIA_NOINIT);
         pSD->card_type = SDCARD_NONE;
-        rpm_printf("No SD card detected!\r\n");
+        fpm_printf("No SD card detected!\r\n");
         return false;
     }
 }

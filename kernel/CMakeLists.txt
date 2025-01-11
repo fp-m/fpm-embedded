@@ -1,19 +1,19 @@
-add_library(rpm_kernel STATIC
-    rpm_editline.c
-    rpm_getkey.c
-    rpm_getwch.c
-    rpm_puts.c
-    rpm_putwch.c
-    rpm_shell.c
-    rpm_exec.c
-    rpm_strlcpy.c
-    rpm_strwlen.c
-    rpm_tokenize.c
-    rpm_getopt.c
-    rpm_wputs.c
-    rpm_get_dotw.c
-    rpm_alloc.c
-    rpm_loader.c
+add_library(fpm_kernel STATIC
+    fpm_editline.c
+    fpm_getkey.c
+    fpm_getwch.c
+    fpm_puts.c
+    fpm_putwch.c
+    fpm_shell.c
+    fpm_exec.c
+    fpm_strlcpy.c
+    fpm_strwlen.c
+    fpm_tokenize.c
+    fpm_getopt.c
+    fpm_wputs.c
+    fpm_get_dotw.c
+    fpm_alloc.c
+    fpm_loader.c
 
     cmd/cmd_cat.c
     cmd/cmd_cd.c
@@ -35,6 +35,6 @@ add_library(rpm_kernel STATIC
     cmd/cmd_ver.c
     cmd/cmd_vol.c
 )
-target_include_directories(rpm_kernel BEFORE PUBLIC
+target_include_directories(fpm_kernel BEFORE PUBLIC
     ../include
 )

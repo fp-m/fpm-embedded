@@ -17,11 +17,11 @@
 / by use of this software.
 /
 /----------------------------------------------------------------------------*/
-#ifndef RPM_FATFS_H
-#define RPM_FATFS_H
+#ifndef FPM_FATFS_H
+#define FPM_FATFS_H
 
 // Declarations of FatFs API.
-#include <rpm/fs.h>
+#include <fpm/fs.h>
 
 // FatFs configuration options.
 #include "ffconf.h"
@@ -180,4 +180,4 @@ void ff_mutex_give(int vol);   /* Unlock sync object */
 }
 #endif
 
-#endif // RPM_FATFS_H
+#endif // FPM_FATFS_H

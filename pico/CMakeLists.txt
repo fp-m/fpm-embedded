@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.12)
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 # Set name of project (as PROJECT_NAME) and C/C++ standards
-project(rpm_pico C CXX ASM)
+project(fpm_pico C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Werror)
@@ -16,7 +16,7 @@ pico_sdk_init()
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
     main_pico.c
-    rpm_pico.c
+    fpm_pico.c
     rtc_pico.c
     diskio.c
     flash.c
@@ -38,8 +38,8 @@ pico_add_extra_outputs(${PROJECT_NAME})
 
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME}
-    rpm_kernel
-    rpm_fatfs
+    fpm_kernel
+    fpm_fatfs
     pico_stdlib
     hardware_rtc
     hardware_dma
@@ -60,7 +60,7 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
     OUTPUT_VARIABLE GIT_REVCOUNT
 )
-set_source_files_properties(rpm_pico.c
+set_source_files_properties(fpm_pico.c
     PROPERTIES COMPILE_FLAGS "-DGIT_REVCOUNT=\\\"${GIT_REVCOUNT}\\\" -DGIT_COMMIT=\\\"${GIT_COMMIT}\\\""
 )
 
