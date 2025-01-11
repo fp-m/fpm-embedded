@@ -76,7 +76,7 @@ static const Native_Shdr *fpm_section_by_index(fpm_executable_t *dynobj, unsigne
 bool fpm_load(fpm_executable_t *dynobj, const char *filename)
 {
 #if __unix__ || __APPLE__
-    // Open the shared library file in read-only mode
+    // Unix: open the shared library file in read-only mode.
     dynobj->fd = open(filename, O_RDONLY);
     if (dynobj->fd < 0) {
         fpm_printf("%s: Cannot open\r\n", filename);
@@ -99,8 +99,9 @@ err:    close(dynobj->fd);
         goto err;
     }
 #elif __ARM_ARCH_6M__
-    // FP/M on RP2040 microcontroller
+    // FP/M on RP2040 microcontroller.
     //TODO: find address of file contents
+    //dynobj->base = ???;
 err:
     fpm_printf("%s: Cannot open\r\n", filename);
     return false;
@@ -197,12 +198,12 @@ void fpm_unload(fpm_executable_t *dynobj)
 
     // Close file.
     // Note: descriptor cannot be zero.
-    if (dynobj->fd > 0) {
 #if __unix__ || __APPLE__
+    if (dynobj->fd > 0) {
         close(dynobj->fd);
-#endif
         dynobj->fd = 0;
     }
+#endif
 }
 
 //
