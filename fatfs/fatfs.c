@@ -2396,7 +2396,7 @@ static void get_fileinfo(directory_t *dp,  /* Pointer to the directory object */
         fno->fsize = (fno->fattrib & AM_DIR) ? 0 : ld_qword(fs->dirbuf + XDIR_FileSize); /* Size */
         fno->ftime = ld_word(fs->dirbuf + XDIR_ModTime + 0);                             /* Time */
         fno->fdate = ld_word(fs->dirbuf + XDIR_ModTime + 2);                             /* Date */
-        fno->fstartblk = 0; /* TODO: first block when file is continuous */
+        fno->fstartblk = 0; /* First block */
         return;
     } else {
         /* FAT/FAT32 volume */
@@ -2478,6 +2478,11 @@ static void get_fileinfo(directory_t *dp,  /* Pointer to the directory object */
     fno->fsize = ld_dword(dp->dir + DIR_FileSize);   /* Size */
     fno->ftime = ld_word(dp->dir + DIR_ModTime + 0); /* Time */
     fno->fdate = ld_word(dp->dir + DIR_ModTime + 2); /* Date */
+
+    /* Find first block when file is continuous */
+    if (!(fno->fattrib & AM_DIR)) {
+        fno->fstartblk = ld_clust(fs, dp->dir);
+    }
 }
 
 #endif /* FF_FS_MINIMIZE <= 1 || FF_FS_RPATH >= 2 */

@@ -17,8 +17,10 @@ static const bool debug_trace = false;
 //
 static fpm_binding_t bindings[] = {
     { "", NULL },
+    { "fpm_print_version", (void*) fpm_print_version },
     { "fpm_puts", (void*) fpm_puts },
-    //TODO: add all fpm_xxx routines.
+    { "fpm_wputs", (void*) fpm_wputs },
+    //TODO: other fpm_xxx() routines.
     {},
 };
 
