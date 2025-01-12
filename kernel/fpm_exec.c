@@ -24,7 +24,38 @@ static fpm_binding_t bindings[] = {
 
 static const char *find_exe(const char *cmdname, char *buf)
 {
-    //TODO: find path
+    if (strchr(cmdname, '/') != NULL) {
+        // Full path name or relative path name - use as is.
+        return cmdname;
+    }
+
+    if (strchr(cmdname, '.') != NULL) {
+        // Extension is explicitly present.
+        return cmdname;
+    }
+
+    // Copy filename, append extension.
+    strcpy(buf, cmdname);
+    strcat(buf, ".exe");
+
+    // Check whether file exists.
+    file_info_t info;
+    fs_result_t result = f_stat(buf, &info);
+    if (result == FR_OK) {
+        return buf;
+    }
+
+    // Look in flash:/bin/ directory.
+    strcpy(buf, "flash:/bin/");
+    strcat(buf, cmdname);
+    strcat(buf, ".exe");
+
+    // Check whether file exists.
+    result = f_stat(buf, &info);
+    if (result == FR_OK) {
+        return buf;
+    }
+
     return NULL;
 }
 
