@@ -12,12 +12,11 @@
 // Print information about given volume.
 //
 //       Disk Drive: flash or sd
-//       Disk Model: identify Flash chip or extract product name from SD card
-//        Disk Size: in megabytes
+//   Hardware Model: identify Flash chip or extract product name from SD card
 //        Unique Id: read hardware ID from Flash or SD card
-// Filesystem Label: read disklabel from filesystem
+//  Filesystem Size: in megabytes
+//     Volume Label: read disklabel from filesystem
 //    Serial Number: read FATFS serial ID
-//
 //
 static void print_volume_info(const char *drive_name)
 {
@@ -48,18 +47,18 @@ static void print_volume_info(const char *drive_name)
     //
     disk_info_t info;
     if (disk_identify(drive, &info) == DISK_OK) {
-        fpm_printf("      Disk Model: '%s'\r\n", info.product_name);
-        fpm_printf("       Disk Size: %u.%u Mbytes\r\n",
+        fpm_printf("  Hardware Model: '%s'\r\n", info.product_name);
+        fpm_printf("       Unique Id: %08jx\r\n", (intmax_t) info.serial_number);
+        fpm_printf(" Filesystem Size: %u.%u Mbytes\r\n",
                    (unsigned) (info.num_bytes / 1024 / 1024),
                    (unsigned) (info.num_bytes * 10 / 1024 / 1024 % 10));
-        fpm_printf("       Unique Id: %08jx\r\n", (intmax_t) info.serial_number);
     }
 
     //
     // Print filesystem label and serial number.
     //
     if (result == FR_OK) {
-        fpm_printf("Filesystem Label: '%s'\r\n", label);
+        fpm_printf("    Volume Label: '%s'\r\n", label);
         fpm_printf("   Serial Number: %08x\r\n", serial_number);
     }
     fpm_puts("\r\n");
