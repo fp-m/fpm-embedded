@@ -147,6 +147,7 @@ void fpm_exec(int argc, char *argv[])
     memset(&dynobj, 0, sizeof(dynobj));
     if (!fpm_load(&dynobj, path)) {
         // Failed: error message already printed.
+        fpm_puts("\r\n");
         return;
     }
 
@@ -154,11 +155,13 @@ void fpm_exec(int argc, char *argv[])
     fpm_unload(&dynobj);
     if (!success) {
         // Failed: error message already printed.
+        fpm_puts("\r\n");
         return;
     }
 
     // External binary successfully executed.
     //TODO: save dynobj.exit_code somehow.
+    fpm_puts("\r\n");
 }
 
 #if 0

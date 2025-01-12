@@ -65,8 +65,8 @@ set_source_files_properties(fpm_pico.c
 )
 
 # Enable usb output, disable uart output
-#pico_enable_stdio_usb(${PROJECT_NAME} 1)
-#pico_enable_stdio_uart(${PROJECT_NAME} 0)
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # 'make upload' to program the binary
 add_custom_target(upload

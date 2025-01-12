@@ -21,6 +21,8 @@
 //
 #include <fpm/api.h>    // Declarations of disk functions
 #include <fpm/diskio.h> // Declarations of disk functions
+#include <fpm/loader.h>
+#include <fpm/fs.h>
 #include <stdio.h>      // For debug printfs
 #include "pico/stdlib.h"
 #include "flash.h"
@@ -196,4 +198,43 @@ void flash_identify(disk_info_t *output)
         flash_probe();
     }
     *output = flash_info;
+}
+
+//
+// Load dynamic binary.
+// Return true on success.
+//
+bool fpm_load_arch(fpm_executable_t *dynobj, const char *filename)
+{
+    // FP/M on RP2040 microcontroller.
+    file_info_t file_info;
+    fs_result_t result = f_stat(filename, &file_info);
+    if (result != FR_OK) {
+        fpm_printf("%s: Cannot open\r\n", filename);
+        return false;
+    }
+
+    fs_info_t fs_info;
+    result = f_statfs(filename, &fs_info);
+    if (result != FR_OK) {
+        fpm_printf("%s: Cannot get filesystem status\r\n", filename);
+        return false;
+    }
+
+    if (file_info.fstartblk == 0) {
+        fpm_printf("%s: File is fragmented\r\n", filename);
+        return false;
+    }
+
+    // Compute address of file contents.
+    dynobj->base = &flash_disk_image[file_info.fstartblk * fs_info.f_bsize];
+    return true;
+}
+
+//
+// Unmap ELF binary from memory.
+//
+void fpm_unload_arch(fpm_executable_t *dynobj)
+{
+    dynobj->base = NULL;
 }

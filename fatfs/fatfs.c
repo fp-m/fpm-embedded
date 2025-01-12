@@ -2481,7 +2481,7 @@ static void get_fileinfo(directory_t *dp,  /* Pointer to the directory object */
 
     /* Find first block when file is continuous */
     if (!(fno->fattrib & AM_DIR)) {
-        fno->fstartblk = ld_clust(fs, dp->dir);
+        fno->fstartblk = clst2sect(fs, ld_clust(fs, dp->dir));
     }
 }
 
