@@ -5,24 +5,12 @@
 #include <fpm/loader.h>
 #include <fpm/elf.h>
 #include <alloca.h>
-#if __unix__ || __APPLE__
-#   include <unistd.h>
-#   include <fcntl.h>
-#   include <sys/mman.h>
-#   include <sys/stat.h>
-#elif __ARM_ARCH_6M__
-    // FP/M on RP2040 microcontroller
-#else
-#   error "This platform is not supported"
-#endif
 
-#if __x86_64__ || __i386__
-#   if !__APPLE__
-#       include <asm/prctl.h>
-#       include <sys/syscall.h>
-#   else
+#if (__x86_64__ || __i386__) && __unix__
     // MacOS/x86 is not supported
-#   endif
+#   include <unistd.h>
+#   include <asm/prctl.h>
+#   include <sys/syscall.h>
 #endif
 
 #if __SIZE_WIDTH__ == 64
@@ -75,37 +63,10 @@ static const Native_Shdr *fpm_section_by_index(fpm_executable_t *dynobj, unsigne
 //
 bool fpm_load(fpm_executable_t *dynobj, const char *filename)
 {
-#if __unix__ || __APPLE__
-    // Unix: open the shared library file in read-only mode.
-    dynobj->fd = open(filename, O_RDONLY);
-    if (dynobj->fd < 0) {
-        fpm_printf("%s: Cannot open\r\n", filename);
+    if (!fpm_load_arch(dynobj, filename)) {
+err:    fpm_unload_arch(dynobj);
         return false;
     }
-
-    // Get the size of the file
-    struct stat sb;
-    if (fstat(dynobj->fd, &sb) < 0) {
-        fpm_printf("%s: Cannot fstat\r\n", filename);
-err:    close(dynobj->fd);
-        return false;
-    }
-    dynobj->file_size = sb.st_size;
-
-    // Map the file into memory
-    dynobj->base = mmap(NULL, dynobj->file_size, PROT_READ | PROT_EXEC, MAP_SHARED, dynobj->fd, 0);
-    if (dynobj->base == MAP_FAILED) {
-        fpm_printf("%s: Cannot mmap\r\n", filename);
-        goto err;
-    }
-#elif __ARM_ARCH_6M__
-    // FP/M on RP2040 microcontroller.
-    //TODO: find address of file contents
-    //dynobj->base = ???;
-err:
-    fpm_printf("%s: Cannot open\r\n", filename);
-    return false;
-#endif
 
     //
     // Check file format.
@@ -188,22 +149,7 @@ err:
 //
 void fpm_unload(fpm_executable_t *dynobj)
 {
-    // Unmap the file from memory.
-    if (dynobj->base != NULL) {
-#if __unix__ || __APPLE__
-         munmap(dynobj->base, dynobj->file_size);
-#endif
-         dynobj->base = NULL;
-    }
-
-    // Close file.
-    // Note: descriptor cannot be zero.
-#if __unix__ || __APPLE__
-    if (dynobj->fd > 0) {
-        close(dynobj->fd);
-        dynobj->fd = 0;
-    }
-#endif
+    fpm_unload_arch(dynobj);
 }
 
 //

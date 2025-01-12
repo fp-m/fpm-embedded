@@ -2396,6 +2396,7 @@ static void get_fileinfo(directory_t *dp,  /* Pointer to the directory object */
         fno->fsize = (fno->fattrib & AM_DIR) ? 0 : ld_qword(fs->dirbuf + XDIR_FileSize); /* Size */
         fno->ftime = ld_word(fs->dirbuf + XDIR_ModTime + 0);                             /* Time */
         fno->fdate = ld_word(fs->dirbuf + XDIR_ModTime + 2);                             /* Date */
+        fno->fstartblk = 0; /* TODO: first block when file is continuous */
         return;
     } else {
         /* FAT/FAT32 volume */

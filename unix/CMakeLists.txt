@@ -12,6 +12,7 @@ add_executable(${PROJECT_NAME}
     main_unix.c
     fpm_unix.c
     diskio_unix.c
+    loader_unix.c
 )
 add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
 add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)

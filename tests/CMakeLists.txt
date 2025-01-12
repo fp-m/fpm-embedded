@@ -121,6 +121,7 @@ add_executable(loader_tests
     loader_test.cpp
     console_util.cpp
     ../kernel/fpm_loader.c
+    ../unix/loader_unix.c
 )
 gtest_discover_tests(loader_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
 
@@ -128,6 +129,7 @@ add_executable(loader2_tests
     loader2_test.cpp
     console_util.cpp
     ../kernel/fpm_loader.c
+    ../unix/loader_unix.c
 )
 gtest_discover_tests(loader2_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
 

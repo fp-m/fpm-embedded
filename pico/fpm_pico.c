@@ -2,6 +2,8 @@
 // API for FP/M, implemented with Pico SDK.
 //
 #include <fpm/api.h>
+#include <fpm/loader.h>
+#include <fpm/fs.h>
 #include <fpm/internal.h>
 #include <stdio.h>
 #include "pico/stdlib.h"
@@ -142,4 +144,39 @@ void fpm_delay_usec(uint64_t microseconds)
 void fpm_delay_msec(unsigned milliseconds)
 {
      busy_wait_ms(milliseconds);
+}
+
+//
+// Load dynamic binary.
+// Return true on success.
+//
+bool fpm_load_arch(fpm_executable_t *dynobj, const char *filename)
+{
+    // FP/M on RP2040 microcontroller.
+    file_info_t file_info;
+    fs_result_t result = f_stat(filename, &file_info);
+    if (result != FR_OK) {
+        fpm_printf("%s: Cannot open\r\n", filename);
+        return false;
+    }
+
+    fs_info_t fs_info;
+    result = f_statfs(filename, &fs_info);
+    if (result != FR_OK) {
+        fpm_printf("%s: Cannot get filesystem status\r\n", filename);
+        return false;
+    }
+
+    // Compute address of file contents.
+    extern char __flash_binary_start[];
+    dynobj->base = &__flash_binary_start[file_info.fstartblk * fs_info.f_bsize];
+    return true;
+}
+
+//
+// Unmap ELF binary from memory.
+//
+void fpm_unload_arch(fpm_executable_t *dynobj)
+{
+    dynobj->base = NULL;
 }

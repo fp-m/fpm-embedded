@@ -63,6 +63,7 @@ typedef struct {
     uint16_t fdate;               // Modified date
     uint16_t ftime;               // Modified time
     uint8_t fattrib;              // File attribute
+    uint32_t fstartblk;           // First block of a continuous file
     char altname[FF_SFN_BUF + 1]; // Alternative file name
     char fname[FF_LFN_BUF + 1];   // Primary file name
 } file_info_t;

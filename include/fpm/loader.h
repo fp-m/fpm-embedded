@@ -40,6 +40,12 @@ bool fpm_load(fpm_executable_t *dynobj, const char *filename);
 void fpm_unload(fpm_executable_t *dynobj);
 
 //
+// Internal platform-dependent helper routines.
+//
+bool fpm_load_arch(fpm_executable_t *dynobj, const char *filename);
+void fpm_unload_arch(fpm_executable_t *dynobj);
+
+//
 // Get names of linked procedures.
 //
 void fpm_get_symbols(fpm_executable_t *dynobj, const char *symbols[]);
