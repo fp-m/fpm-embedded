@@ -38,7 +38,7 @@ static void mock_print_version()
 TEST(loader, print_version_puts_wputs)
 {
     fpm_executable_t dynobj{};
-    ASSERT_TRUE(fpm_load(&dynobj, "testputs.elf"));
+    ASSERT_TRUE(fpm_load(&dynobj, "testputs.exe"));
 
     // Export dynamically linked routines.
     static fpm_binding_t linkmap[] = {
@@ -52,6 +52,11 @@ TEST(loader, print_version_puts_wputs)
     char *argv[] = { filename };
 
     bool exec_status = fpm_execv(&dynobj, linkmap, 1, argv);
+
+#if __APPLE__ && __x86_64__
+    // Cannot set %gs register on MacOS.
+    ASSERT_FALSE(exec_status);
+#else
     ASSERT_TRUE(exec_status);
     ASSERT_EQ(dynobj.exit_code, 0);
 
@@ -61,6 +66,7 @@ TEST(loader, print_version_puts_wputs)
         "puts\r\n"
         "wputs\r\n"
     );
+#endif
 
     fpm_unload(&dynobj);
 }

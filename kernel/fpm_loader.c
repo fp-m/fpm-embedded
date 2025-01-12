@@ -21,7 +21,7 @@
 #       include <asm/prctl.h>
 #       include <sys/syscall.h>
 #   else
-#       error "MacOS/x86 is not supported"
+    // MacOS/x86 is not supported
 #   endif
 #endif
 
@@ -280,7 +280,7 @@ static inline void set_got_pointer(void *addr)
     // at address 0x2000 0010. This vector is unused by hardware.
     *(volatile void**) 0x20000010 = addr;
 
-#elif __x86_64__ || __i386__
+#elif (__x86_64__ || __i386__) && __unix__
     // For x86-64 or i386 Linux: use %gs register.
     syscall(SYS_arch_prctl, ARCH_SET_GS, addr);
 
@@ -293,7 +293,6 @@ static inline void set_got_pointer(void *addr)
     asm volatile("mcr p15, 0, %0, c13, c0, 2" : : "r" (addr) : "memory");
 #else
     //TODO: other platforms.
-#   error "This platform is not supported"
 #endif
 }
 
@@ -342,6 +341,13 @@ bool fpm_execv(fpm_executable_t *dynobj, fpm_binding_t linkmap[], int argc, char
         // Cannot map some symbols.
         return false;
     }
+#if __APPLE__ && __x86_64__
+    {
+        // This platform is not supported.
+        fpm_printf("Cannot set %%gs register on MacOS\r\n");
+        return false;
+    }
+#endif
     void *save_got = get_got_pointer();
     set_got_pointer(got);
 

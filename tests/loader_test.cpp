@@ -12,7 +12,7 @@ TEST(loader, elf_binary)
     fpm_executable_t dynobj{};
 
     // Map ELF file into memory.
-    bool load_status = fpm_load(&dynobj, "hello.elf");
+    bool load_status = fpm_load(&dynobj, "hello.exe");
     ASSERT_TRUE(load_status);
 
     fpm_unload(&dynobj);
@@ -23,7 +23,7 @@ TEST(loader, linked_symbols)
     fpm_executable_t dynobj{};
 
     const int expect_num_links = 1;
-    ASSERT_TRUE(fpm_load(&dynobj, "hello.elf"));
+    ASSERT_TRUE(fpm_load(&dynobj, "hello.exe"));
     ASSERT_EQ(dynobj.num_links, expect_num_links);
 
     // Get names of dynamically linked routines.
@@ -48,7 +48,7 @@ static void mock_puts(const char *message)
 TEST(loader, run_puts)
 {
     fpm_executable_t dynobj{};
-    ASSERT_TRUE(fpm_load(&dynobj, "hello.elf"));
+    ASSERT_TRUE(fpm_load(&dynobj, "hello.exe"));
 
     // Export dynamically linked routines.
     static fpm_binding_t linkmap[] = {
@@ -60,11 +60,17 @@ TEST(loader, run_puts)
     char *argv[] = { filename };
 
     bool exec_status = fpm_execv(&dynobj, linkmap, 1, argv);
+
+#if __APPLE__ && __x86_64__
+    // Cannot set %gs register on MacOS.
+    ASSERT_FALSE(exec_status);
+#else
     ASSERT_TRUE(exec_status);
     ASSERT_EQ(dynobj.exit_code, 0);
 
     // Check output.
     ASSERT_EQ(puts_result.str(), "Hello, World!\r\n");
+#endif
 
     fpm_unload(&dynobj);
 }

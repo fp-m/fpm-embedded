@@ -131,27 +131,40 @@ add_executable(loader2_tests
 )
 gtest_discover_tests(loader2_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
 
+# Create -I options for exe build.
+set(EXE_INCLUDES -I${CMAKE_SOURCE_DIR}/../include)
+if (APPLE)
+    # Get MacOS SDK path
+    execute_process(COMMAND xcrun --show-sdk-path
+                    OUTPUT_VARIABLE SDK_PATH
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    list(APPEND EXE_INCLUDES -I${SDK_PATH}/usr/include)
+
+    # Set toolchain prefix.
+    set(P x86_64-elf-)
+endif()
+
 #
-# Build elf binaries for tests.
+# Build exe binaries for tests.
 #
-add_custom_command(OUTPUT hello.elf
-    COMMAND gcc -fPIC -g -O1 -c -I${CMAKE_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/hello.c -o hello.o
-    COMMAND ld -shared -fPIC -g -e main hello.o -o hello.elf
-    COMMAND elf2exe/elf2exe hello.elf
-    COMMAND objdump -d hello.elf > hello.dis
-    COMMAND nm -n hello.elf > hello.nm
-    COMMAND readelf -a hello.elf > hello.readelf
+add_custom_command(OUTPUT hello.exe
+    COMMAND ${P}gcc -fPIC -g -O1 -c ${EXE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/hello.c -o hello.o
+    COMMAND ${P}ld -shared -fPIC -g -e main hello.o -o hello.exe
+    COMMAND elf2exe/elf2exe hello.exe
+    COMMAND ${P}objdump -d hello.exe > hello.dis
+    COMMAND ${P}nm -n hello.exe > hello.nm
+    COMMAND ${P}readelf -a hello.exe > hello.readelf
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hello.c elf2exe
     VERBATIM
 )
-add_custom_command(OUTPUT testputs.elf
-    COMMAND gcc -fPIC -g -O1 -c -I${CMAKE_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c -o testputs.o
-    COMMAND ld -shared -fPIC -g -e main testputs.o -o testputs.elf
-    COMMAND elf2exe/elf2exe testputs.elf
-    COMMAND objdump -d testputs.elf > testputs.dis
-    COMMAND nm -n testputs.elf > testputs.nm
-    COMMAND readelf -a testputs.elf > testputs.readelf
+add_custom_command(OUTPUT testputs.exe
+    COMMAND ${P}gcc -fPIC -g -O1 -c ${EXE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c -o testputs.o
+    COMMAND ${P}ld -shared -fPIC -g -e main testputs.o -o testputs.exe
+    COMMAND elf2exe/elf2exe testputs.exe
+    COMMAND ${P}objdump -d testputs.exe > testputs.dis
+    COMMAND ${P}nm -n testputs.exe > testputs.nm
+    COMMAND ${P}readelf -a testputs.exe > testputs.readelf
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c elf2exe
     VERBATIM
 )
-add_custom_target(generate-elf ALL DEPENDS hello.elf testputs.elf)
+add_custom_target(generate-exe ALL DEPENDS hello.exe testputs.exe)

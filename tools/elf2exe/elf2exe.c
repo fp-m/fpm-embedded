@@ -220,6 +220,30 @@ static bool is_amd64_entry(const unsigned char *code)
 }
 
 //
+// Detect PLT entry of alternative format:
+//      ff 25 aa 11 00 00  jmp  *0x11aa(%rip)
+//      68 00 00 00 00     push $0x0
+//      e9 e0 ff ff ff     jmp  180 <fpm_puts@plt-0x10>
+//
+static bool is_amd64_entry2(const unsigned char *code)
+{
+    return code[0] == 0xff && code[1] == 0x25; // jmp *NUM(%rip)
+}
+
+//
+// Detect PLT preamble for x86_64 machine, for example:
+//      ff 35 aa 11 00 00  push 0x11aa(%rip)
+//      ff 25 ac 11 00 00  jmp  *0x11ac(%rip)
+//      0f 1f 40 00        nopl 0x0(%rax)
+//
+static bool is_amd64_preamble(const unsigned char *code)
+{
+    return code[0] == 0xff && code[1] == 0x35 &&                                         // push NUM(%rip)
+           code[6] == 0xff && code[7] == 0x25 &&                                         // jmp *NUM(%rip)
+           code[12] == 0x0f && code[13] == 0x1f && code[14] == 0x40 && code[15] == 0x00; // nopl 0x0(%rax)
+}
+
+//
 // X86_64 machine: process the Procedure Linkage Table.
 // Update num_links.
 //
@@ -246,37 +270,69 @@ static void process_amd64_plt(const Elf64_Shdr *hdr)
     //
     // Scan contents of the PLT section, find entries and replace
     // with jumps via a table pointed by %gs register.
-    // For example:
-    //      f3 0f 1e fa              endbr64
-    //      65 ff 24 25 08 00 00 00  jmp    *%gs:0x8
-    //      0f 1f 04 00              nopl   (%rax,%rax,1)
     //
     unsigned const entry_size = 16;
     for (unsigned offset = 0; offset < hdr->sh_size; offset += entry_size) {
         unsigned char *code = offset + hdr->sh_offset + (unsigned char*)base;
-        if (!is_amd64_entry(code)) {
-            fprintf(stderr, "Bad PLT entry at offset %u: %02x %02x %02x %02x %02x %02x %02x %02x...\n",
-                offset, code[0], code[1], code[2], code[3], code[4], code[5], code[6], code[7]);
-            exit(EXIT_FAILURE);
+        if (is_amd64_preamble(code)) {
+            // Skip PLT preamble.
+            continue;
         }
 
         unsigned index = num_links;
 
-        // jmp *%gs:NUM
-        code[4] = 0x65;
-        code[5] = 0xff;
-        code[6] = 0x24;
-        code[7] = 0x25;
-        code[8] = (index * 8);
-        code[9] = (index * 8) >> 8;
-        code[10] = (index * 8) >> 16;
-        code[11] = (index * 8) >> 24;
+        if (is_amd64_entry(code)) {
+            // Entry with Indirect Branch Tracking.
+            //      f3 0f 1e fa              endbr64
+            //      65 ff 24 25 08 00 00 00  jmp  *%gs:0x8
+            //      0f 1f 04 00              nopl (%rax,%rax,1)
 
-        // nopl (%rax,%rax,1)
-        code[12] = 0x0f;
-        code[13] = 0x1f;
-        code[14] = 0x04;
-        code[15] = 0x00;
+            // jmp *%gs:NUM
+            code[4] = 0x65;
+            code[5] = 0xff;
+            code[6] = 0x24;
+            code[7] = 0x25;
+            code[8] = (index * 8);
+            code[9] = (index * 8) >> 8;
+            code[10] = (index * 8) >> 16;
+            code[11] = (index * 8) >> 24;
+
+            // nopl (%rax,%rax,1)
+            code[12] = 0x0f;
+            code[13] = 0x1f;
+            code[14] = 0x04;
+            code[15] = 0x00;
+
+        } else if (is_amd64_entry2(code)) {
+            // Simple format.
+            //      65 ff 24 25 08 00 00 00  jmp  *%gs:0x8
+            //      0f 1f 84 00 01 00 00 00  nopl 1(%rax,%rax,1)
+
+            // jmp *%gs:NUM
+            code[0] = 0x65;
+            code[1] = 0xff;
+            code[2] = 0x24;
+            code[3] = 0x25;
+            code[4] = (index * 8);
+            code[5] = (index * 8) >> 8;
+            code[6] = (index * 8) >> 16;
+            code[7] = (index * 8) >> 24;
+
+            // nopl 1(%rax,%rax,1)
+            code[8] = 0x0f;
+            code[9] = 0x1f;
+            code[10] = 0x84;
+            code[11] = 0x00;
+            code[12] = 0x01;
+            code[13] = 0x00;
+            code[14] = 0x00;
+            code[15] = 0x00;
+
+        } else {
+            fprintf(stderr, "Bad PLT entry at offset %u: %02x %02x %02x %02x %02x %02x %02x %02x...\n",
+                offset, code[0], code[1], code[2], code[3], code[4], code[5], code[6], code[7]);
+            exit(EXIT_FAILURE);
+        }
 
         num_links++;
     }
@@ -509,7 +565,7 @@ int main(int argc, char **argv)
 
         // Mark this file as ready for FP/M.
         char *id = base;
-        id[EI_OSABI] = ELFOSABI_STANDALONE;
+        id[EI_OSABI] = (char)ELFOSABI_STANDALONE;
     }
     close_file();
 }
