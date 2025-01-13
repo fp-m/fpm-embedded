@@ -45,6 +45,7 @@ const char *disk_name[DISK_VOLUMES] = { "flash", "sd" };
 //
 static void spi_isr0(void);
 static void spi_isr1(void);
+static void spi_isr2(void);
 
 static spi_t spi_ports[] = {
     // SparkFun RP2040 Thing Plus board.
@@ -65,10 +66,20 @@ static spi_t spi_ports[] = {
         .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
         .dma_isr   = spi_isr1,
     },
+    // Waveshare RP2040-PiZero board.
+    {
+        .hw_inst   = spi0,         // Port SPI0
+        .miso_gpio = 20,           // GPIO 20: serial data output SDO
+        .mosi_gpio = 19,           // GPIO 19: serial data input SDI
+        .sck_gpio  = 18,           // GPIO 18: serial clock SCK
+        .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
+        .dma_isr   = spi_isr2,
+    },
     { 0 }, // Terminate by zero.
 };
 static void spi_isr0(void) { spi_irq_handler(&spi_ports[0]); }
 static void spi_isr1(void) { spi_irq_handler(&spi_ports[1]); }
+static void spi_isr2(void) { spi_irq_handler(&spi_ports[2]); }
 
 //
 // Hardware Configuration of SD cards.
@@ -77,6 +88,17 @@ static void spi_isr1(void) { spi_irq_handler(&spi_ports[1]); }
 // of these configurations selected, whichever is valid for the current board.
 //
 static sd_card_t sd_cards[] = {
+    //
+    // Waveshare RP2040-PiZero board.
+    //
+    {
+        .spi              = &spi_ports[2], // Pointer to the SPI port driving this card
+        .ss_gpio          = 21,            // The SPI slave select GPIO for this SD card
+        .use_card_detect  = false,         // Card detect GPIO is available
+        .m_Status         = MEDIA_NOINIT,  // Initial status
+        .sd_cards         = &sd_cards[0],  // List of all SD card configurations
+        .spi_ports        = &spi_ports[0], // List of all SPI ports
+    },
     //
     // SparkFun RP2040 Thing Plus board.
     // https://learn.sparkfun.com/tutorials/rp2040-thing-plus-hookup-guide/hardware-overview

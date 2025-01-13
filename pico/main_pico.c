@@ -29,10 +29,9 @@ int main()
     setup_date_time();
     disk_setup();
 
-    // Try to mount flash and SD card at startup.
+    // Try to mount flash at startup.
     // It may fail, which is OK.
     f_mount("flash:");
-    f_mount("sd:");
 
     // Initialize chosen serial port.
     stdio_init_all();
