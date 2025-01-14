@@ -78,5 +78,5 @@ add_custom_target(upload
 install(FILES
     ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.elf
     ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2
-    DESTINATION share/rp-m
+    DESTINATION share/fpm-pico
 )

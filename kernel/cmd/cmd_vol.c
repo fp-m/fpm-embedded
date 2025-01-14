@@ -210,8 +210,9 @@ void fpm_cmd_vol(int argc, char *argv[])
     struct fpm_opt opt = {};
     const char *path = "";
     bool test_flag = false;
+    bool autodetect_flag = false;
 
-    while (fpm_getopt(argc, argv, "hl:t", long_opts, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "ahl:t", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             path = opt.arg;
@@ -223,6 +224,10 @@ void fpm_cmd_vol(int argc, char *argv[])
 
         case 't':
             test_flag = true;
+            break;
+
+        case 'a':
+            autodetect_flag = true;
             break;
 
         case '?':
@@ -245,6 +250,9 @@ void fpm_cmd_vol(int argc, char *argv[])
     if (test_flag) {
         // Measure disk speed.
         test_speed(path);
+    } else if (autodetect_flag) {
+        // Find SD connection.
+        fpm_autodetect();
     } else {
         // Show current drive.
         print_volume_info(path);
