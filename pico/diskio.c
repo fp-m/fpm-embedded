@@ -48,6 +48,7 @@ static void spi_isr1(void);
 static void spi_isr2(void);
 static void spi_isr3(void);
 static void spi_isr4(void);
+static void spi_isr5(void);
 
 static spi_t spi_ports[] = {
     // SparkFun RP2040 Thing Plus board.
@@ -77,7 +78,7 @@ static spi_t spi_ports[] = {
         .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
         .dma_isr   = spi_isr2,
     },
-    // HackyPi board.
+    // HackyPi or MusicPi board.
     {
         .hw_inst   = spi0,         // Port SPI0
         .miso_gpio = 16,           // serial data output SDO
@@ -95,6 +96,15 @@ static spi_t spi_ports[] = {
         .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
         .dma_isr   = spi_isr4,
     },
+    // Olimex RP2040-PICO-PC board.
+    {
+        .hw_inst   = spi0,         // Port SPI0
+        .miso_gpio = 4,            // serial data output SDO
+        .mosi_gpio = 7,            // serial data input SDI
+        .sck_gpio  = 6,            // serial clock SCK
+        .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
+        .dma_isr   = spi_isr5,
+    },
     { 0 }, // Terminate by zero.
 };
 static void spi_isr0(void) { spi_irq_handler(&spi_ports[0]); }
@@ -102,6 +112,7 @@ static void spi_isr1(void) { spi_irq_handler(&spi_ports[1]); }
 static void spi_isr2(void) { spi_irq_handler(&spi_ports[2]); }
 static void spi_isr3(void) { spi_irq_handler(&spi_ports[3]); }
 static void spi_isr4(void) { spi_irq_handler(&spi_ports[4]); }
+static void spi_isr5(void) { spi_irq_handler(&spi_ports[5]); }
 
 //
 // Hardware Configuration of SD cards.
@@ -133,7 +144,7 @@ static sd_card_t sd_cards[] = {
         .ss_gpio          = 21,            // The SPI slave select GPIO for this SD card
     },
     {
-        .board_name       = "HackyPi",
+        .board_name       = "HackyPi/MusicPi",
 
         .spi              = &spi_ports[3], // Pointer to the SPI port driving this card
         .ss_gpio          = 17,            // The SPI slave select GPIO for this SD card
@@ -143,6 +154,12 @@ static sd_card_t sd_cards[] = {
 
         .spi              = &spi_ports[4], // Pointer to the SPI port driving this card
         .ss_gpio          = 5,             // The SPI slave select GPIO for this SD card
+    },
+    {
+        .board_name       = "Olimex RP2040-PICO-PC",
+
+        .spi              = &spi_ports[5], // Pointer to the SPI port driving this card
+        .ss_gpio          = 22,            // The SPI slave select GPIO for this SD card
     },
     { 0 }, // Terminate by zero.
 };
