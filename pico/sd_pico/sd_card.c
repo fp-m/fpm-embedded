@@ -636,7 +636,7 @@ bool sd_card_detect(sd_card_t *pSD)
         // The socket is now empty
         pSD->m_Status |= (MEDIA_NODISK | MEDIA_NOINIT);
         pSD->card_type = SDCARD_NONE;
-        fpm_printf("No SD card detected!\r\n");
+        //fpm_printf("No media found!\r\n");
         return false;
     }
 }

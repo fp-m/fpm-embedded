@@ -37,7 +37,7 @@ static void format_drive(const char *drive_name)
     // Get disk size.
     disk_info_t info;
     if (disk_identify(disk_unit, &info) != DISK_OK) {
-        fpm_printf("%s: Cannot identify\r\n", drive_name);
+        //fpm_printf("%s Cannot identify\r\n", drive_name);
         return;
     }
 

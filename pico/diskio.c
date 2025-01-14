@@ -47,6 +47,7 @@ static void spi_isr0(void);
 static void spi_isr1(void);
 static void spi_isr2(void);
 static void spi_isr3(void);
+static void spi_isr4(void);
 
 static spi_t spi_ports[] = {
     // SparkFun RP2040 Thing Plus board.
@@ -85,12 +86,22 @@ static spi_t spi_ports[] = {
         .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
         .dma_isr   = spi_isr3,
     },
+    // ArdiPi board.
+    {
+        .hw_inst   = spi0,         // Port SPI0
+        .miso_gpio = 4,            // serial data output SDO
+        .mosi_gpio = 3,            // serial data input SDI
+        .sck_gpio  = 2,            // serial clock SCK
+        .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
+        .dma_isr   = spi_isr4,
+    },
     { 0 }, // Terminate by zero.
 };
 static void spi_isr0(void) { spi_irq_handler(&spi_ports[0]); }
 static void spi_isr1(void) { spi_irq_handler(&spi_ports[1]); }
 static void spi_isr2(void) { spi_irq_handler(&spi_ports[2]); }
 static void spi_isr3(void) { spi_irq_handler(&spi_ports[3]); }
+static void spi_isr4(void) { spi_irq_handler(&spi_ports[4]); }
 
 //
 // Hardware Configuration of SD cards.
@@ -105,7 +116,6 @@ static sd_card_t sd_cards[] = {
 
         .spi              = &spi_ports[0], // Pointer to the SPI port driving this card
         .ss_gpio          = 9,             // The SPI slave select GPIO for this SD card
-        .use_card_detect  = false,         // No card detect GPIO for this card
     },
     {
         .board_name       = "Challenger RP2040 SD/RTC",
@@ -121,14 +131,18 @@ static sd_card_t sd_cards[] = {
 
         .spi              = &spi_ports[2], // Pointer to the SPI port driving this card
         .ss_gpio          = 21,            // The SPI slave select GPIO for this SD card
-        .use_card_detect  = false,         // Card detect GPIO is available
     },
     {
         .board_name       = "HackyPi",
 
         .spi              = &spi_ports[3], // Pointer to the SPI port driving this card
         .ss_gpio          = 17,            // The SPI slave select GPIO for this SD card
-        .use_card_detect  = false,         // Card detect GPIO is available
+    },
+    {
+        .board_name       = "ArdiPi",
+
+        .spi              = &spi_ports[4], // Pointer to the SPI port driving this card
+        .ss_gpio          = 5,             // The SPI slave select GPIO for this SD card
     },
     { 0 }, // Terminate by zero.
 };
