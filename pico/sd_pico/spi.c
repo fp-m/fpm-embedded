@@ -216,4 +216,36 @@ void spi_init_port(spi_t *pSPI)
     mutex_exit(&my_spi_init_mutex);
 }
 
+void spi_deinit_port(spi_t *pSPI)
+{
+    if (pSPI->initialized) {
+        spi_lock(pSPI);
+
+        spi_init(pSPI->hw_inst, 0);
+
+        gpio_set_function(pSPI->miso_gpio, GPIO_FUNC_NULL);
+        gpio_set_function(pSPI->mosi_gpio, GPIO_FUNC_NULL);
+        gpio_set_function(pSPI->sck_gpio, GPIO_FUNC_NULL);
+
+        gpio_disable_pulls(pSPI->miso_gpio);
+
+        // Release interrupts.
+        int irq = irqChannel1 ? DMA_IRQ_1 : DMA_IRQ_0;
+        irq_set_enabled(irq, false);
+        if (irqChannel1) {
+            dma_channel_set_irq1_enabled(pSPI->rx_dma, false);
+        } else {
+            dma_channel_set_irq0_enabled(pSPI->rx_dma, false);
+        }
+        irq_remove_handler(irq, pSPI->dma_isr);
+
+        // Release DMA channels.
+        dma_channel_unclaim(pSPI->tx_dma);
+        dma_channel_unclaim(pSPI->rx_dma);
+
+        pSPI->initialized = false;
+        spi_unlock(pSPI);
+    }
+}
+
 /* [] END OF FILE */

@@ -88,56 +88,29 @@ static void spi_isr2(void) { spi_irq_handler(&spi_ports[2]); }
 // of these configurations selected, whichever is valid for the current board.
 //
 static sd_card_t sd_cards[] = {
-    //
-    // Waveshare RP2040-PiZero board.
-    //
     {
+        .board_name       = "Waveshare RP2040-PiZero",
+
         .spi              = &spi_ports[2], // Pointer to the SPI port driving this card
         .ss_gpio          = 21,            // The SPI slave select GPIO for this SD card
         .use_card_detect  = false,         // Card detect GPIO is available
-        .m_Status         = MEDIA_NOINIT,  // Initial status
-        .sd_cards         = &sd_cards[0],  // List of all SD card configurations
-        .spi_ports        = &spi_ports[0], // List of all SPI ports
     },
-    //
-    // SparkFun RP2040 Thing Plus board.
-    // https://learn.sparkfun.com/tutorials/rp2040-thing-plus-hookup-guide/hardware-overview
-    //
-    // The µSD card slot is connected to the following dedicated GPIO:
-    // GPIO 09: DATA 3 - /CS
-    // GPIO 10: DATA 2
-    // GPIO 11: DATA 1
-    // GPIO 12: DATA 0 - SDO
-    // GPIO 14: CLK    - SCK
-    // GPIO 15: CMD    - SDI
     {
-        .spi             = &spi_ports[0], // Pointer to the SPI port driving this card
-        .ss_gpio         = 9,             // The SPI slave select GPIO for this SD card
-        .use_card_detect = false,         // No card detect GPIO for this card
-        .m_Status        = MEDIA_NOINIT,  // Initial status
-        .sd_cards        = &sd_cards[0],  // List of all SD card configurations
-        .spi_ports       = &spi_ports[0], // List of all SPI ports
+        .board_name       = "SparkFun Thing Plus RP2040",
+        // https://learn.sparkfun.com/tutorials/rp2040-thing-plus-hookup-guide/hardware-overview
+
+        .spi              = &spi_ports[0], // Pointer to the SPI port driving this card
+        .ss_gpio          = 9,             // The SPI slave select GPIO for this SD card
+        .use_card_detect  = false,         // No card detect GPIO for this card
     },
-    //
-    // Challenger RP2040 SD/RTC board.
-    // https://ilabs.se/challenger-rp2040-sd-rtc-datasheet/
-    //
-    // The processor connects to the SD card via the second spi (SPI1) communication channel.
-    // GPIO 09: SD Card chip select signal /CS
-    // GPIO 10: serial clock SCK
-    // GPIO 12: serial data input SDI
-    // GPIO 11: serial data output SDO
-    // GPIO 13: card detect, active low
-    // When this signal is logically low a card has been inserted
-    // and when it is high the card has been removed.
     {
+        .board_name       = "Challenger RP2040 SD/RTC",
+        // https://ilabs.se/challenger-rp2040-sd-rtc-datasheet/
+
         .spi              = &spi_ports[1], // Pointer to the SPI port driving this card
         .ss_gpio          = 9,             // The SPI slave select GPIO for this SD card
         .use_card_detect  = true,          // Card detect GPIO is available
         .card_detect_gpio = 13,            // The card detect GPIO signal
-        .m_Status         = MEDIA_NOINIT,  // Initial status
-        .sd_cards         = &sd_cards[0],  // List of all SD card configurations
-        .spi_ports        = &spi_ports[0], // List of all SPI ports
     },
     { 0 }, // Terminate by zero.
 };

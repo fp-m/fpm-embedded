@@ -642,7 +642,7 @@ bool sd_card_detect(sd_card_t *pSD)
 }
 
 /*!< Number of retries for sending CMDO */
-#define SD_CMD0_GO_IDLE_STATE_RETRIES 10
+#define SD_CMD0_GO_IDLE_STATE_RETRIES 4
 
 static uint32_t sd_go_idle_state(sd_card_t *pSD)
 {
@@ -659,7 +659,7 @@ static uint32_t sd_go_idle_state(sd_card_t *pSD)
             break;
         }
         sd_release(pSD);
-        busy_wait_us(100 * 1000);
+        busy_wait_us(1000);
         sd_acquire(pSD);
     }
     return response;
@@ -1191,6 +1191,20 @@ static int sd_init_medium(sd_card_t *pSD)
 }
 
 //
+// Quickly check for SD card response.
+//
+static bool sd_probe(sd_card_t *sd)
+{
+    sd_acquire(sd);
+    sd_spi_go_low_frequency(sd);
+    sd_spi_send_initializing_sequence(sd);
+
+    uint32_t state = sd_go_idle_state(sd);
+    sd_release(sd);
+    return state == R1_IDLE_STATE;
+}
+
+//
 // Initialize the card, starting with the default low frequency mode.
 // Update m_Status field.
 // The card must be already acquired (by sd_lock() and sd_spi_acquire()).
@@ -1227,8 +1241,6 @@ static void sd_init_nolock(sd_card_t *pSD)
 media_status_t sd_init(sd_card_t *pSD)
 {
     TRACE_PRINTF("--- %s\r\n", __FUNCTION__);
-    if (!mutex_is_initialized(&pSD->mutex))
-        mutex_init(&pSD->mutex);
     sd_lock(pSD);
 
     // Make sure there's a card in the socket before proceeding
@@ -1265,13 +1277,22 @@ static void sd_init_port(sd_card_t *sd)
     }
     // Chip select is active-low, so we'll initialise it to a
     // driven-high state.
-    gpio_put(sd->ss_gpio, 1); // Avoid any glitches when enabling output
     gpio_init(sd->ss_gpio);
     gpio_set_dir(sd->ss_gpio, GPIO_OUT);
-    gpio_put(sd->ss_gpio, 1); // In case set_dir does anything
+    gpio_put(sd->ss_gpio, 1);
 
     // Setup SPI port for this SD card.
     spi_init_port(sd->spi);
+}
+
+static void sd_deinit_port(sd_card_t *sd)
+{
+    spi_deinit_port(sd->spi);
+    gpio_set_function(sd->ss_gpio, GPIO_FUNC_NULL);
+    gpio_init(sd->ss_gpio);
+    if (sd->use_card_detect) {
+        gpio_disable_pulls(sd->card_detect_gpio);
+    }
 }
 
 //
@@ -1286,22 +1307,42 @@ sd_card_t *sd_configure(sd_card_t sd_list[])
         return already_configured;
 
     // Walk through the list of available SD ports and find a valid one.
+    fpm_printf("Autodetect SD card... ");
     for (sd_card_t *sd = sd_list; sd->spi != NULL; ++sd) {
-        sd_init_port(sd);
 
-        // Fast probe: just a GPIO read.
-        if (!sd_card_detect(sd))
+        DBG_PRINTF("--- Try %s\r\n", sd->board_name);
+        sd->m_Status  = MEDIA_NOINIT;  // Initial status
+        sd->sd_cards  = &sd_list[0];   // List of all SD card configurations
+        mutex_init(&sd->mutex);
+
+        // Quick check: just a GPIO read.
+        if (sd->use_card_detect) {
+            gpio_init(sd->card_detect_gpio);
+            gpio_pull_up(sd->card_detect_gpio);
+            gpio_set_dir(sd->card_detect_gpio, GPIO_IN);
+            if (!sd_card_detect(sd)) {
+                continue;
+            }
+        }
+
+        // Fast probe.
+        sd_init_port(sd);
+        if (!sd_probe(sd)) {
+            sd_deinit_port(sd);
             continue;
+        }
 
         // Full detection.
         sd->m_Status |= (MEDIA_NODISK | MEDIA_NOINIT);
         sd->card_type = 0;
         sd_init(sd);
-        if (sd->m_Status & (MEDIA_NOINIT | MEDIA_NODISK))
+        if (sd->m_Status & (MEDIA_NOINIT | MEDIA_NODISK)) {
             continue;
+        }
 
         // This slot is valid, remember it.
         already_configured = sd;
+        fpm_printf("Found %s\r\n", sd->board_name);
         return sd;
     }
 

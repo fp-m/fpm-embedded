@@ -32,8 +32,8 @@ extern "C" {
 //
 typedef struct _sd_card_t {
     struct _sd_card_t *sd_cards; // List of all SD cards configured
-    struct _spi_t *spi_ports;    // List of all SPI ports configured
     struct _spi_t *spi;          // SPI port for this SD card
+    const char *board_name;      // Name of the board
 
     // Slave select is here in sd_card_t because multiple SDs can share an SPI
     uint ss_gpio;            // Slave select for this SD card

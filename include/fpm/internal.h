@@ -59,9 +59,6 @@ void fpm_cmd_time(int argc, char *argv[]);
 void fpm_cmd_ver(int argc, char *argv[]);
 void fpm_cmd_vol(int argc, char *argv[]);
 
-// Find SD connection.
-void fpm_autodetect(void);
-
 #ifdef __cplusplus
 }
 #endif

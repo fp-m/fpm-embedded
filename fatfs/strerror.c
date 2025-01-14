@@ -7,14 +7,14 @@ const char *f_strerror(fs_result_t errnum)
     case FR_OK:                  return "Succeeded";
     case FR_DISK_ERR:            return "Input/output error";
     case FR_INT_ERR:             return "Assertion failed";
-    case FR_NOT_READY:           return "The physical drive cannot work";
+    case FR_NOT_READY:           return "Media is not present";
     case FR_NO_FILE:             return "No such file or directory";
     case FR_NO_PATH:             return "No such path name";
     case FR_INVALID_NAME:        return "The path name format is invalid";
     case FR_DENIED:              return "Permission denied";
-    case FR_EXIST:               return "Access denied due to prohibited access";
+    case FR_EXIST:               return "Access is prohibited";
     case FR_INVALID_OBJECT:      return "The file/directory object is invalid";
-    case FR_WRITE_PROTECTED:     return "The physical drive is write protected";
+    case FR_WRITE_PROTECTED:     return "The media is write protected";
     case FR_INVALID_DRIVE:       return "The logical drive number is invalid";
     case FR_NOT_ENABLED:         return "The volume has no work area";
     case FR_NO_FILESYSTEM:       return "There is no valid FAT volume";

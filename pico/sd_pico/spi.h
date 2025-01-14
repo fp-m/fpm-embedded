@@ -58,6 +58,7 @@ bool __not_in_flash_func(spi_transfer)(spi_t *pSPI, const uint8_t *tx, uint8_t *
 void spi_lock(spi_t *pSPI);
 void spi_unlock(spi_t *pSPI);
 void spi_init_port(spi_t *pSPI);
+void spi_deinit_port(spi_t *pSPI);
 void set_spi_dma_irq_channel(bool useChannel1, bool shared);
 
 #if 1
@@ -76,6 +77,6 @@ void set_spi_dma_irq_channel(bool useChannel1, bool shared);
 #endif
 
 // Use LED at pin 25 to show SPI activity.
-#define SPI_LED_PIN 25
+//#define SPI_LED_PIN 25
 
 /* [] END OF FILE */

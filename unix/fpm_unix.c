@@ -165,8 +165,3 @@ void fpm_delay_msec(unsigned milliseconds)
 {
      usleep(milliseconds * 1000ULL);
 }
-
-void fpm_autodetect()
-{
-    // No autodetection on Unix.
-}
