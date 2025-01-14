@@ -348,7 +348,7 @@ static void process_amd64_plt(const Elf64_Shdr *hdr)
 static bool is_arm64_entry(const uint32_t *code)
 {
     return (code[0] & 0x9f000000) == 0x90000000 && // adrp x16, NUM
-           code[1] == 0xf9400211 &&                // ldr x17, [x16]
+           (code[1] & 0xffc003ff) == 0xf9400211 && // ldr x17, [x16]
            (code[2] & 0xff800000) == 0x91000000 && // add x16, x16, #NUM
            code[3] == 0xd61f0220;                  // br x17
 }
