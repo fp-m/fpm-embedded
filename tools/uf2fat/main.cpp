@@ -1,6 +1,8 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include <getopt.h>
 #include "uf2.h"
 
