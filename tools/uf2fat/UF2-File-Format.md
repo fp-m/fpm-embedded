@@ -1,12 +1,10 @@
 # USB Flashing Format (UF2)
 
-[UF2](https://github.com/microsoft/uf2) is a file format,
-developed by Microsoft for [PXT](https://github.com/Microsoft/pxt)
-(also known as [Microsoft MakeCode](https://makecode.com)), that is particularly suitable for
-flashing microcontrollers over MSC (Mass Storage Class; aka removable flash drive).
+[UF2](https://github.com/microsoft/uf2) is a file format, developed by Microsoft,
+that is particularly suitable for flashing microcontrollers over MSC
+(Mass Storage Class; aka removable flash drive).
 
 For a more friendly explanation, check out [this blog post](https://makecode.com/blog/one-chip-to-flash-them-all).
-Also, take a look at the list of [implementations](#implementations) at the bottom of this document.
 
 ## Overview
 
@@ -106,7 +104,7 @@ This procedure was unfortunately not used for the SAMD51 and NRF52840 below.
 
 #### Family list
 
-The current master list of family IDs is maintained in a [JSON file](utils/uf2families.json).
+The current master list of family IDs is maintained in a [JSON file](https://github.com/microsoft/uf2/blob/master/utils/uf2families.json).
 
 ### Rationale
 

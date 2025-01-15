@@ -39,9 +39,9 @@ SOFTWARE.
 #define UF2_MAGIC_START1 0x9E5D5157UL // Randomly selected
 #define UF2_MAGIC_END 0x0AB16F30UL    // Ditto
 
-// If set, the block is "comment" and should not be flashed to the device
-#define UF2_FLAG_NOFLASH 0x00000001
-#define UF2_FLAG_FILECONTAINER 0x00001000  // fle container
+#define UF2_FLAG_NOFLASH 0x00000001        // If set, the block is "comment"
+                                           // and should not be flashed to the device
+#define UF2_FLAG_FILECONTAINER 0x00001000  // file container
 #define UF2_FLAG_FAMILY_ID 0x00002000      // familyID present
 #define UF2_FLAG_MD5_CHKSUM 0x00004000     // MD5 checksum present
 #define UF2_FLAG_EXTENSION_TAGS 0x00008000 // extension tags present

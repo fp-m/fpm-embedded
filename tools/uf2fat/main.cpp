@@ -1,6 +1,8 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <getopt.h>
+#include "uf2.h"
 
 //
 // CLI options.
@@ -22,10 +24,10 @@ static void print_usage(std::ostream &out, const char *prog_name)
     out << "UF2 FAT Filesystem Tool, Version 0.1\n";
     out << "Usage:\n";
     out << "    " << prog_name << " [options...] format input.uf2 size [contents]\n";
-    out << "    " << prog_name << " [options...] scan input.uf2\n";
+    out << "    " << prog_name << " [options...] dump input.uf2\n";
     out << "Commands:\n";
     out << "    format                  Create filesystem with optional contents\n";
-    out << "    scan                    Show contents of UF2 file\n";
+    out << "    dump                    Show contents of UF2 file\n";
     out << "Arguments:\n";
     out << "    input.uf2               Input file in UF2 format\n";
     out << "    size                    Target size in bytes, with optional suffix k/M\n";
@@ -56,6 +58,78 @@ static size_t parse_size(std::string str)
         }
     }
     return num;
+}
+
+//
+// Create filesystem with optional contents.
+//
+void format_filesystem(const std::string &input_filename, size_t flash_bytes,
+                       const std::string &contents_dir, const std::string &output_filename)
+{
+    //TODO
+}
+
+//
+// Show block contents.
+//
+static void print_block(const UF2_Block &block, const size_t offset)
+{
+    // 32 byte header
+    if (block.magicStart0 != UF2_MAGIC_START0) {
+        std::cerr << "Bad magicStart0=" << std::hex << block.magicStart0
+                  << std::dec << " at offset " << offset << "\n";
+        exit(EXIT_FAILURE);
+    }
+    if (block.magicStart1 != UF2_MAGIC_START1) {
+        std::cerr << "Bad magicStart1=" << std::hex << block.magicStart1
+                  << std::dec << " at offset " << offset << "\n";
+        exit(EXIT_FAILURE);
+    }
+    if (block.magicEnd != UF2_MAGIC_END) {
+        std::cerr << "Bad magicEnd=" << std::hex << block.magicEnd
+                  << std::dec << " at offset " << offset << "\n";
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout << std::hex << std::setw(5) << block.flags
+              << "  " << std::setw(8) << block.targetAddr
+              << "    " << std::dec << std::setw(4) << block.payloadSize
+              << "    " << std::setw(6) << block.blockNo
+              << "    " << std::setw(6) << block.numBlocks
+              << "    " << std::hex << std::setw(8) << block.reserved;
+
+    std::cout << std::hex << " " << (unsigned)(uint8_t)block.data[0]
+              << "-" << (unsigned)(uint8_t)block.data[1]
+              << "-" << (unsigned)(uint8_t)block.data[2]
+              << "-...-" << (unsigned)(uint8_t)block.data[474]
+              << "-" << (unsigned)(uint8_t)block.data[475]
+              << "\n";
+}
+
+//
+// Show contents of UF2 file.
+//
+void dump_file(const std::string &input_filename)
+{
+    std::ifstream file(input_filename, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << input_filename << ": Cannot not open file\n";
+        exit(EXIT_FAILURE);
+    }
+
+    UF2_Block block{};
+    auto const block_size = sizeof(block);
+    if (block_size != 512) {
+        std::cerr << "Bad UF2 block size: " << block_size << "\n";
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout << "Flags TargetAddr PayloadSize BlockNo NumBlocks FamilyID Data\n";
+    size_t offset{};
+    while (file.read((char*)&block, block_size)) {
+        print_block(block, offset);
+        offset += block_size;
+    }
 }
 
 //
@@ -128,13 +202,9 @@ fail:       print_usage(std::cerr, prog_name);
     }
 
     if (command == "format") {
-        // Create filesystem with optional contents.
-        //TODO
-
-    } else if (command == "scan") {
-        // Show contents of UF2 file.
-        //TODO
-
+        format_filesystem(input_filename, flash_bytes, contents_dir, output_filename);
+    } else if (command == "dump") {
+        dump_file(input_filename);
     } else {
         goto fail;
     }
