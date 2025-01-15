@@ -135,7 +135,7 @@ static void open_disk_image(unsigned unit, const char *dirname, const char *file
 
 //
 // Open files.
-// On first run, create files in ~/.rp-m/ directory.
+// On first run, create files in ~/.fp-m/ directory.
 //
 void disk_setup()
 {
@@ -144,10 +144,10 @@ void disk_setup()
         home = "";
     }
 
-    // Create directory ~/.rp-m.
+    // Create directory ~/.fp-m.
     char path[4096];
     strcpy(path, home);
-    strcat(path, "/.rp-m");
+    strcat(path, "/.fp-m");
     if (mkdir(path, 0750) < 0 && errno != EEXIST) {
         printf("%s: Cannot create directory, aborted\r\n", path);
         exit(-1);
