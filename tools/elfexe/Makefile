@@ -1,6 +1,6 @@
 CFLAGS  = -O -Wall -Werror -I../../include
 
-all:    elf2exe
+all:    elfexe
 
 clean:
-	rm -f elf2exe *.o *.dis *.elf
+	rm -f elfexe *.o *.dis *.elf

@@ -1,4 +1,4 @@
-Utility elf2exe takes an ELF binary compiled for FP/M and modifies the code
+Utility elfexe takes an ELF binary compiled for FP/M and modifies the code
 in .plt section for proper linking by dynamic loader at run time.
 
 # x86_64

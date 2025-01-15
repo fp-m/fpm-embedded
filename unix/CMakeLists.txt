@@ -16,7 +16,7 @@ add_executable(${PROJECT_NAME}
 )
 add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
 add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)
-add_subdirectory(../tools/elf2exe elf2exe)
+add_subdirectory(../tools/elfexe elfexe)
 
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
     ../include

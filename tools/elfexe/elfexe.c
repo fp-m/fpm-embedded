@@ -40,7 +40,7 @@ static void usage()
 {
     printf("Modify ELF binary for FP/M operating system\n");
     printf("Usage:\n");
-    printf("    elf2exe [-v] executable.elf\n");
+    printf("    elfexe [-v] executable.elf\n");
 }
 
 //

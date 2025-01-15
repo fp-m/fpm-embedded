@@ -9,7 +9,7 @@ add_compile_options(-Wall -Werror)
 
 add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
 add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)
-add_subdirectory(../tools/elf2exe elf2exe)
+add_subdirectory(../tools/elfexe elfexe)
 
 #
 # Download GoogleTest
@@ -152,21 +152,21 @@ endif()
 add_custom_command(OUTPUT hello.exe
     COMMAND ${P}gcc -fPIC -g -O1 -c ${EXE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/hello.c -o hello.o
     COMMAND ${P}ld -shared -fPIC -g -e main hello.o -o hello.exe
-    COMMAND elf2exe/elf2exe hello.exe
+    COMMAND elfexe/elfexe hello.exe
     COMMAND ${P}objdump -d hello.exe > hello.dis
     COMMAND ${P}nm -n hello.exe > hello.nm
     COMMAND ${P}readelf -a hello.exe > hello.readelf
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hello.c elf2exe
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hello.c elfexe
     VERBATIM
 )
 add_custom_command(OUTPUT testputs.exe
     COMMAND ${P}gcc -fPIC -g -O1 -c ${EXE_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c -o testputs.o
     COMMAND ${P}ld -shared -fPIC -g -e main testputs.o -o testputs.exe
-    COMMAND elf2exe/elf2exe testputs.exe
+    COMMAND elfexe/elfexe testputs.exe
     COMMAND ${P}objdump -d testputs.exe > testputs.dis
     COMMAND ${P}nm -n testputs.exe > testputs.nm
     COMMAND ${P}readelf -a testputs.exe > testputs.readelf
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c elf2exe
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/testputs.c elfexe
     VERBATIM
 )
 add_custom_target(generate-exe ALL DEPENDS hello.exe testputs.exe)
