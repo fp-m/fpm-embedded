@@ -1,10 +1,11 @@
 CC		= gcc -g
 CXX             = g++ -std=c++17 -g
-CFLAGS		= -O -Wall
+CFLAGS		= -O -Wall -I../../include
 CXXFLAGS	= $(CFLAGS)
 DESTDIR		= /usr/local
 PROG		= uf2fat
-OBJS		= main.o
+OBJS		= main.o dump.o format.o fatfs.o unicode.o diskio.o
+VPATH           = ../../fatfs
 
 all:		$(PROG)
 
