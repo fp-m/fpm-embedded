@@ -2,6 +2,7 @@
 #include <fpm/fs.h>
 #include <fpm/internal.h>
 #include <fpm/diskio.h>
+#include <fpm/context.h>
 #include <pico/stdlib.h>
 #include "hardware/rtc.h"
 
@@ -26,6 +27,11 @@ void setup_date_time()
 
 int main()
 {
+    // Setup heap area.
+    fpm_context_t context_base;
+    extern char end[], __HeapLimit[];
+    fpm_heap_init(&context_base, (size_t)&end[0], __HeapLimit - end);
+
     setup_date_time();
     disk_setup();
 

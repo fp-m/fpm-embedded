@@ -17,22 +17,16 @@ void fpm_shell(void);
 extern jmp_buf fpm_saved_point; // TODO: move to the system area
 
 //
-// Program Area Descriptor (PAD): layout of the current program.
+// Context of the current program being running.
 //
-typedef struct {
-    // Total amount of free memory.
-    size_t free_size;
-
-    // A linked list of memory gaps, sorted by address in ascending order.
-    void *free_list;
-} fpm_pad_t;
-
-extern fpm_pad_t fpm_pad;
+struct _fpm_context_t;
+typedef struct _fpm_context_t fpm_context_t;
+extern fpm_context_t *fpm_context;
 
 //
 // Initialize region of memory for dynamic allocation.
 //
-void fpm_heap_init(size_t start, size_t nbytes);
+void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes);
 void fpm_heap_print_free_list(void);
 
 //

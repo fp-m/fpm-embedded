@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <fpm/api.h>
 #include <fpm/loader.h>
+#include <fpm/context.h>
 #include <fpm/elf.h>
 #include <sys/syscall.h>
 
@@ -37,7 +38,7 @@ static void mock_print_version()
 
 TEST(loader, print_version_puts_wputs)
 {
-    fpm_executable_t dynobj{};
+    fpm_context_t dynobj{};
     ASSERT_TRUE(fpm_load(&dynobj, "testputs.exe"));
 
     // Export dynamically linked routines.

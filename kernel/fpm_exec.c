@@ -5,6 +5,7 @@
 #include <fpm/internal.h>
 #include <fpm/fs.h>
 #include <fpm/loader.h>
+#include <fpm/context.h>
 #include <alloca.h>
 
 //
@@ -143,7 +144,7 @@ void fpm_exec(int argc, char *argv[])
     }
 
     // Load external executable.
-    fpm_executable_t dynobj;
+    fpm_context_t dynobj;
     memset(&dynobj, 0, sizeof(dynobj));
     if (!fpm_load(&dynobj, path)) {
         // Failed: error message already printed.

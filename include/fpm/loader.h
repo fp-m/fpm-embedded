@@ -8,17 +8,13 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
+
 //
-// Dynamic object structure.
+// Context of the current program being running.
 //
-typedef struct {
-    int fd;                  // File descriptor
-    size_t file_size;        // Size of file in bytes
-    void *base;              // File is mapped at this address
-    unsigned num_links;      // Number of linked procedures
-    const void *rel_section; // Header of .rela.plt section
-    int exit_code;           // Return value of invoked object
-} fpm_executable_t;
+struct _fpm_context_t;
+typedef struct _fpm_context_t fpm_context_t;
 
 //
 // Definition of exported procedure for dynamic linking.
@@ -32,23 +28,23 @@ typedef struct {
 // Load dynamic binary.
 // Return true on success.
 //
-bool fpm_load(fpm_executable_t *dynobj, const char *filename);
+bool fpm_load(fpm_context_t *dynobj, const char *filename);
 
 //
 // Unmap ELF binary from memory.
 //
-void fpm_unload(fpm_executable_t *dynobj);
+void fpm_unload(fpm_context_t *dynobj);
 
 //
 // Internal platform-dependent helper routines.
 //
-bool fpm_load_arch(fpm_executable_t *dynobj, const char *filename);
-void fpm_unload_arch(fpm_executable_t *dynobj);
+bool fpm_load_arch(fpm_context_t *dynobj, const char *filename);
+void fpm_unload_arch(fpm_context_t *dynobj);
 
 //
 // Get names of linked procedures.
 //
-void fpm_get_symbols(fpm_executable_t *dynobj, const char *symbols[]);
+void fpm_get_symbols(fpm_context_t *dynobj, const char *symbols[]);
 
 //
 // Invoke entry address of the ELF binary with argc, argv arguments.
@@ -59,7 +55,7 @@ void fpm_get_symbols(fpm_executable_t *dynobj, const char *symbols[]);
 //
 // Return the exit code.
 //
-bool fpm_execv(fpm_executable_t *dynobj, fpm_binding_t linkmap[], int argc, char *argv[]);
+bool fpm_execv(fpm_context_t *dynobj, fpm_binding_t linkmap[], int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

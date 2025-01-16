@@ -3,6 +3,7 @@
 //
 #include <fpm/api.h>
 #include <fpm/loader.h>
+#include <fpm/context.h>
 #include <fpm/elf.h>
 #include <alloca.h>
 
@@ -34,7 +35,7 @@
 //
 // Find section by type.
 //
-static const Native_Shdr *fpm_section_by_type(fpm_executable_t *dynobj, unsigned type)
+static const Native_Shdr *fpm_section_by_type(fpm_context_t *dynobj, unsigned type)
 {
     const Native_Ehdr *hdr     = dynobj->base;
     const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
@@ -50,7 +51,7 @@ static const Native_Shdr *fpm_section_by_type(fpm_executable_t *dynobj, unsigned
 //
 // Get section by index.
 //
-static const Native_Shdr *fpm_section_by_index(fpm_executable_t *dynobj, unsigned index)
+static const Native_Shdr *fpm_section_by_index(fpm_context_t *dynobj, unsigned index)
 {
     const Native_Ehdr *hdr     = dynobj->base;
     const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
@@ -61,7 +62,7 @@ static const Native_Shdr *fpm_section_by_index(fpm_executable_t *dynobj, unsigne
 //
 // Map ELF binary into memory.
 //
-bool fpm_load(fpm_executable_t *dynobj, const char *filename)
+bool fpm_load(fpm_context_t *dynobj, const char *filename)
 {
     if (!fpm_load_arch(dynobj, filename)) {
 err:    fpm_unload_arch(dynobj);
@@ -147,7 +148,7 @@ err:    fpm_unload_arch(dynobj);
 //
 // Unmap ELF binary from memory.
 //
-void fpm_unload(fpm_executable_t *dynobj)
+void fpm_unload(fpm_context_t *dynobj)
 {
     fpm_unload_arch(dynobj);
 }
@@ -155,7 +156,7 @@ void fpm_unload(fpm_executable_t *dynobj)
 //
 // Get name from .dynsym section.
 //
-static const char *fpm_get_name(fpm_executable_t *dynobj, unsigned reloc_index)
+static const char *fpm_get_name(fpm_context_t *dynobj, unsigned reloc_index)
 {
     // Get pointer to REL or RELA section.
     const Native_Shdr *rel_section = (const Native_Shdr *) dynobj->rel_section;
@@ -186,7 +187,7 @@ static const char *fpm_get_name(fpm_executable_t *dynobj, unsigned reloc_index)
 // Get names of linked procedures.
 // Array result[] must have dynobj->num_links entries.
 //
-void fpm_get_symbols(fpm_executable_t *dynobj, const char *result[])
+void fpm_get_symbols(fpm_context_t *dynobj, const char *result[])
 {
     for (unsigned index = 0; index < dynobj->num_links; index++) {
         result[index] = fpm_get_name(dynobj, index);
@@ -264,7 +265,7 @@ static inline void *get_got_pointer()
 //
 // Return the exit code.
 //
-bool fpm_execv(fpm_executable_t *dynobj, fpm_binding_t linkmap[], int argc, char *argv[])
+bool fpm_execv(fpm_context_t *dynobj, fpm_binding_t linkmap[], int argc, char *argv[])
 {
     // Build a Global Offset Table on stack.
     void **got = alloca(dynobj->num_links);

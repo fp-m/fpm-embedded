@@ -1,5 +1,6 @@
 #include <fpm/api.h>
 #include <fpm/loader.h>
+#include <fpm/context.h>
 #include <fpm/fs.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -10,7 +11,7 @@
 // Load dynamic binary.
 // Return true on success.
 //
-bool fpm_load_arch(fpm_executable_t *dynobj, const char *filename)
+bool fpm_load_arch(fpm_context_t *dynobj, const char *filename)
 {
     // Unix: open the shared library file in read-only mode.
     dynobj->fd = open(filename, O_RDONLY);
@@ -40,7 +41,7 @@ err:    close(dynobj->fd);
 //
 // Unmap ELF binary from memory.
 //
-void fpm_unload_arch(fpm_executable_t *dynobj)
+void fpm_unload_arch(fpm_context_t *dynobj)
 {
     // Unmap the file from memory.
     if (dynobj->base != NULL) {

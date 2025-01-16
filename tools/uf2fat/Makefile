@@ -16,3 +16,6 @@ clean:
 
 $(PROG):	$(OBJS)
 		$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
+upload:         fpm_pico.uf2
+		picotool load -f -x fpm_pico.uf2

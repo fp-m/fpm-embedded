@@ -7,6 +7,7 @@
 // run a little slower, but it also increases the chances of things running smoothly.
 //
 #include <fpm/api.h>
+#include <fpm/context.h>
 #include <fpm/internal.h>
 
 //
@@ -54,6 +55,11 @@ enum {
 static unsigned const SIZEOF_POINTER = sizeof(void *);
 
 //
+// Descriptor of current program being running.
+//
+fpm_context_t *fpm_context;
+
+//
 // Memory alignment.
 // Align data on pointer-sized boundaries.
 //
@@ -95,8 +101,8 @@ void *fpm_alloc_dirty(size_t nbytes)
 
     // Scan the list of all available memory gaps and find the first
     // one that meets our requirement.
-    h = (heap_header_t *)fpm_pad.free_list;
-    hprev = (heap_header_t **)(void *)&fpm_pad.free_list;
+    h = (heap_header_t *)fpm_context->free_list;
+    hprev = (heap_header_t **)(void *)&fpm_context->free_list;
     while (h) {
 #if MEM_DEBUG
         if (h->magic != HEAP_GAP_MAGIC) {
@@ -138,7 +144,7 @@ void *fpm_alloc_dirty(size_t nbytes)
 #if MEM_DEBUG
     h->magic = HEAP_BUSY_MAGIC;
 #endif
-    fpm_pad.free_size -= h->size;
+    fpm_context->free_size -= h->size;
     // fpm_printf ("mem %d bytes returned 0x%x\n", h->size, h+1);
     return h + 1;
 }
@@ -148,7 +154,7 @@ void *fpm_alloc_dirty(size_t nbytes)
 //
 static void make_gap(heap_header_t *newh)
 {
-    fpm_pad.free_size += newh->size;
+    fpm_context->free_size += newh->size;
 #if MEM_DEBUG
     newh->magic = HEAP_GAP_MAGIC;
 #endif
@@ -159,8 +165,8 @@ static void make_gap(heap_header_t *newh)
     // happens, we still ensure that the list is ordered lowest-addressed
     // gap first through to highest-addressed-gap last.
     //
-    heap_header_t *h = (heap_header_t *)fpm_pad.free_list;
-    heap_header_t **hprev = (heap_header_t **)(void *)&fpm_pad.free_list;
+    heap_header_t *h = (heap_header_t *)fpm_context->free_list;
+    heap_header_t **hprev = (heap_header_t **)(void *)&fpm_context->free_list;
     for (;;) {
         if (!h) {
             // At the end of free list
@@ -291,7 +297,7 @@ void fpm_truncate(void *block, size_t nbytes)
 //
 size_t fpm_heap_available()
 {
-    return fpm_pad.free_size;
+    return fpm_context->free_size;
 }
 
 //
@@ -321,7 +327,7 @@ size_t fpm_sizeof(void *block)
 void fpm_heap_print_free_list()
 {
     fpm_printf("free list:");
-    for (heap_header_t *h = fpm_pad.free_list; h; h = NEXT(h)) {
+    for (heap_header_t *h = fpm_context->free_list; h; h = NEXT(h)) {
         fpm_printf(" %p-%p", h, (char *)h + h->size - 1);
     }
     fpm_printf("\n");
@@ -331,16 +337,24 @@ void fpm_heap_print_free_list()
 //
 // Initialize the heap for dynamic allocation.
 //
-void fpm_heap_init(size_t start, size_t nbytes)
+void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes)
 {
     // fpm_printf ("heap_init start=0x%x, size %d bytes\n", start, nbytes);
+
+    // Link this context into the chain.
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->parent = fpm_context;
+    fpm_context = ctx;
+
+    fpm_context->heap_start = start;
+    fpm_context->heap_size  = nbytes;
 
     heap_header_t *h = (heap_header_t *)start;
     h->size = nbytes;
 #if MEM_DEBUG
     h->magic = HEAP_GAP_MAGIC;
 #endif
-    NEXT(h) = fpm_pad.free_list;
-    fpm_pad.free_list = h;
-    fpm_pad.free_size += h->size;
+    NEXT(h) = fpm_context->free_list;
+    fpm_context->free_list = h;
+    fpm_context->free_size += h->size;
 }

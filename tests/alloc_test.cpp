@@ -3,6 +3,7 @@
 //
 #include <gtest/gtest.h>
 #include <fpm/api.h>
+#include <fpm/context.h>
 #include <fpm/internal.h>
 
 //
@@ -39,11 +40,6 @@ typedef struct {
     uintptr_t *addr; // Address of allocation
     unsigned len;    // Allocation length
 } alloc_info_t;
-
-//
-// Program area descriptor.
-//
-fpm_pad_t fpm_pad;
 
 //
 // Convert value to string as hex number.
@@ -220,8 +216,10 @@ TEST(mem, alloc_free)
 {
     signal(SIGSEGV, sig_segv);
 
+    // Setup heap area.
+    fpm_context_t context;
     char buf[TOTAL_BYTES_THRESHOLD];
-    fpm_heap_init((size_t) &buf[0], TOTAL_BYTES_THRESHOLD);
+    fpm_heap_init(&context, (size_t) &buf[0], TOTAL_BYTES_THRESHOLD);
 
     const unsigned MAX_COUNT = 1000000;
     test_loop(MAX_COUNT);

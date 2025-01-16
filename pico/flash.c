@@ -21,7 +21,8 @@
 //
 #include <fpm/api.h>    // Declarations of disk functions
 #include <fpm/diskio.h> // Declarations of disk functions
-#include <fpm/loader.h>
+#include <fpm/context.h>
+#include <fpm/internal.h>
 #include <fpm/fs.h>
 #include <stdio.h>      // For debug printfs
 #include "pico/stdlib.h"
@@ -204,7 +205,7 @@ void flash_identify(disk_info_t *output)
 // Load dynamic binary.
 // Return true on success.
 //
-bool fpm_load_arch(fpm_executable_t *dynobj, const char *filename)
+bool fpm_load_arch(fpm_context_t *dynobj, const char *filename)
 {
     // FP/M on RP2040 microcontroller.
     file_info_t file_info;
@@ -234,7 +235,7 @@ bool fpm_load_arch(fpm_executable_t *dynobj, const char *filename)
 //
 // Unmap ELF binary from memory.
 //
-void fpm_unload_arch(fpm_executable_t *dynobj)
+void fpm_unload_arch(fpm_context_t *dynobj)
 {
     dynobj->base = NULL;
 }

@@ -4,12 +4,13 @@
 #include <gtest/gtest.h>
 #include <fpm/api.h>
 #include <fpm/loader.h>
+#include <fpm/context.h>
 #include <fpm/elf.h>
 #include <sys/syscall.h>
 
 TEST(loader, elf_binary)
 {
-    fpm_executable_t dynobj{};
+    fpm_context_t dynobj{};
 
     // Map ELF file into memory.
     bool load_status = fpm_load(&dynobj, "hello.exe");
@@ -20,7 +21,7 @@ TEST(loader, elf_binary)
 
 TEST(loader, linked_symbols)
 {
-    fpm_executable_t dynobj{};
+    fpm_context_t dynobj{};
 
     const int expect_num_links = 1;
     ASSERT_TRUE(fpm_load(&dynobj, "hello.exe"));
@@ -47,7 +48,7 @@ static void mock_puts(const char *message)
 
 TEST(loader, run_puts)
 {
-    fpm_executable_t dynobj{};
+    fpm_context_t dynobj{};
     ASSERT_TRUE(fpm_load(&dynobj, "hello.exe"));
 
     // Export dynamically linked routines.

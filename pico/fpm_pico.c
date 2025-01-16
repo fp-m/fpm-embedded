@@ -110,6 +110,7 @@ void fpm_print_version()
     fpm_puts("Git commit "GIT_COMMIT", built on "__DATE__" at "__TIME__"\r\n");
     fpm_puts("Pico SDK version "PICO_SDK_VERSION_STRING"\r\n");
     fpm_printf("RP2040 chip revision B%d, ROM version %d\r\n", rp2040_chip_version(), rp2040_rom_version());
+    fpm_printf("Free memory %u kbytes\r\n", fpm_heap_available() / 1024);
 }
 
 //

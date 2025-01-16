@@ -101,6 +101,7 @@ void fpm_print_version()
     if (uname(&u) == 0) {
         fpm_printf("Unix %s %s version %s\r\n", u.sysname, u.machine, u.release);
     }
+    fpm_printf("Free memory %u kbytes\r\n", fpm_heap_available() / 1024);
 }
 
 //

@@ -5,8 +5,11 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <fpm/internal.h>
+#include <fpm/context.h>
 #include <fpm/diskio.h>
 #include <fpm/fs.h>
+
+static uint8_t core_memory[1024*1024];
 
 static struct termios saved_term;
 
@@ -39,6 +42,10 @@ static void init()
 
 int main()
 {
+    // Setup heap area.
+    fpm_context_t context_base;
+    fpm_heap_init(&context_base, (size_t)&core_memory[0], sizeof(core_memory));
+
     // Switch stdin to the raw mode (no line buffering and editing).
     init();
     disk_setup();
