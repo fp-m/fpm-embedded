@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <filesystem>
+#include <cstring>
 #include <fts.h>
 #include <fpm/fs.h>
 #include "extern.h"

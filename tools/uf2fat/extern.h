@@ -1,6 +1,7 @@
 #include <string>
 #include <map>
 #include <array>
+#include <cstdint>
 
 //
 // Sector size is 4096 bytes for Flash memory.
