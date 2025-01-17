@@ -53,7 +53,7 @@ disk_result_t disk_ioctl(uint8_t unit, uint8_t cmd, void *buf)
 
 disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned count)
 {
-    std::cout << "--- read sector " << sector << "\n";
+    // std::cout << "--- read sector " << sector << "\n";
     if (count == 0)
         throw std::runtime_error("Zero count in disk_read()");
     if (sector + count > fs_nbytes / SECTOR_SIZE)
@@ -69,7 +69,7 @@ disk_result_t disk_read(uint8_t unit, uint8_t *buf, unsigned sector, unsigned co
 
 disk_result_t disk_write(uint8_t unit, const uint8_t *buf, unsigned sector, unsigned count)
 {
-    std::cout << "--- write sector " << sector << "\n";
+    // std::cout << "--- write sector " << sector << "\n";
     if (count == 0)
         throw std::runtime_error("Zero count in disk_write()");
     if (sector + count > fs_nbytes / SECTOR_SIZE)

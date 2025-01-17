@@ -114,14 +114,14 @@ void add_contents(const std::string &dirname)
         switch (node->fts_info) {
         case FTS_D:
             // Directory.
-            std::cout << "--- add directory " << path << "\n";
+            // std::cout << "--- add directory " << path << "\n";
             add_directory(path);
             num_dirs++;
             break;
 
         case FTS_F:
             // Regular file.
-            std::cout << "--- add file " << path << " from directory '" << dirname << "'\n";
+            // std::cout << "--- add file " << path << " from directory '" << dirname << "'\n";
             add_file(path, dirname);
             num_files++;
             break;

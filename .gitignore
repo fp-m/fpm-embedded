@@ -9,6 +9,7 @@ TODO
 *.img
 *.hd
 *.elf
+*.exe
 *.dis
 *.nm
 *.readelf
