@@ -144,16 +144,26 @@ void fpm_exec(int argc, char *argv[])
     }
 
     // Load external executable.
-    fpm_context_t dynobj;
-    memset(&dynobj, 0, sizeof(dynobj));
-    if (!fpm_load(&dynobj, path)) {
+    fpm_context_t ctx;
+    memset(&ctx, 0, sizeof(ctx));
+    if (!fpm_load(&ctx, path)) {
         // Failed: error message already printed.
         fpm_puts("\r\n");
         return;
     }
 
-    bool success = fpm_execv(&dynobj, bindings, argc, argv);
-    fpm_unload(&dynobj);
+    // Push context.
+    ctx.parent = fpm_context;
+    fpm_context = &ctx;
+
+    //TODO: allocate heap
+
+    bool success = fpm_execv(&ctx, bindings, argc, argv);
+    fpm_unload(&ctx);
+
+    // Pop context.
+    fpm_context = ctx.parent;
+
     if (!success) {
         // Failed: error message already printed.
         fpm_puts("\r\n");
@@ -161,7 +171,7 @@ void fpm_exec(int argc, char *argv[])
     }
 
     // External binary successfully executed.
-    //TODO: save dynobj.exit_code somehow.
+    //TODO: save ctx.exit_code somehow.
     fpm_puts("\r\n");
 }
 

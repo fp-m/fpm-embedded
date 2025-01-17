@@ -205,7 +205,7 @@ void flash_identify(disk_info_t *output)
 // Load dynamic binary.
 // Return true on success.
 //
-bool fpm_load_arch(fpm_context_t *dynobj, const char *filename)
+bool fpm_load_arch(fpm_context_t *ctx, const char *filename)
 {
     // FP/M on RP2040 microcontroller.
     file_info_t file_info;
@@ -228,14 +228,14 @@ bool fpm_load_arch(fpm_context_t *dynobj, const char *filename)
     }
 
     // Compute address of file contents.
-    dynobj->base = &flash_disk_image[file_info.fstartblk * fs_info.f_bsize];
+    ctx->base = &flash_disk_image[file_info.fstartblk * fs_info.f_bsize];
     return true;
 }
 
 //
 // Unmap ELF binary from memory.
 //
-void fpm_unload_arch(fpm_context_t *dynobj)
+void fpm_unload_arch(fpm_context_t *ctx)
 {
-    dynobj->base = NULL;
+    ctx->base = NULL;
 }

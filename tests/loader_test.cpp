@@ -10,29 +10,29 @@
 
 TEST(loader, elf_binary)
 {
-    fpm_context_t dynobj{};
+    fpm_context_t ctx{};
 
     // Map ELF file into memory.
-    bool load_status = fpm_load(&dynobj, "hello.exe");
+    bool load_status = fpm_load(&ctx, "hello.exe");
     ASSERT_TRUE(load_status);
 
-    fpm_unload(&dynobj);
+    fpm_unload(&ctx);
 }
 
 TEST(loader, linked_symbols)
 {
-    fpm_context_t dynobj{};
+    fpm_context_t ctx{};
 
     const int expect_num_links = 1;
-    ASSERT_TRUE(fpm_load(&dynobj, "hello.exe"));
-    ASSERT_EQ(dynobj.num_links, expect_num_links);
+    ASSERT_TRUE(fpm_load(&ctx, "hello.exe"));
+    ASSERT_EQ(ctx.num_links, expect_num_links);
 
     // Get names of dynamically linked routines.
     const char *symbols[expect_num_links]{};
-    fpm_get_symbols(&dynobj, symbols);
+    fpm_get_symbols(&ctx, symbols);
     ASSERT_STREQ(symbols[0], "fpm_puts");
 
-    fpm_unload(&dynobj);
+    fpm_unload(&ctx);
 }
 
 static std::stringstream puts_result;
@@ -48,8 +48,8 @@ static void mock_puts(const char *message)
 
 TEST(loader, run_puts)
 {
-    fpm_context_t dynobj{};
-    ASSERT_TRUE(fpm_load(&dynobj, "hello.exe"));
+    fpm_context_t ctx{};
+    ASSERT_TRUE(fpm_load(&ctx, "hello.exe"));
 
     // Export dynamically linked routines.
     static fpm_binding_t linkmap[] = {
@@ -60,18 +60,18 @@ TEST(loader, run_puts)
     char filename[] = { "hello" };
     char *argv[] = { filename };
 
-    bool exec_status = fpm_execv(&dynobj, linkmap, 1, argv);
+    bool exec_status = fpm_execv(&ctx, linkmap, 1, argv);
 
 #if __APPLE__ && __x86_64__
     // Cannot set %gs register on MacOS.
     ASSERT_FALSE(exec_status);
 #else
     ASSERT_TRUE(exec_status);
-    ASSERT_EQ(dynobj.exit_code, 0);
+    ASSERT_EQ(ctx.exit_code, 0);
 
     // Check output.
     ASSERT_EQ(puts_result.str(), "Hello, World!\r\n");
 #endif
 
-    fpm_unload(&dynobj);
+    fpm_unload(&ctx);
 }

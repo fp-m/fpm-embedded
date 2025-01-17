@@ -35,10 +35,10 @@
 //
 // Find section by type.
 //
-static const Native_Shdr *fpm_section_by_type(fpm_context_t *dynobj, unsigned type)
+static const Native_Shdr *fpm_section_by_type(fpm_context_t *ctx, unsigned type)
 {
-    const Native_Ehdr *hdr     = dynobj->base;
-    const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
+    const Native_Ehdr *hdr     = ctx->base;
+    const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)ctx->base);
 
     for (unsigned i = 0; i < hdr->e_shnum; i++) {
         if (section[i].sh_type == type) {
@@ -51,10 +51,10 @@ static const Native_Shdr *fpm_section_by_type(fpm_context_t *dynobj, unsigned ty
 //
 // Get section by index.
 //
-static const Native_Shdr *fpm_section_by_index(fpm_context_t *dynobj, unsigned index)
+static const Native_Shdr *fpm_section_by_index(fpm_context_t *ctx, unsigned index)
 {
-    const Native_Ehdr *hdr     = dynobj->base;
-    const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)dynobj->base);
+    const Native_Ehdr *hdr     = ctx->base;
+    const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)ctx->base);
 
     return &section[index];
 }
@@ -62,17 +62,17 @@ static const Native_Shdr *fpm_section_by_index(fpm_context_t *dynobj, unsigned i
 //
 // Map ELF binary into memory.
 //
-bool fpm_load(fpm_context_t *dynobj, const char *filename)
+bool fpm_load(fpm_context_t *ctx, const char *filename)
 {
-    if (!fpm_load_arch(dynobj, filename)) {
-err:    fpm_unload_arch(dynobj);
+    if (!fpm_load_arch(ctx, filename)) {
+err:    fpm_unload_arch(ctx);
         return false;
     }
 
     //
     // Check file format.
     //
-    const char *id = (const char*) dynobj->base;
+    const char *id = (const char*) ctx->base;
     if (id[EI_MAG0] != ELFMAG0 || id[EI_MAG1] != ELFMAG1 ||
         id[EI_MAG2] != ELFMAG2 || id[EI_MAG3] != ELFMAG3) {
         fpm_printf("%s: Not ELF binary\r\n", filename);
@@ -103,7 +103,7 @@ err:    fpm_unload_arch(dynobj);
         goto err;
     }
 
-    const Native_Ehdr *hdr = dynobj->base;
+    const Native_Ehdr *hdr = ctx->base;
     if (hdr->e_type != ET_DYN) {
         fpm_printf("%s: Bad exec type\r\n", filename);
         goto err;
@@ -130,54 +130,54 @@ err:    fpm_unload_arch(dynobj);
     }
 
     // Find relocation section.
-    const Native_Shdr *rel_section = fpm_section_by_type(dynobj, SHT_RELA);
+    const Native_Shdr *rel_section = fpm_section_by_type(ctx, SHT_RELA);
     if (rel_section == NULL) {
-        rel_section = fpm_section_by_type(dynobj, SHT_REL);
+        rel_section = fpm_section_by_type(ctx, SHT_REL);
         if (rel_section == NULL) {
             fpm_printf("%s: No relocation section\r\n", filename);
             goto err;
         }
     }
-    dynobj->rel_section = rel_section;
+    ctx->rel_section = rel_section;
 
     // Number of linked procedures.
-    dynobj->num_links = rel_section->sh_size / rel_section->sh_entsize;
+    ctx->num_links = rel_section->sh_size / rel_section->sh_entsize;
     return true;
 }
 
 //
 // Unmap ELF binary from memory.
 //
-void fpm_unload(fpm_context_t *dynobj)
+void fpm_unload(fpm_context_t *ctx)
 {
-    fpm_unload_arch(dynobj);
+    fpm_unload_arch(ctx);
 }
 
 //
 // Get name from .dynsym section.
 //
-static const char *fpm_get_name(fpm_context_t *dynobj, unsigned reloc_index)
+static const char *fpm_get_name(fpm_context_t *ctx, unsigned reloc_index)
 {
     // Get pointer to REL or RELA section.
-    const Native_Shdr *rel_section = (const Native_Shdr *) dynobj->rel_section;
+    const Native_Shdr *rel_section = (const Native_Shdr *) ctx->rel_section;
 
     // Get index of the symbol in .dynsym section.
     unsigned dynsym_index;
     if (rel_section->sh_type == SHT_RELA) {
-        const Native_Rela *relocations = (const Native_Rela *) (rel_section->sh_offset + (char*)dynobj->base);
+        const Native_Rela *relocations = (const Native_Rela *) (rel_section->sh_offset + (char*)ctx->base);
         dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
     } else {
-        const Native_Rel *relocations = (const Native_Rel *) (rel_section->sh_offset + (char*)dynobj->base);
+        const Native_Rel *relocations = (const Native_Rel *) (rel_section->sh_offset + (char*)ctx->base);
         dynsym_index = NATIVE_R_SYM(relocations[reloc_index].r_info);
     }
 
     // Get pointer to .dynsym contents.
-    const Native_Shdr *fpm_section = fpm_section_by_index(dynobj, rel_section->sh_link);
-    const Native_Sym *symbols      = (const Native_Sym *) (fpm_section->sh_offset + (char*)dynobj->base);
+    const Native_Shdr *fpm_section = fpm_section_by_index(ctx, rel_section->sh_link);
+    const Native_Sym *symbols      = (const Native_Sym *) (fpm_section->sh_offset + (char*)ctx->base);
 
     // Get pointer to .dynstr contents.
-    const Native_Shdr *str_section = fpm_section_by_index(dynobj, fpm_section->sh_link);
-    const char *strings            = str_section->sh_offset + (char*)dynobj->base;
+    const Native_Shdr *str_section = fpm_section_by_index(ctx, fpm_section->sh_link);
+    const char *strings            = str_section->sh_offset + (char*)ctx->base;
 
     // Get name from .dynsym section.
     return &strings[symbols[dynsym_index].st_name];
@@ -185,12 +185,12 @@ static const char *fpm_get_name(fpm_context_t *dynobj, unsigned reloc_index)
 
 //
 // Get names of linked procedures.
-// Array result[] must have dynobj->num_links entries.
+// Array result[] must have ctx->num_links entries.
 //
-void fpm_get_symbols(fpm_context_t *dynobj, const char *result[])
+void fpm_get_symbols(fpm_context_t *ctx, const char *result[])
 {
-    for (unsigned index = 0; index < dynobj->num_links; index++) {
-        result[index] = fpm_get_name(dynobj, index);
+    for (unsigned index = 0; index < ctx->num_links; index++) {
+        result[index] = fpm_get_name(ctx, index);
     }
 }
 
@@ -265,17 +265,17 @@ static inline void *get_got_pointer()
 //
 // Return the exit code.
 //
-bool fpm_execv(fpm_context_t *dynobj, fpm_binding_t linkmap[], int argc, char *argv[])
+bool fpm_execv(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *argv[])
 {
     // Build a Global Offset Table on stack.
-    void **got = alloca(dynobj->num_links);
+    void **got = alloca(ctx->num_links);
 
     // Bind dynamic symbols.
     unsigned fail_count = 0;
-    for (unsigned index = 0; index < dynobj->num_links; index++) {
+    for (unsigned index = 0; index < ctx->num_links; index++) {
 
         // Find symbol's name and address.
-        const char *name = fpm_get_name(dynobj, index);
+        const char *name = fpm_get_name(ctx, index);
         void *address    = find_address_by_name(linkmap, name);
 
         got[index] = address;
@@ -300,11 +300,11 @@ bool fpm_execv(fpm_context_t *dynobj, fpm_binding_t linkmap[], int argc, char *a
 
     // Compute entry address.
     typedef int (*entry_t)(int, char **);
-    const Native_Ehdr *hdr = dynobj->base;
-    const entry_t entry    = (entry_t) (hdr->e_entry + (char*)dynobj->base);
+    const Native_Ehdr *hdr = ctx->base;
+    const entry_t entry    = (entry_t) (hdr->e_entry + (char*)ctx->base);
 
     // Invoke ELF binary.
-    dynobj->exit_code = (*entry)(argc, argv);
+    ctx->exit_code = (*entry)(argc, argv);
 
     set_got_pointer(save_got);
     return true;
