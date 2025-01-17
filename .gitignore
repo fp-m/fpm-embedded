@@ -1,6 +1,7 @@
 pico/build
 unix/build
 tests/build
+TODO
 *.o
 *.so
 *.c-
