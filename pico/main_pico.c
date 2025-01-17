@@ -4,10 +4,13 @@
 #include <fpm/diskio.h>
 #include <fpm/context.h>
 #include <pico/stdlib.h>
-#include "hardware/rtc.h"
+#if HAS_RP2040_RTC
+#   include "hardware/rtc.h"
+#endif
 
 void setup_date_time()
 {
+#if HAS_RP2040_RTC
     // Start the real time clock.
     rtc_init();
 
@@ -23,6 +26,7 @@ void setup_date_time()
     };
     rtc_set_datetime(&t);
     sleep_us(64);
+#endif
 }
 
 int main()

@@ -115,7 +115,7 @@ err:    fpm_unload_arch(ctx);
     static const unsigned NATIVE_MACHINE = EM_386;
 #elif __ARM_ARCH_ISA_A64
     static const unsigned NATIVE_MACHINE = EM_AARCH64;
-#elif __ARM_ARCH_ISA_ARM || __ARM_ARCH_6M__
+#elif __ARM_ARCH_ISA_ARM || __ARM_ARCH_6M__ || __ARM_ARCH_8M_MAIN__
     static const unsigned NATIVE_MACHINE = EM_ARM;
 #elif __mips__
     static const unsigned NATIVE_MACHINE = EM_MIPS;

@@ -1,11 +1,23 @@
 # Set minimum required version of CMake
 cmake_minimum_required(VERSION 3.12)
 
+# Build for rp2040
+set(PICO_BOARD pico)
+set(PICO_PLATFORM rp2040)
+
+# Build for rp2350 in ARM mode
+#set(PICO_BOARD pico2)
+#set(PICO_PLATFORM rp2350-arm-s)
+
+# Build for rp2350 in RISC-V mode
+#set(PICO_BOARD pico2)
+#set(PICO_PLATFORM rp2350-riscv)
+
 # Include build functions from Pico SDK
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 # Set name of project (as PROJECT_NAME) and C/C++ standards
-project(fpm_pico C CXX ASM)
+project(fpm-${PICO_PLATFORM} C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Werror)
@@ -41,11 +53,13 @@ target_link_libraries(${PROJECT_NAME}
     fpm_kernel
     fpm_fatfs
     pico_stdlib
-    hardware_rtc
     hardware_dma
     hardware_spi
     hardware_flash
 )
+if(PICO_RP2040)
+    target_link_libraries(${PROJECT_NAME} hardware_rtc)
+endif()
 
 # Get git commit hash and revision count
 execute_process(

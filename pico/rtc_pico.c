@@ -1,13 +1,16 @@
 #include <fpm/api.h>
 #include "pico/stdlib.h"
-#include "hardware/rtc.h"
+#if HAS_RP2040_RTC
+#   include "hardware/rtc.h"
+#endif
 
 //
 // Get date and time (local).
 //
 void fpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int *min, int *sec)
 {
-    datetime_t now;
+#if HAS_RP2040_RTC
+    datetime_t now = {};
     rtc_get_datetime(&now);
 
     *year = now.year;
@@ -17,6 +20,7 @@ void fpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int
     *hour = now.hour;
     *min = now.min;
     *sec = now.sec;
+#endif
 }
 
 //
@@ -24,6 +28,7 @@ void fpm_get_datetime(int *year, int *month, int *day, int *dotw, int *hour, int
 //
 void fpm_set_datetime(int year, int month, int day, int hour, int min, int sec)
 {
+#if HAS_RP2040_RTC
     datetime_t now = {};
 
     now.year = year;
@@ -36,4 +41,5 @@ void fpm_set_datetime(int year, int month, int day, int hour, int min, int sec)
 
     rtc_set_datetime(&now);
     sleep_us(64);
+#endif
 }
