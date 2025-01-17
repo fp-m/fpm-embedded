@@ -30,6 +30,12 @@ void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes);
 void fpm_heap_print_free_list(void);
 
 //
+// Push/pop program context.
+//
+void fpm_context_push(fpm_context_t *ctx);
+void fpm_context_pop(void);
+
+//
 // Shell commands.
 //
 void fpm_cmd_cat(int argc, char *argv[]);

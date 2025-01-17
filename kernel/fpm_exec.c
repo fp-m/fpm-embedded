@@ -143,7 +143,7 @@ void fpm_exec(int argc, char *argv[])
         return;
     }
 
-    // Load external executable.
+    // Allocate program context.
     fpm_context_t ctx;
     memset(&ctx, 0, sizeof(ctx));
     if (!fpm_load(&ctx, path)) {
@@ -151,18 +151,12 @@ void fpm_exec(int argc, char *argv[])
         fpm_puts("\r\n");
         return;
     }
+    fpm_context_push(&ctx);
 
-    // Push context.
-    ctx.parent = fpm_context;
-    fpm_context = &ctx;
-
-    //TODO: allocate heap
-
+    // Load external executable.
     bool success = fpm_execv(&ctx, bindings, argc, argv);
     fpm_unload(&ctx);
-
-    // Pop context.
-    fpm_context = ctx.parent;
+    fpm_context_pop();
 
     if (!success) {
         // Failed: error message already printed.

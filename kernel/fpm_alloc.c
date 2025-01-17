@@ -36,8 +36,8 @@ typedef struct {
 } heap_header_t;
 
 //
-// In memory gaps (free blocks), the space just after the header
-// is used as a pointer to the next gap (linked free list).
+// In free blocks, the space just after the header
+// is used as a pointer to the next free block (linked free list).
 //
 #define NEXT(h) (*(heap_header_t **)((h) + 1))
 
@@ -93,21 +93,20 @@ void *fpm_alloc_dirty(size_t nbytes)
     // amount requested by our caller.  They also need to be large enough
     // that they can contain a "heap_header_t" and any magic values used in
     // debugging (for when the block gets freed and becomes an isolated
-    // gap).
+    // free block).
     if (nbytes < SIZEOF_POINTER) {
         nbytes = SIZEOF_POINTER;
     }
     nbytes = size_align(nbytes + sizeof(heap_header_t));
 
-    // Scan the list of all available memory gaps and find the first
+    // Scan the list of all available free blocks and find the first
     // one that meets our requirement.
     h = (heap_header_t *)fpm_context->free_list;
     hprev = (heap_header_t **)(void *)&fpm_context->free_list;
     while (h) {
 #if MEM_DEBUG
         if (h->magic != HEAP_GAP_MAGIC) {
-            fpm_printf("mem: bad gap magic at 0x%x\n", h);
-            fpm_printf("     size=%d\n", h->size);
+            fpm_printf("fpm_alloc: bad block magic at %p, size=%zu\n", h, h->size);
             fpm_reboot();
         }
 #endif
@@ -121,13 +120,13 @@ void *fpm_alloc_dirty(size_t nbytes)
 
     // Did we find any space available?
     if (!h) {
-        // fpm_printf ("fpm_alloc failed, size=%d bytes\n", nbytes);
+        // fpm_printf ("fpm_alloc failed, size=%zu bytes\n", nbytes);
         return 0;
     }
 
     // Remove a chunk of space and, if we can, release any of what's left
-    // as a new gap.  If we can't release any then allocate more than was
-    // requested and remove this gap from the gap list.
+    // as a new free block.  If we can't release any then allocate more than was
+    // requested and remove this block from the free list.
     if (h->size >= nbytes + sizeof(heap_header_t) + 2 * SIZEOF_POINTER) {
         newh = (heap_header_t *)((size_t)h + nbytes);
         newh->size = h->size - nbytes;
@@ -145,14 +144,14 @@ void *fpm_alloc_dirty(size_t nbytes)
     h->magic = HEAP_BUSY_MAGIC;
 #endif
     fpm_context->free_size -= h->size;
-    // fpm_printf ("mem %d bytes returned 0x%x\n", h->size, h+1);
+    // fpm_printf("fpm_alloc_dirty: return %p, size %zu bytes\n", h+1, h->size);
     return h + 1;
 }
 
 //
-// Add new gap to the free list.
+// Add new block to the free list.
 //
-static void make_gap(heap_header_t *newh)
+static void make_free_block(heap_header_t *newh)
 {
     fpm_context->free_size += newh->size;
 #if MEM_DEBUG
@@ -160,10 +159,10 @@ static void make_gap(heap_header_t *newh)
 #endif
 
     //
-    // Walk through the gap list and see if this newly freed block can
+    // Walk through the free list and see if this newly freed block can
     // be merged with another block to form a larger space.  Whatever
     // happens, we still ensure that the list is ordered lowest-addressed
-    // gap first through to highest-addressed-gap last.
+    // block first through to highest-addressed-block last.
     //
     heap_header_t *h = (heap_header_t *)fpm_context->free_list;
     heap_header_t **hprev = (heap_header_t **)(void *)&fpm_context->free_list;
@@ -176,7 +175,7 @@ static void make_gap(heap_header_t *newh)
         }
 
         if ((size_t)h > (size_t)newh) {
-            // Insert the new gap before the old one
+            // Insert the new block before the old one
             *hprev = newh;
             if (((size_t)newh + newh->size) == (size_t)h) {
                 newh->size += h->size;
@@ -188,7 +187,7 @@ static void make_gap(heap_header_t *newh)
         }
 
         if (((size_t)h + h->size) == (size_t)newh) {
-            // Append the new gap at the end of the old one
+            // Append the new block at the end of the old one
             h->size += newh->size;
             if (((size_t)h + h->size) == (size_t)NEXT(h)) {
                 h->size += NEXT(h)->size;
@@ -215,13 +214,13 @@ void fpm_free(void *block)
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        fpm_printf("free: bad block magic 0x%x\n", h->magic);
+        fpm_printf("fpm_free: bad block magic 0x%x\n", h->magic);
         fpm_reboot();
     }
 #endif
 
-    // Convert our block into a gap.
-    make_gap(h);
+    // Convert our block into a free one.
+    make_free_block(h);
 }
 
 //
@@ -238,7 +237,7 @@ void *fpm_realloc(void *old_block, size_t bytes)
     heap_header_t *h = (heap_header_t *)old_block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        fpm_printf("realloc: bad block magic 0x%x\n", h->magic);
+        fpm_printf("fpm_realloc: bad block magic 0x%x\n", h->magic);
         fpm_reboot();
     }
 #endif
@@ -249,11 +248,11 @@ void *fpm_realloc(void *old_block, size_t bytes)
 
     void *block = fpm_alloc(bytes);
     if (!block) {
-        make_gap(h);
+        make_free_block(h);
         return 0;
     }
     memcpy(block, old_block, old_size);
-    make_gap(h);
+    make_free_block(h);
     return block;
 }
 
@@ -277,7 +276,7 @@ void fpm_truncate(void *block, size_t nbytes)
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        fpm_printf("truncate: bad block magic 0x%x\n", h->magic);
+        fpm_printf("fpm_truncate: bad block magic 0x%x\n", h->magic);
         fpm_reboot();
     }
 #endif
@@ -288,7 +287,7 @@ void fpm_truncate(void *block, size_t nbytes)
         newh->size = h->size - nbytes;
 
         h->size = nbytes;
-        make_gap(newh);
+        make_free_block(newh);
     }
 }
 
@@ -313,7 +312,7 @@ size_t fpm_sizeof(void *block)
     heap_header_t *h = (heap_header_t *)block - 1;
 #if MEM_DEBUG
     if (h->magic != HEAP_BUSY_MAGIC) {
-        fpm_printf("size: bad block magic 0x%x\n", h->magic);
+        fpm_printf("fpm_sizeof: bad block magic 0x%x\n", h->magic);
         fpm_reboot();
     }
 #endif
@@ -334,18 +333,8 @@ void fpm_heap_print_free_list()
 }
 #endif
 
-//
-// Initialize the heap for dynamic allocation.
-//
-void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes)
+static void fpm_heap_setup(size_t start, size_t nbytes)
 {
-    // fpm_printf ("heap_init start=0x%x, size %d bytes\n", start, nbytes);
-
-    // Link this context into the chain.
-    memset(ctx, 0, sizeof(*ctx));
-    ctx->parent = fpm_context;
-    fpm_context = ctx;
-
     fpm_context->heap_start = start;
     fpm_context->heap_size  = nbytes;
 
@@ -357,4 +346,59 @@ void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes)
     NEXT(h) = fpm_context->free_list;
     fpm_context->free_list = h;
     fpm_context->free_size += h->size;
+}
+
+//
+// Initialize the heap for dynamic allocation.
+//
+void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes)
+{
+    // fpm_printf("fpm_heap_init: start=0x%zx, size %zu bytes\n", start, nbytes);
+
+    // Link this context into the chain.
+    memset(ctx, 0, sizeof(*ctx));
+    ctx->parent = fpm_context;
+    fpm_context = ctx;
+
+    fpm_heap_setup(start, nbytes);
+}
+
+//
+// Push context into a chain.
+//
+void fpm_context_push(fpm_context_t *ctx)
+{
+    ctx->parent = fpm_context;
+    fpm_context = ctx;
+
+    // Allocate new heap.
+    // Scan the list of all available free blocks and find the largest one.
+    heap_header_t *max_block = NULL;
+    heap_header_t *h = (heap_header_t *)fpm_context->free_list;
+    while (h) {
+#if MEM_DEBUG
+        if (h->magic != HEAP_GAP_MAGIC) {
+            fpm_printf("fpm_context_push: bad block magic at %p, size=%zu\n", h, h->size);
+            fpm_reboot();
+        }
+#endif
+        if (max_block == NULL || h->size > max_block->size) {
+            // This block is bigger.
+            max_block = h;
+        }
+        h = NEXT(h);
+    }
+
+    // Did we find any space available?
+    if (max_block != NULL) {
+        fpm_heap_setup((size_t)(max_block + 1), max_block->size - sizeof(heap_header_t));
+    }
+}
+
+//
+// Pop context from chain.
+//
+void fpm_context_pop()
+{
+    fpm_context = fpm_context->parent;
 }
