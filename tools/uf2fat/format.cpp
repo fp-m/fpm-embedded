@@ -90,7 +90,7 @@ static int ftsent_compare(const FTSENT **a, const FTSENT **b)
 //
 // Scan the directory and add each file to the target filesystem.
 //
-void add_contents(const std::string &dirname)
+static void add_contents(const std::string &dirname)
 {
     // Open directory.
     char *argv[2] = { (char*)dirname.c_str(), NULL };

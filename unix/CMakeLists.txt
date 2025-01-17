@@ -17,6 +17,7 @@ add_executable(${PROJECT_NAME}
 add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
 add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)
 add_subdirectory(../tools/elfexe elfexe)
+add_subdirectory(../tools/uf2fat uf2fat)
 
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
     ../include
@@ -46,5 +47,5 @@ set_source_files_properties(fpm_unix.c
 
 install(TARGETS
     ${PROJECT_NAME}
-    DESTINATION bin
+    DESTINATION $ENV{HOME}/.local/bin
 )

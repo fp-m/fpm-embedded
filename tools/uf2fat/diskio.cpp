@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <fpm/api.h>
 #include <fpm/diskio.h>
 #include <sys/time.h>
 #include "extern.h"
