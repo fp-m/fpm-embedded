@@ -14,6 +14,8 @@ add_library(fpm_kernel STATIC
     fpm_get_dotw.c
     fpm_alloc.c
     fpm_loader.c
+    fpm_strtol.c
+    fpm_atof.c
 
     cmd/cmd_cat.c
     cmd/cmd_cd.c

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <fpm/api.h>
 #include <fpm/fs.h>
 #include <fpm/internal.h>
 #include <fpm/diskio.h>

@@ -7,11 +7,6 @@ extern "C" {
 #define FPM_VERSION "0.0"
 
 //
-// Interactive shell.
-//
-void fpm_shell(void);
-
-//
 // Resume on ^C.
 //
 extern jmp_buf fpm_saved_point; // TODO: move to the system area

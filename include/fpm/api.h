@@ -40,10 +40,8 @@ void fpm_putchar(char);
 void fpm_puts(const char *);
 
 int fpm_printf(const char *, ...);
-int fpm_sprintf(char *, const char *, ...);
 int fpm_snprintf(char *, size_t, const char *, ...);
 int fpm_vprintf(const char *, va_list);
-int fpm_vsprintf(char *, const char *, va_list);
 int fpm_vsnprintf(char *, size_t, const char *, va_list);
 
 int fpm_sscanf(const char *, const char *, ...);
@@ -115,6 +113,13 @@ size_t fpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems);
 size_t fpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 
 //
+// Convert string to a long value.
+// Return true when value is out of range.
+//
+bool fpm_strtol(long *output, const char *str, char **endptr, int base);
+double fpm_atof(const char *str);
+
+//
 // Print FP/M version.
 //
 void fpm_print_version(void);
@@ -165,6 +170,11 @@ void *fpm_alloc_dirty(size_t nbytes);
 void fpm_truncate(void *ptr, size_t nbytes);
 size_t fpm_sizeof(void *ptr);
 size_t fpm_heap_available(void);
+
+//
+// Interactive shell.
+//
+void fpm_shell(void);
 
 #ifdef __cplusplus
 }

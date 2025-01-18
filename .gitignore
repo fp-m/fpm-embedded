@@ -5,6 +5,7 @@ TODO
 *.o
 *.so
 *.c-
+*.cpp-
 *.h-
 *.img
 *.hd

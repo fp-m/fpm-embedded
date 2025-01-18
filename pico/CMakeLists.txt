@@ -39,10 +39,14 @@ add_executable(${PROJECT_NAME}
 )
 add_subdirectory(../kernel kernel EXCLUDE_FROM_ALL)
 add_subdirectory(../fatfs fatfs EXCLUDE_FROM_ALL)
+add_subdirectory(../apps apps)
 
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
     ../include
     sd_pico
+)
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    PICO_STACK_SIZE=32768
 )
 
 # Create map/bin/hex/uf2 files
