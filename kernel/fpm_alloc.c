@@ -368,9 +368,6 @@ void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes)
 //
 void fpm_context_push(fpm_context_t *ctx)
 {
-    ctx->parent = fpm_context;
-    fpm_context = ctx;
-
     // Allocate new heap.
     // Scan the list of all available free blocks and find the largest one.
     heap_header_t *max_block = NULL;
@@ -389,9 +386,15 @@ void fpm_context_push(fpm_context_t *ctx)
         h = NEXT(h);
     }
 
+    // Switch to new context.
+    ctx->parent = fpm_context;
+    fpm_context = ctx;
+
     // Did we find any space available?
     if (max_block != NULL) {
-        fpm_heap_setup((size_t)(max_block + 1), max_block->size - sizeof(heap_header_t));
+        // Skip header and the 'next' pointer.
+        const size_t skip = sizeof(heap_header_t) + sizeof(void*);
+        fpm_heap_setup((size_t)max_block + skip, max_block->size - skip);
     }
 }
 
