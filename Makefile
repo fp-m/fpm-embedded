@@ -9,20 +9,20 @@
 # make clean    -- remove build files
 #
 
-all:    pico/build unix/build
-	$(MAKE) -C pico/build $@
+all:    unix/build pico/build
 	$(MAKE) -C unix/build $@
+	$(MAKE) -C pico/build $@
 
 test:   tests/build
 	$(MAKE) -C tests/build all
 	ctest --test-dir tests/build
 
-install: pico/build unix/build
-	$(MAKE) -C pico/build $@
+install: unix/build pico/build
 	$(MAKE) -C unix/build $@
+	$(MAKE) -C pico/build $@
 
 clean:
-	rm -rf pico/build unix/build tests/build
+	rm -rf unix/build pico/build tests/build
 
 pico/build:
 	mkdir $@

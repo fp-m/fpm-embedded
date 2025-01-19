@@ -86,6 +86,8 @@ set_source_files_properties(fpm_pico.c
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
+include(flash_image.cmake)
+
 # 'make upload' to program the binary
 add_custom_target(upload
     picotool load -f -x ${PROJECT_NAME}.uf2
