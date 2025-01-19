@@ -117,7 +117,6 @@ size_t fpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 // Return true when value is out of range.
 //
 bool fpm_strtol(long *output, const char *str, char **endptr, int base);
-double fpm_atof(const char *str);
 
 //
 // Print FP/M version.

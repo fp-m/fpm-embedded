@@ -24,6 +24,8 @@ typedef struct {
     void *address;          // Address of procedure
 } fpm_binding_t;
 
+extern fpm_binding_t fpm_bindings[];
+
 //
 // Load dynamic binary.
 // Return true on success.

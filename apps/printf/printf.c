@@ -35,6 +35,7 @@
  * SUCH DAMAGE.
  */
 #include <fpm/api.h>
+#include <stdlib.h>
 
 typedef struct {
     char **gargv;
@@ -204,7 +205,7 @@ static double getdouble(input_t *input)
     if (!*input->gargv)
         return (double)0;
     if (strchr(Number, **input->gargv))
-        return fpm_atof(*input->gargv++);
+        return atof(*input->gargv++);
     return (double)asciicode(input);
 }
 

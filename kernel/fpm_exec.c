@@ -14,101 +14,6 @@
 //
 static const bool debug_trace = false;
 
-//
-// Export dynamically linked routines.
-//
-static fpm_binding_t bindings[] = {
-    { "", NULL },
-
-    // Kernel routines.
-    { "fpm_alloc", (void*) fpm_alloc },
-    { "fpm_alloc_dirty", (void*) fpm_alloc_dirty },
-    { "fpm_atof", (void*) fpm_atof },
-    { "fpm_delay_msec", (void*) fpm_delay_msec },
-    { "fpm_delay_usec", (void*) fpm_delay_usec },
-    { "fpm_editline", (void*) fpm_editline },
-    { "fpm_exec", (void*) fpm_exec },
-    { "fpm_free", (void*) fpm_free },
-    { "fpm_get_datetime", (void*) fpm_get_datetime },
-    { "fpm_get_dotw", (void*) fpm_get_dotw },
-    { "fpm_getchar", (void*) fpm_getchar },
-    { "fpm_getkey", (void*) fpm_getkey },
-    { "fpm_getopt", (void*) fpm_getopt },
-    { "fpm_getwch", (void*) fpm_getwch },
-    { "fpm_heap_available", (void*) fpm_heap_available },
-    { "fpm_print_version", (void*) fpm_print_version },
-    { "fpm_printf", (void*) fpm_printf },
-    { "fpm_putchar", (void*) fpm_putchar },
-    { "fpm_puts", (void*) fpm_puts },
-    { "fpm_putwch", (void*) fpm_putwch },
-    { "fpm_realloc", (void*) fpm_realloc },
-    { "fpm_reboot", (void*) fpm_reboot },
-    { "fpm_set_datetime", (void*) fpm_set_datetime },
-    { "fpm_shell", (void*) fpm_shell },
-    { "fpm_sizeof", (void*) fpm_sizeof },
-    { "fpm_snprintf", (void*) fpm_snprintf },
-    { "fpm_sscanf", (void*) fpm_sscanf },
-    { "fpm_strlcpy", (void*) fpm_strlcpy },
-    { "fpm_strlcpy_from_utf8", (void*) fpm_strlcpy_from_utf8 },
-    { "fpm_strlcpy_to_utf8", (void*) fpm_strlcpy_to_utf8 },
-    { "fpm_strlcpy_unicode", (void*) fpm_strlcpy_unicode },
-    { "fpm_strtol", (void*) fpm_strtol },
-    { "fpm_strwlen", (void*) fpm_strwlen },
-    { "fpm_time_usec", (void*) fpm_time_usec },
-    { "fpm_tokenize", (void*) fpm_tokenize },
-    { "fpm_truncate", (void*) fpm_truncate },
-    { "fpm_utf8len", (void*) fpm_utf8len },
-    { "fpm_vprintf", (void*) fpm_vprintf },
-    { "fpm_vsnprintf", (void*) fpm_vsnprintf },
-    { "fpm_vsscanf", (void*) fpm_vsscanf },
-    { "fpm_wputs", (void*) fpm_wputs },
-
-    // FIlesystem routines.
-    { "f_chdir", (void*) f_chdir },
-    { "f_chdrive", (void*) f_chdrive },
-    { "f_chmod", (void*) f_chmod },
-    { "f_close", (void*) f_close },
-    { "f_closedir", (void*) f_closedir },
-    { "f_eof", (void*) f_eof },
-    { "f_error", (void*) f_error },
-    { "f_expand", (void*) f_expand },
-    { "f_findfirst", (void*) f_findfirst },
-    { "f_findnext", (void*) f_findnext },
-    { "f_forward", (void*) f_forward },
-    { "f_getcwd", (void*) f_getcwd },
-    { "f_getdrive", (void*) f_getdrive },
-    { "f_getlabel", (void*) f_getlabel },
-    { "f_gets", (void*) f_gets },
-    { "f_lseek", (void*) f_lseek },
-    { "f_mkdir", (void*) f_mkdir },
-    { "f_mkfs", (void*) f_mkfs },
-    { "f_mount", (void*) f_mount },
-    { "f_open", (void*) f_open },
-    { "f_opendir", (void*) f_opendir },
-    { "f_printf", (void*) f_printf },
-    { "f_putc", (void*) f_putc },
-    { "f_puts", (void*) f_puts },
-    { "f_read", (void*) f_read },
-    { "f_readdir", (void*) f_readdir },
-    { "f_rename", (void*) f_rename },
-    { "f_setlabel", (void*) f_setlabel },
-    { "f_size", (void*) f_size },
-    { "f_sizeof_directory_t", (void*) f_sizeof_directory_t },
-    { "f_sizeof_file_t", (void*) f_sizeof_file_t },
-    { "f_stat", (void*) f_stat },
-    { "f_statfs", (void*) f_statfs },
-    { "f_strerror", (void*) f_strerror },
-    { "f_sync", (void*) f_sync },
-    { "f_tell", (void*) f_tell },
-    { "f_truncate", (void*) f_truncate },
-    { "f_unlink", (void*) f_unlink },
-    { "f_unmount", (void*) f_unmount },
-    { "f_utime", (void*) f_utime },
-    { "f_write", (void*) f_write },
-
-    {},
-};
-
 static const char *find_exe(const char *cmdname, char *buf)
 {
     if (strchr(cmdname, '/') != NULL) {
@@ -238,7 +143,7 @@ void fpm_exec(int argc, char *argv[])
     fpm_context_push(&ctx);
 
     // Load external executable.
-    bool success = fpm_invoke(&ctx, bindings, argc, argv);
+    bool success = fpm_invoke(&ctx, fpm_bindings, argc, argv);
     fpm_unload(&ctx);
     fpm_context_pop();
 
