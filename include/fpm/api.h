@@ -113,10 +113,11 @@ size_t fpm_strlcpy_to_utf8(char *dst, const uint16_t *src, size_t nitems);
 size_t fpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 
 //
-// Convert string to a long value.
+// Convert string to number.
 // Return true when value is out of range.
 //
 bool fpm_strtol(long *output, const char *str, char **endptr, int base);
+bool fpm_strtod(double *output, const char *str, char **endptr);
 
 //
 // Print FP/M version.

@@ -41,6 +41,7 @@ fpm_binding_t fpm_bindings[] = {
     { "fpm_strlcpy_from_utf8", (void*) fpm_strlcpy_from_utf8 },
     { "fpm_strlcpy_to_utf8", (void*) fpm_strlcpy_to_utf8 },
     { "fpm_strlcpy_unicode", (void*) fpm_strlcpy_unicode },
+    { "fpm_strtod", (void*) fpm_strtod },
     { "fpm_strtol", (void*) fpm_strtol },
     { "fpm_strwlen", (void*) fpm_strwlen },
     { "fpm_time_usec", (void*) fpm_time_usec },
@@ -97,9 +98,18 @@ fpm_binding_t fpm_bindings[] = {
 
     // Standard C library.
     { "atof", (void*) atof },
+    { "memcmp", (void*) memcmp },
     { "memmove", (void*) memmove },
+    { "stpcpy", (void*) stpcpy },
+    { "stpncpy", (void*) stpncpy },
+    { "strcasecmp", (void*) strcasecmp },
+    { "strcat", (void*) strcat },
     { "strchr", (void*) strchr },
+    { "strcmp", (void*) strcmp },
+    { "strcpy", (void*) strcpy },
     { "strlen", (void*) strlen },
+    { "strncmp", (void*) strncmp },
+    { "strrchr", (void*) strrchr },
 
     {},
 };

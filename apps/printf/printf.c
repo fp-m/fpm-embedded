@@ -211,8 +211,8 @@ static double getdouble(input_t *input)
 
 static void usage()
 {
-    fpm_printf("Usage:\n");
-    fpm_printf("    printf format [arg ...]\n");
+    fpm_puts("Usage:\n");
+    fpm_puts("    printf format [arg ...]\n");
 }
 
 int main(int argc, char **argv)
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
             if (!*fmt) {
                 /* avoid infinite loop */
                 if (end == 1) {
-                    fpm_printf("missing format character\n", NULL, NULL);
+                    fpm_puts("missing format character\n");
                     return 1;
                 }
                 end = 1;
