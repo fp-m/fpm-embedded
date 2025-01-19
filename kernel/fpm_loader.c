@@ -265,7 +265,7 @@ static inline void *get_got_pointer()
 //
 // Return the exit code.
 //
-bool fpm_execv(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *argv[])
+bool fpm_invoke(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *argv[])
 {
     // Build a Global Offset Table on stack.
     void **got = alloca(ctx->num_links);
@@ -278,10 +278,12 @@ bool fpm_execv(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *argv
         const char *name = fpm_get_name(ctx, index);
         void *address    = find_address_by_name(linkmap, name);
 
-        got[index] = address;
         if (address == NULL) {
             fpm_printf("%s: Symbol not found\r\n", name);
             fail_count++;
+        }
+        if (fail_count == 0) {
+            got[index] = address;
         }
     }
     if (fail_count > 0) {

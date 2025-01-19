@@ -52,7 +52,7 @@ TEST(loader, print_version_puts_wputs)
     char filename[] = { "hello" };
     char *argv[] = { filename };
 
-    bool exec_status = fpm_execv(&ctx, linkmap, 1, argv);
+    bool exec_status = fpm_invoke(&ctx, linkmap, 1, argv);
 
 #if __APPLE__ && __x86_64__
     // Cannot set %gs register on MacOS.

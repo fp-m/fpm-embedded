@@ -55,7 +55,7 @@ void fpm_get_symbols(fpm_context_t *ctx, const char *symbols[]);
 //
 // Return the exit code.
 //
-bool fpm_execv(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *argv[]);
+bool fpm_invoke(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

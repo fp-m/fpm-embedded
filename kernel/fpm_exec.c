@@ -238,7 +238,7 @@ void fpm_exec(int argc, char *argv[])
     fpm_context_push(&ctx);
 
     // Load external executable.
-    bool success = fpm_execv(&ctx, bindings, argc, argv);
+    bool success = fpm_invoke(&ctx, bindings, argc, argv);
     fpm_unload(&ctx);
     fpm_context_pop();
 
