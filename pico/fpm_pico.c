@@ -144,3 +144,14 @@ void fpm_delay_msec(unsigned milliseconds)
 {
      busy_wait_ms(milliseconds);
 }
+
+//
+// Return the amount of stack space.
+//
+size_t fpm_stack_available()
+{
+    extern char __StackBottom[];
+    char *sp = NULL;
+    asm volatile("mov %0, sp" : "=r"(sp));
+    return sp - __StackBottom;
+}

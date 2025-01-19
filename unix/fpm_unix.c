@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/utsname.h>
+#include <sys/resource.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -165,4 +166,16 @@ void fpm_delay_usec(uint64_t microseconds)
 void fpm_delay_msec(unsigned milliseconds)
 {
      usleep(milliseconds * 1000ULL);
+}
+
+//
+// Return the amount of stack space.
+//
+size_t fpm_stack_available()
+{
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_STACK, &rl) < 0) {
+        return 0;
+    }
+    return rl.rlim_cur;
 }

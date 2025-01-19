@@ -37,6 +37,7 @@ fpm_binding_t fpm_bindings[] = {
     { "fpm_sizeof", (void*) fpm_sizeof },
     { "fpm_snprintf", (void*) fpm_snprintf },
     { "fpm_sscanf", (void*) fpm_sscanf },
+    { "fpm_stack_available", (void*) fpm_stack_available },
     { "fpm_strlcpy", (void*) fpm_strlcpy },
     { "fpm_strlcpy_from_utf8", (void*) fpm_strlcpy_from_utf8 },
     { "fpm_strlcpy_to_utf8", (void*) fpm_strlcpy_to_utf8 },

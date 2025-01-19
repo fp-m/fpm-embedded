@@ -170,6 +170,7 @@ void *fpm_alloc_dirty(size_t nbytes);
 void fpm_truncate(void *ptr, size_t nbytes);
 size_t fpm_sizeof(void *ptr);
 size_t fpm_heap_available(void);
+size_t fpm_stack_available(void);
 
 //
 // Interactive shell.
