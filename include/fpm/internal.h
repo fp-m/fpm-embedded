@@ -4,12 +4,12 @@
 extern "C" {
 #endif
 
-#define FPM_VERSION "0.0"
+#define FPM_VERSION "0.1"
 
 //
 // Resume on ^C.
 //
-extern jmp_buf fpm_saved_point; // TODO: move to the system area
+extern jmp_buf fpm_saved_point;
 
 //
 // Context of the current program being running.
