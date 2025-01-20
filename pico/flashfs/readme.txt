@@ -1,4 +1,5 @@
-FP/M release 1.0.
+FP/M - Flash Program for Microcontrollers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use HELP to see a list of built-in commands.
 

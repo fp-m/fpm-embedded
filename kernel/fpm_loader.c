@@ -5,7 +5,6 @@
 #include <fpm/loader.h>
 #include <fpm/context.h>
 #include <fpm/elf.h>
-#include <alloca.h>
 
 #if (__x86_64__ || __i386__) && __unix__
     // MacOS/x86 is not supported
@@ -268,7 +267,7 @@ static inline void *get_got_pointer()
 bool fpm_invoke(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *argv[])
 {
     // Build a Global Offset Table on stack.
-    void **got = alloca(ctx->num_links);
+    volatile void *got[ctx->num_links];
 
     // Bind dynamic symbols.
     unsigned fail_count = 0;

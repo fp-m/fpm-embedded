@@ -16,7 +16,7 @@ extern jmp_buf fpm_saved_point; // TODO: move to the system area
 //
 struct _fpm_context_t;
 typedef struct _fpm_context_t fpm_context_t;
-extern fpm_context_t *fpm_context;
+extern volatile fpm_context_t *fpm_context;
 
 //
 // Initialize region of memory for dynamic allocation.
@@ -27,7 +27,7 @@ void fpm_heap_print_free_list(void);
 //
 // Push/pop program context.
 //
-void fpm_context_push(fpm_context_t *ctx);
+bool fpm_context_push(fpm_context_t *ctx);
 void fpm_context_pop(void);
 
 //

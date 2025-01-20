@@ -57,7 +57,7 @@ static unsigned const SIZEOF_POINTER = sizeof(void *);
 //
 // Descriptor of current program being running.
 //
-fpm_context_t *fpm_context;
+volatile fpm_context_t *fpm_context;
 
 //
 // Memory alignment.
@@ -345,7 +345,7 @@ static void fpm_heap_setup(size_t start, size_t nbytes)
 #endif
     NEXT(h) = fpm_context->free_list;
     fpm_context->free_list = h;
-    fpm_context->free_size += h->size;
+    fpm_context->free_size = h->size;
 }
 
 //
@@ -365,8 +365,9 @@ void fpm_heap_init(fpm_context_t *ctx, size_t start, size_t nbytes)
 
 //
 // Push context into a chain.
+// Return false when cannot allocate a nested heap.
 //
-void fpm_context_push(fpm_context_t *ctx)
+bool fpm_context_push(fpm_context_t *ctx)
 {
     // Allocate new heap.
     // Scan the list of all available free blocks and find the largest one.
@@ -386,16 +387,19 @@ void fpm_context_push(fpm_context_t *ctx)
         h = NEXT(h);
     }
 
+    // Did we find any space available?
+    if (max_block == NULL || max_block->size < 1024) {
+        return false;
+    }
+
     // Switch to new context.
     ctx->parent = fpm_context;
     fpm_context = ctx;
 
-    // Did we find any space available?
-    if (max_block != NULL) {
-        // Skip header and the 'next' pointer.
-        const size_t skip = sizeof(heap_header_t) + sizeof(void*);
-        fpm_heap_setup((size_t)max_block + skip, max_block->size - skip);
-    }
+    // Skip header and the 'next' pointer.
+    const size_t skip = sizeof(heap_header_t) + sizeof(void*);
+    fpm_heap_setup((size_t)max_block + skip, max_block->size - skip);
+    return true;
 }
 
 //

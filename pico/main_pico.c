@@ -32,6 +32,9 @@ void setup_date_time()
 
 int main()
 {
+    // Initialize chosen serial port.
+    stdio_init_all();
+
     // Setup heap area.
     fpm_context_t context_base;
     extern char end[], __HeapLimit[];
@@ -43,9 +46,6 @@ int main()
     // Try to mount flash at startup.
     // It may fail, which is OK.
     f_mount("flash:");
-
-    // Initialize chosen serial port.
-    stdio_init_all();
 
     // Start interactive dialog.
     for (;;) {

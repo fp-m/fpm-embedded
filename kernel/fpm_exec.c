@@ -7,12 +7,13 @@
 #include <fpm/loader.h>
 #include <fpm/context.h>
 #include <fpm/getopt.h>
-#include <alloca.h>
 
 //
 // Debug options.
 //
 static const bool debug_trace = false;
+
+static const unsigned MIN_STACK_SIZE = 8*1024;
 
 static const char *find_exe(const char *cmdname, char *buf)
 {
@@ -124,7 +125,8 @@ void fpm_exec(int argc, char *argv[])
 
     // Find file path of external command.
     // Try .exe extension, search flash:/bin directory.
-    char *buf = alloca(strlen(argv[0]) + sizeof(".exe") + sizeof("flash:/bin"));
+    unsigned const buf_size = strlen(argv[0]) + sizeof(".exe") + sizeof("flash:/bin");
+    char buf[buf_size];
     const char *path = find_exe(argv[0], buf);
     if (!path) {
         fpm_puts(argv[0]);
@@ -140,7 +142,16 @@ void fpm_exec(int argc, char *argv[])
         fpm_puts("\r\n");
         return;
     }
-    fpm_context_push(&ctx);
+    if (fpm_stack_available() < MIN_STACK_SIZE) {
+        fpm_puts(argv[0]);
+        fpm_puts(": No space for stack\r\n\n");
+        return;
+    }
+    if (!fpm_context_push(&ctx)) {
+        fpm_puts(argv[0]);
+        fpm_puts(": No space for heap\r\n\n");
+        return;
+    }
 
     // Load external executable.
     bool success = fpm_invoke(&ctx, fpm_bindings, argc, argv);

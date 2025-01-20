@@ -13,7 +13,7 @@ extern "C" {
 //
 typedef struct _fpm_context_t {
     // Pointer to a parent program, or NULL.
-    struct _fpm_context_t *parent;
+    volatile struct _fpm_context_t *parent;
 
     // Heap info for memory allocation.
     size_t heap_start;  // Heap starts at this address
