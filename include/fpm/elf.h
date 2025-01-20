@@ -35,8 +35,8 @@
  * - The "Linkers and Libraries Guide", from Sun Microsystems.
  */
 
-#ifndef _FPM_ELF_H_
-#define _FPM_ELF_H_
+#ifndef FPM_ELF_H
+#define FPM_ELF_H
 
 #include <stdint.h>
 
@@ -895,4 +895,4 @@ typedef struct {
 #define SHT_LOUSER             0x80000000UL
 #define SHT_HIUSER             0xFFFFFFFFUL
 
-#endif /* _FPM_ELF_H_ */
+#endif /* FPM_ELF_H */

@@ -2,8 +2,8 @@
 /  Low level disk interface modlue include file   (C)ChaN, 2019          /
 /-----------------------------------------------------------------------*/
 
-#ifndef _DISKIO_DEFINED
-#define _DISKIO_DEFINED
+#ifndef FPM_DISKIO_H
+#define FPM_DISKIO_H
 
 #include <stdint.h>
 
@@ -117,4 +117,4 @@ enum {
 }
 #endif
 
-#endif
+#endif // FPM_DISKIO_H

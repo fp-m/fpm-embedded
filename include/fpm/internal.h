@@ -1,3 +1,6 @@
+#ifndef FPM_INTERNAL_H
+#define FPM_INTERNAL_H
+
 #include <setjmp.h>
 
 #ifdef __cplusplus
@@ -57,3 +60,5 @@ void fpm_cmd_vol(int argc, char *argv[]);
 #ifdef __cplusplus
 }
 #endif
+
+#endif // FPM_INTERNAL_H

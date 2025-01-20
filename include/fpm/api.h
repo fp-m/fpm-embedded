@@ -1,6 +1,9 @@
 //
 // API for FP/M.
 //
+#ifndef FPM_API_H
+#define FPM_API_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -173,14 +176,10 @@ size_t fpm_heap_available(void);
 size_t fpm_stack_available(void);
 
 // Forbid standard routines.
-extern void __attribute__((error("malloc() is not allowed, use fpm_alloc_dirty() instead")))
-    *malloc(size_t size);
-extern void __attribute__((error("free() is not allowed, use fpm_free() instead")))
-    free(void *ptr);
-extern void __attribute__((error("calloc() is not allowed, use fpm_alloc() instead")))
-    *calloc(size_t count, size_t size);
-extern void __attribute__((error("realloc() is not allowed, use fpm_realloc() instead")))
-    *realloc(void *ptr, size_t size);
+void *malloc(size_t size) __attribute__((deprecated("use fpm_alloc_dirty() instead")));
+void free(void *ptr) __attribute__((deprecated("use fpm_free() instead")));
+void *calloc(size_t count, size_t size) __attribute__((deprecated("use fpm_alloc() instead")));
+void *realloc(void *ptr, size_t size) __attribute__((deprecated("use fpm_realloc() instead")));
 
 //
 // Interactive shell.
@@ -190,3 +189,5 @@ void fpm_shell(void);
 #ifdef __cplusplus
 }
 #endif
+
+#endif // FPM_API_H

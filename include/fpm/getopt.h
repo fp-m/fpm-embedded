@@ -1,6 +1,9 @@
 //
 // Get long options from command line argument list.
 //
+#ifndef FPM_GETOPT_H
+#define FPM_GETOPT_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,3 +41,5 @@ int fpm_getopt(int argc, char *const argv[], const char *optstring,
 #ifdef __cplusplus
 }
 #endif
+
+#endif // FPM_GETOPT_H
