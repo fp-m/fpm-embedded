@@ -23,7 +23,14 @@ Add two lines to your ~/.bashrc script:
     export PICO_SDK_PATH=$HOME/pico-sdk
     export PICO_EXAMPLES_PATH=$HOME/pico-examples
 
-### Checkout and build FP/M from sources
+### Build and install FP/M linker
+
+    git clone https://github.com/fp-m/fpm-linker.git
+    cd fpm-linker
+    make
+    make install
+
+### Build FP/M from sources
 
     git clone https://github.com/fp-m/fpm-embedded.git
     cd fpm-embedded
