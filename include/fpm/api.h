@@ -172,6 +172,16 @@ size_t fpm_sizeof(void *ptr);
 size_t fpm_heap_available(void);
 size_t fpm_stack_available(void);
 
+// Forbid standard routines.
+extern void __attribute__((error("malloc() is not allowed, use fpm_alloc_dirty() instead")))
+    *malloc(size_t size);
+extern void __attribute__((error("free() is not allowed, use fpm_free() instead")))
+    free(void *ptr);
+extern void __attribute__((error("calloc() is not allowed, use fpm_alloc() instead")))
+    *calloc(size_t count, size_t size);
+extern void __attribute__((error("realloc() is not allowed, use fpm_realloc() instead")))
+    *realloc(void *ptr, size_t size);
+
 //
 // Interactive shell.
 //

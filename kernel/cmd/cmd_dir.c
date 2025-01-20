@@ -64,7 +64,7 @@ static void list_delete(file_list_t *list)
     list_item_t *item, *next;
     for (item = list->head; item != 0; item = next) {
         next = item->next;
-        free(item);
+        fpm_free(item);
     }
     list->head = 0;
     list->tail = 0;
@@ -81,7 +81,7 @@ static void list_append_file_info(file_list_t *list, const file_info_t *info)
     const unsigned name_nbytes = strlen(file_name);
 
     // Allocate list item.
-    list_item_t *file = calloc(1, sizeof(*file) + name_nbytes);
+    list_item_t *file = fpm_alloc(sizeof(list_item_t) + name_nbytes);
     if (!file) {
         fpm_printf("%s: Out of memory\r\n", file_name);
         return;
