@@ -84,8 +84,52 @@ Hello, World!
 External commands can be executed only from `flash:/bin` directory.
 You can put more *.exe binaries there by copying from SD card.
 
-## History
+## Line Editing
 
-Previous command can be recalled from history by Up Arroy key.
+Previous command can be recalled from history by Up Arrow key.
 The command line can be edited in place. Use Left/Right arrows
 and Home/End keys to navigate. ALternatively, use ^B/^F/^H/^E keys.
+
+## Mounting SD Card
+
+After inserting the SD card, use the `mount` command to make it accessible.
+```
+mount sd:
+```
+View all mounted filesystems by running mount without any arguments.
+For example:
+```
+flash:/ > mount
+ Drive    Type  1k-blocks      Used Available Capacity
+flash:  FAT-12      16192        68     16124     0%
+   sd:   exFAT   15183872      6816  15177056     0%
+```
+To unmount a filesystem, use `eject` command:
+```
+eject sd:
+```
+
+## Formatting the SD Card
+
+If your SD card does not currently have a FAT filesystem, you must format it before proceeding.
+Use the `format` command: This will erase all existing data on the SD card.
+For example:
+```
+flash:/ > format sd:
+Do you really want to format drive sd?
+Disk 'PH SD04G', size 3796.0 Mbytes.
+All data on the disk will be lost.
+Confirm? y/n [n] y
+Disk sd formatted.
+
+flash:/ > mount sd:
+flash:/ > mount
+ Drive    Type  1k-blocks      Used Available Capacity
+flash:  FAT-12      16192        68     16124     0%
+   sd:  FAT-32    3887072       544   3886528     0%
+```
+
+# Copying files
+
+Use `cp` command to copy files between `flash:` drive and `sd:` drive.
+With option `-r` it can copy directories recursively.

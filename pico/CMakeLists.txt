@@ -82,6 +82,24 @@ set_source_files_properties(fpm_pico.c
     PROPERTIES COMPILE_FLAGS "-DGIT_REVCOUNT=\\\"${GIT_REVCOUNT}\\\" -DGIT_COMMIT=\\\"${GIT_COMMIT}\\\""
 )
 
+# Create build timestamp
+string(TIMESTAMP BUILD_YEAR "%Y")
+string(TIMESTAMP BUILD_MONTH "%m")
+string(TIMESTAMP BUILD_DAY "%d")
+string(TIMESTAMP BUILD_HOUR "%H")
+string(TIMESTAMP BUILD_MIN "%M")
+string(TIMESTAMP BUILD_SEC "%S")
+string(TIMESTAMP BUILD_DOTW "%w")
+set_source_files_properties(main_pico.c PROPERTIES COMPILE_FLAGS
+    "-DBUILD_YEAR=${BUILD_YEAR} \
+     -DBUILD_MONTH=${BUILD_MONTH} \
+     -DBUILD_DAY=${BUILD_DAY} \
+     -DBUILD_HOUR=${BUILD_HOUR} \
+     -DBUILD_MIN=${BUILD_MIN} \
+     -DBUILD_SEC=${BUILD_SEC} \
+     -DBUILD_DOTW=${BUILD_DOTW}"
+)
+
 # Enable usb output, disable uart output
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)

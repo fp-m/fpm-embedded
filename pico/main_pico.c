@@ -17,13 +17,13 @@ void setup_date_time()
 
     //TODO: get time/date from battery backed RTC or from filesystem
     datetime_t t = {
-        .year  = 2023,
-        .month = 02,
-        .day   = 10,
-        .dotw  = 5, // 0 is Sunday, so 5 is Friday
-        .hour  = 0,
-        .min   = 54,
-        .sec   = 0,
+        .year  = BUILD_YEAR,
+        .month = BUILD_MONTH,
+        .day   = BUILD_DAY,
+        .dotw  = BUILD_DOTW, // 0 is Sunday, so 5 is Friday
+        .hour  = BUILD_HOUR,
+        .min   = BUILD_MIN,
+        .sec   = BUILD_SEC,
     };
     rtc_set_datetime(&t);
     sleep_us(64);
