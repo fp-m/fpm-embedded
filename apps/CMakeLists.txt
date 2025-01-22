@@ -7,7 +7,7 @@ function(fpm_target_options arg)
     )
     set_target_properties(${arg} PROPERTIES SUFFIX ".exe")
     target_compile_options(${arg} PRIVATE -fPIC -fno-asynchronous-unwind-tables)
-    target_link_options(${arg} PRIVATE -shared -fPIC -nostartfiles -e main -B$ENV{HOME}/.local/lib/fpm/arm)
+    target_link_options(${arg} PRIVATE -shared -fPIC -nostartfiles -e main -s -B$ENV{HOME}/.local/lib/fpm/arm)
 
     #
     # Disassemble
@@ -32,3 +32,4 @@ add_subdirectory(hello)
 add_subdirectory(cmd)
 add_subdirectory(free)
 add_subdirectory(printf)
+add_subdirectory(gpio)
