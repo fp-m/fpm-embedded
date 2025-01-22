@@ -4,10 +4,14 @@
 #include <fpm/api.h>
 #include <fpm/getopt.h>
 #include <stdlib.h>
+#include <pico/stdlib.h>
 
 enum {
-    CMD_GET,
-    CMD_SET,
+    CMD_GETSET,
+    CMD_OUT,
+    CMD_IN,
+    CMD_PU,
+    CMD_PD,
 };
 
 //
@@ -15,49 +19,56 @@ enum {
 //
 void show_all()
 {
-    //TODO
-    fpm_puts("show all signals\r\n");
+    for(uint pin = 0; pin < NUM_BANK0_GPIOS; pin++) {
+        gpio_function_t func = gpio_get_function(pin);
+    //val = gpio_get(pin);
+    //val = gpio_get_dir(pin); // 1 for out, 0 for in
+    }
 }
 
-void get_signal(const char *arg)
+void get_set(const char *arg)
 {
     //TODO
-    fpm_printf("show signal %s\r\n", arg);
+    fpm_printf("get/set signal %s\r\n", arg);
+    //val = gpio_get(pin);
+    //gpio_put(pin, 1);
 }
 
-void set_signal(const char *arg, unsigned value)
+void configure(const char *arg, int mode)
 {
     //TODO
-    fpm_printf("set signal %s %u\r\n", arg, value);
+    fpm_printf("configure signal %s in mode %d\r\n", arg, mode);
+    //gpio_set_dir(pin, GPIO_IN);
+    //gpio_set_dir(pin, GPIO_OUT);
+    //gpio_put(pin, 1);
 }
 
 int main(int argc, char **argv)
 {
     struct fpm_opt opt = {};
     unsigned argcount = 0;
-    unsigned value = 1;
-    int mode = CMD_GET;
+    int mode = CMD_GETSET;
 
     while (fpm_getopt(argc, argv, "h", NULL, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             if (strcmp(opt.arg, "info") == 0) {
                 show_all();
-            } else if (strcmp(opt.arg, "get") == 0) {
-                mode = CMD_GET;
-            } else if (strcmp(opt.arg, "set") == 0) {
-                mode = CMD_SET;
-                value = 1;
-            } else if (strcmp(opt.arg, "clear") == 0) {
-                mode = CMD_SET;
-                value = 0;
+            } else if (strcmp(opt.arg, "out") == 0) {
+                mode = CMD_OUT;
+            } else if (strcmp(opt.arg, "in") == 0) {
+                mode = CMD_IN;
+            } else if (strcmp(opt.arg, "pu") == 0) {
+                mode = CMD_PU;
+            } else if (strcmp(opt.arg, "pd") == 0) {
+                mode = CMD_PD;
             } else {
                 switch (mode) {
-                case CMD_GET:
-                    get_signal(opt.arg);
+                case CMD_GETSET:
+                    get_set(opt.arg);
                     break;
-                case CMD_SET:
-                    set_signal(opt.arg, value);
+                default:
+                    configure(opt.arg, mode);
                     break;
                 }
             }
@@ -70,15 +81,13 @@ int main(int argc, char **argv)
         case 'h':
             fpm_puts(
                 "Usage:\r\n"
-                "    gpio info\r\n"
-                "    gpio get 1 2 4-7\r\n"
-                "    gpio set 1=0 2=1 4-7=1\r\n"
-                "    gpio clear 1 2 4-7\r\n"
-                "Commands:\r\n"
-                "    info       Show all GPIO signals\r\n"
-                "    get        Get input signals\r\n"
-                "    set        Set otput signals\r\n"
-                "    clear      Clear otput signals\r\n"
+                "    gpio info      - show configuration of all signals\r\n"
+                "    gpio 1 3-5     - show signals gpio1 and gpio3...gpio5\r\n"
+                "    gpio 1=0 3-5=1 - clear gpio to 0, set gpio3...gpio5 to 1\r\n"
+                "    gpio out 1 2   - configure gpio1 and gpio2 as outputs\r\n"
+                "    gpio in 3      - configure gpio3 as input (with high impedance)\r\n"
+                "    gpio pu 4      - configure gpio4 as input with pull-up\r\n"
+                "    gpio pd 5-7    - configure gpio5...gpio7 as inputs with pull-down\r\n"
                 "\n");
             return 0;
         }
