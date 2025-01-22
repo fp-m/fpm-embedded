@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME}
     rtc_pico.c
     diskio.c
     flash.c
+    bindings.c
     sd_pico/crc.c
     sd_pico/sd_card.c
     sd_pico/sd_spi.c
@@ -49,8 +50,17 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     PICO_STACK_SIZE=32768
 )
 
-# Create map/bin/hex/uf2 files
-pico_add_extra_outputs(${PROJECT_NAME})
+# Create uf2 file.
+# Assume picotool is already installed.
+set(picotool_FOUND 1)
+pico_add_uf2_output(${PROJECT_NAME})
+pico_add_dis_output(${PROJECT_NAME})
+
+# Create .nm file.
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND arm-none-eabi-nm -n ${PROJECT_NAME}.elf > ${PROJECT_NAME}.nm
+    VERBATIM
+)
 
 # Link to pico_stdlib (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME}

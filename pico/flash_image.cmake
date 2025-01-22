@@ -7,6 +7,7 @@ add_custom_command(OUTPUT flashfs
             free.exe
             hello.exe
             printf.exe
+            gpio.exe
     COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/flashfs
                 ${CMAKE_CURRENT_BINARY_DIR}/flashfs
@@ -22,6 +23,9 @@ add_custom_command(OUTPUT flashfs
     COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_BINARY_DIR}/apps/printf/printf.exe
                 ${CMAKE_CURRENT_BINARY_DIR}/flashfs/bin/printf.exe
+    COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_BINARY_DIR}/apps/gpio/gpio.exe
+                ${CMAKE_CURRENT_BINARY_DIR}/flashfs/bin/gpio.exe
 )
 
 set(UF2FAT ${CMAKE_SOURCE_DIR}/../unix/build/uf2fat/uf2fat)

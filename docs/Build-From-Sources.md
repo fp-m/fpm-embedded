@@ -4,7 +4,7 @@
 
 On Ubuntu:
 
-    sudo apt install gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential cmake
+    sudo apt install gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential flex cmake texinfo
 
 On MacOS:
 
@@ -29,6 +29,8 @@ Add two lines to your ~/.bashrc script:
     cd fpm-linker
     make
     make install
+
+The linker will be installed as `~/.local/lib/fpm/arm/ld` in your home directory.
 
 ### Build FP/M from sources
 
