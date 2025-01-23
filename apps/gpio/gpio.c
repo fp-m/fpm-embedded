@@ -17,7 +17,7 @@ enum {
 //
 // Show all signals.
 //
-void show_all()
+static void show_all()
 {
     for (unsigned pin = 0; pin < NUM_BANK0_GPIOS; pin++) {
         gpio_function_t func = gpio_get_function(pin);
@@ -27,7 +27,7 @@ void show_all()
     }
 }
 
-void get_set(const char *arg)
+static void get_set(const char *arg)
 {
     //TODO
     fpm_printf("get/set signal %s\r\n", arg);
@@ -35,7 +35,7 @@ void get_set(const char *arg)
     //gpio_put(pin, 1);
 }
 
-void configure(const char *arg, int mode)
+static void configure(const char *arg, int mode)
 {
     //TODO
     fpm_printf("configure signal %s in mode %d\r\n", arg, mode);
