@@ -19,8 +19,9 @@ enum {
 //
 void show_all()
 {
-    for(uint pin = 0; pin < NUM_BANK0_GPIOS; pin++) {
+    for (unsigned pin = 0; pin < NUM_BANK0_GPIOS; pin++) {
         gpio_function_t func = gpio_get_function(pin);
+        fpm_printf("gpio% function %u\r\n", pin, func);
     //val = gpio_get(pin);
     //val = gpio_get_dir(pin); // 1 for out, 0 for in
     }
