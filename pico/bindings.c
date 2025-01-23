@@ -6,6 +6,9 @@
 #include <fpm/fs.h>
 #include <fpm/getopt.h>
 #include <stdlib.h>
+#include <pico/stdlib.h>
+
+int gpio_get_pad(uint gpio); // missing in hardware/gpio.h
 
 fpm_binding_t fpm_bindings[] = {
     { "", NULL },
@@ -111,6 +114,41 @@ fpm_binding_t fpm_bindings[] = {
     { "strlen", (void*) strlen },
     { "strncmp", (void*) strncmp },
     { "strrchr", (void*) strrchr },
+
+    // Pico: GPIO functions.
+    // TODO: move to pico directory.
+    { "gpio_acknowledge_irq", (void*) gpio_acknowledge_irq },
+    { "gpio_add_raw_irq_handler_masked", (void*) gpio_add_raw_irq_handler_masked },
+    { "gpio_add_raw_irq_handler_masked64", (void*) gpio_add_raw_irq_handler_masked64 },
+    { "gpio_add_raw_irq_handler_with_order_priority_masked", (void*) gpio_add_raw_irq_handler_with_order_priority_masked },
+    { "gpio_add_raw_irq_handler_with_order_priority_masked64", (void*) gpio_add_raw_irq_handler_with_order_priority_masked64 },
+    { "gpio_debug_pins_init", (void*) gpio_debug_pins_init },
+    { "gpio_deinit", (void*) gpio_deinit },
+    { "gpio_get_drive_strength", (void*) gpio_get_drive_strength },
+    { "gpio_get_function", (void*) gpio_get_function },
+    { "gpio_get_pad", (void*) gpio_get_pad },
+    { "gpio_get_slew_rate", (void*) gpio_get_slew_rate },
+    { "gpio_init", (void*) gpio_init },
+    { "gpio_init_mask", (void*) gpio_init_mask },
+    { "gpio_is_input_hysteresis_enabled", (void*) gpio_is_input_hysteresis_enabled },
+    { "gpio_remove_raw_irq_handler_masked", (void*) gpio_remove_raw_irq_handler_masked },
+    { "gpio_remove_raw_irq_handler_masked64", (void*) gpio_remove_raw_irq_handler_masked64 },
+    { "gpio_set_dormant_irq_enabled", (void*) gpio_set_dormant_irq_enabled },
+    { "gpio_set_drive_strength", (void*) gpio_set_drive_strength },
+    { "gpio_set_function", (void*) gpio_set_function },
+    { "gpio_set_function_masked", (void*) gpio_set_function_masked },
+    { "gpio_set_function_masked64", (void*) gpio_set_function_masked64 },
+    { "gpio_set_inover", (void*) gpio_set_inover },
+    { "gpio_set_input_enabled", (void*) gpio_set_input_enabled },
+    { "gpio_set_input_hysteresis_enabled", (void*) gpio_set_input_hysteresis_enabled },
+    { "gpio_set_irq_callback", (void*) gpio_set_irq_callback },
+    { "gpio_set_irq_enabled", (void*) gpio_set_irq_enabled },
+    { "gpio_set_irq_enabled_with_callback", (void*) gpio_set_irq_enabled_with_callback },
+    { "gpio_set_irqover", (void*) gpio_set_irqover },
+    { "gpio_set_oeover", (void*) gpio_set_oeover },
+    { "gpio_set_outover", (void*) gpio_set_outover },
+    { "gpio_set_pulls", (void*) gpio_set_pulls },
+    { "gpio_set_slew_rate", (void*) gpio_set_slew_rate },
 
     {},
 };

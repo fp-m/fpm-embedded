@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME}
     rtc_pico.c
     diskio.c
     flash.c
+    bindings.c
     sd_pico/crc.c
     sd_pico/sd_card.c
     sd_pico/sd_spi.c
