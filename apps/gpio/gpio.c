@@ -15,33 +15,152 @@ enum {
 };
 
 //
+// Get name of GPIO function.
+//
+static const char *func_name(int func)
+{
+    switch (func) {
+    case GPIO_FUNC_XIP:  return "XIP";
+    case GPIO_FUNC_SPI:  return "SPI";
+    case GPIO_FUNC_UART: return "UART";
+    case GPIO_FUNC_I2C:  return "I2C";
+    case GPIO_FUNC_PWM:  return "PWM";
+    case GPIO_FUNC_SIO:  return "SIO";
+    case GPIO_FUNC_PIO0: return "PIO0";
+    case GPIO_FUNC_PIO1: return "PIO1";
+    case GPIO_FUNC_GPCK: return "GPCK";
+    case GPIO_FUNC_USB:  return "USB";
+    case GPIO_FUNC_NULL: return "NULL";
+    default:             return "(unknown)";
+    }
+}
+
+//
+// Show one signal.
+//
+static void show_signal(unsigned pin)
+{
+    int dir = gpio_get_dir(pin);
+    int val = gpio_get(pin);
+
+    if (dir == GPIO_OUT) {
+        fpm_printf(" out %d", val);
+    } else {
+        fpm_printf(" in %d", val);
+        if (gpio_is_pulled_up(pin)) {
+            fpm_printf(" pull up");
+        } else if (gpio_is_pulled_down(pin)) {
+            fpm_printf(" pull down");
+        }
+    }
+}
+
+//
 // Show all signals.
 //
 static void show_all()
 {
     for (unsigned pin = 0; pin < NUM_BANK0_GPIOS; pin++) {
         gpio_function_t func = gpio_get_function(pin);
-        fpm_printf("gpio% function %u\r\n", pin, func);
-    //val = gpio_get(pin);
-    //val = gpio_get_dir(pin); // 1 for out, 0 for in
+        fpm_printf("gpio %u: ", pin);
+        switch (func) {
+        case GPIO_FUNC_NULL:
+            fpm_printf("unused\r\n");
+            break;
+        case GPIO_FUNC_SIO:
+            // Configured for GPIO.
+            show_signal(pin);
+            fpm_printf("\r\n");
+            break;
+        default:
+            fpm_printf("function %s\r\n", func_name(func));
+            break;
+        }
     }
 }
 
+//
+// When NUM: get value of one signal.
+// When NUM-NUM: get values of several signals.
+// When NUM=NUM: set value of one signal.
+// When NUM-NUM=NUM: set values of several signals.
+//
 static void get_set(const char *arg)
 {
-    //TODO
-    fpm_printf("get/set signal %s\r\n", arg);
-    //val = gpio_get(pin);
-    //gpio_put(pin, 1);
+    const char *dash_ptr = strchr(arg, '-');
+    const char *eq_ptr   = strchr(arg, '=');
+    unsigned long pin;
+    if (fpm_strtoul(&pin, arg, NULL, 0)) {
+        fpm_printf("\r\nBad pin: %s\r\n", arg);
+        return;
+    }
+    unsigned long limit = pin;
+    if (dash_ptr != NULL) {
+        if (fpm_strtoul(&limit, dash_ptr + 1, NULL, 0)) {
+            fpm_printf("\r\nBad limit: %s\r\n", arg);
+            return;
+        }
+    }
+    if (eq_ptr == NULL) {
+        // Get signal(s).
+        for (; pin <= limit; pin++) {
+            fpm_printf(" %d", gpio_get(pin));
+        }
+    } else {
+        // Set signal(s).
+        unsigned long value;
+        if (fpm_strtoul(&value, eq_ptr + 1, NULL, 0)) {
+            fpm_printf("\r\nBad value: %s\r\n", arg);
+            return;
+        }
+        for (; pin <= limit; pin++) {
+            gpio_put(pin, value);
+        }
+    }
 }
 
+//
+// When NUM: configure one signal.
+// When NUM-NUM: configure several signals.
+//
 static void configure(const char *arg, int mode)
 {
-    //TODO
-    fpm_printf("configure signal %s in mode %d\r\n", arg, mode);
-    //gpio_set_dir(pin, GPIO_IN);
-    //gpio_set_dir(pin, GPIO_OUT);
-    //gpio_put(pin, 1);
+    const char *dash_ptr = strchr(arg, '-');
+    unsigned long pin;
+    if (fpm_strtoul(&pin, arg, NULL, 0)) {
+        fpm_printf("\r\nBad pin: %s\r\n", arg);
+        return;
+    }
+    unsigned long limit = pin;
+    if (dash_ptr != NULL) {
+        if (fpm_strtoul(&limit, dash_ptr + 1, NULL, 0)) {
+            fpm_printf("\r\nBad limit: %s\r\n", arg);
+            return;
+        }
+    }
+    for (; pin <= limit; pin++) {
+        switch (mode) {
+        case CMD_OUT:
+            gpio_set_dir(pin, GPIO_OUT);
+            gpio_put(pin, 0);
+            gpio_set_function(pin, GPIO_FUNC_SIO);
+            break;
+        case CMD_IN:
+        case CMD_PU:
+        case CMD_PD:
+            gpio_set_dir(pin, GPIO_IN);
+            gpio_put(pin, 0);
+            gpio_set_function(pin, GPIO_FUNC_SIO);
+            gpio_disable_pulls(pin);
+            if (mode == CMD_PU) {
+                gpio_pull_up(pin);
+            }
+            if (mode == CMD_PD) {
+                gpio_pull_down(pin);
+            }
+            break;
+        }
+    }
 }
 
 int main(int argc, char **argv)

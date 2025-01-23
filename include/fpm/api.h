@@ -120,6 +120,7 @@ size_t fpm_strlcpy_unicode(uint16_t *dst, const uint16_t *src, size_t nitems);
 // Return true when value is out of range.
 //
 bool fpm_strtol(long *output, const char *str, char **endptr, int base);
+bool fpm_strtoul(unsigned long *output, const char *str, char **endptr, int base);
 bool fpm_strtod(double *output, const char *str, char **endptr);
 
 //
@@ -175,7 +176,13 @@ size_t fpm_sizeof(void *ptr);
 size_t fpm_heap_available(void);
 size_t fpm_stack_available(void);
 
+//
 // Forbid standard routines.
+//
+long strtol(const char *str, char **endptr, int base) __attribute__((deprecated("use fpm_strtol() instead")));
+unsigned long strtoul(const char *str, char **endptr, int base) __attribute__((deprecated("use fpm_strtoul() instead")));
+double strtod(const char *str, char **endptr) __attribute__((deprecated("use fpm_strtod() instead")));
+
 void *malloc(size_t size) __attribute__((deprecated("use fpm_alloc_dirty() instead")));
 void free(void *ptr) __attribute__((deprecated("use fpm_free() instead")));
 void *calloc(size_t count, size_t size) __attribute__((deprecated("use fpm_alloc() instead")));

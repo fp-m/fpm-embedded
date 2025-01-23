@@ -39,6 +39,7 @@
     FPM_BIND(fpm_strlcpy_unicode),
     FPM_BIND(fpm_strtod),
     FPM_BIND(fpm_strtol),
+    FPM_BIND(fpm_strtoul),
     FPM_BIND(fpm_strwlen),
     FPM_BIND(fpm_time_usec),
     FPM_BIND(fpm_tokenize),
