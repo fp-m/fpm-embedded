@@ -28,7 +28,29 @@ static void mount(const char *path)
     if (result != FR_OK) {
         fpm_puts(f_strerror(result));
         fpm_puts("\r\n\n");
+        return;
     }
+
+    // Print media info.
+    const char *filename = path;
+    int drive = f_getdrive(&filename);
+    if (drive < 0) {
+        return;
+    }
+    disk_info_t disk_info;
+    if (disk_identify(drive, &disk_info) != DISK_OK) {
+        return;
+    }
+    fpm_printf("Media '%s' mounted as %s", disk_info.product_name, disk_name[drive]);
+
+    fs_info_t fs_info;
+    if (f_statfs(path, &fs_info) != FR_OK) {
+        fpm_puts("\r\n\n");
+        return;
+    }
+    fpm_printf(": %lu kbytes used, %lu free\r\n\n",
+        blk_to_kbytes(fs_info.f_blocks - fs_info.f_bfree, fs_info.f_bsize),
+        blk_to_kbytes(fs_info.f_bavail, fs_info.f_bsize));
 }
 
 static void show(int i)

@@ -100,6 +100,11 @@ string(TIMESTAMP BUILD_HOUR "%H")
 string(TIMESTAMP BUILD_MIN "%M")
 string(TIMESTAMP BUILD_SEC "%S")
 string(TIMESTAMP BUILD_DOTW "%w")
+math(EXPR BUILD_MONTH "${BUILD_MONTH} * 1")
+math(EXPR BUILD_DAY   "${BUILD_DAY} * 1")
+math(EXPR BUILD_HOUR  "${BUILD_HOUR} * 1")
+math(EXPR BUILD_MIN   "${BUILD_MIN} * 1")
+math(EXPR BUILD_SEC   "${BUILD_SEC} * 1")
 set_source_files_properties(main_pico.c PROPERTIES COMPILE_FLAGS
     "-DBUILD_YEAR=${BUILD_YEAR} \
      -DBUILD_MONTH=${BUILD_MONTH} \
@@ -118,8 +123,8 @@ include(flash_image.cmake)
 
 # 'make upload' to program the binary
 add_custom_target(upload
-    picotool load -f -x ${PROJECT_NAME}.uf2
-    COMMENT "picotool load -f -x ${PROJECT_NAME}.uf2"
+    picotool load -f -x ${PROJECT_NAME}-2mb.uf2
+    COMMENT "picotool load -f -x ${PROJECT_NAME}-2mb.uf2"
     DEPENDS ${PROJECT_NAME}
 )
 

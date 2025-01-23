@@ -8,24 +8,26 @@ add_custom_command(OUTPUT flashfs
             hello.exe
             printf.exe
             gpio.exe
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/flashfs
-                ${CMAKE_CURRENT_BINARY_DIR}/flashfs
+                flashfs
     COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_BINARY_DIR}/apps/cmd/cmd.exe
-                ${CMAKE_CURRENT_BINARY_DIR}/flashfs/bin/cmd.exe
+                flashfs/bin/cmd.exe
     COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_BINARY_DIR}/apps/free/free.exe
-                ${CMAKE_CURRENT_BINARY_DIR}/flashfs/bin/free.exe
+                flashfs/bin/free.exe
     COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_BINARY_DIR}/apps/hello/hello.exe
-                ${CMAKE_CURRENT_BINARY_DIR}/flashfs/bin/hello.exe
+                flashfs/bin/hello.exe
     COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_BINARY_DIR}/apps/printf/printf.exe
-                ${CMAKE_CURRENT_BINARY_DIR}/flashfs/bin/printf.exe
+                flashfs/bin/printf.exe
     COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_BINARY_DIR}/apps/gpio/gpio.exe
-                ${CMAKE_CURRENT_BINARY_DIR}/flashfs/bin/gpio.exe
+                flashfs/bin/gpio.exe
+    COMMAND arm-none-eabi-strip flashfs/bin/*.exe
 )
 
 set(UF2FAT ${CMAKE_SOURCE_DIR}/../unix/build/uf2fat/uf2fat)
