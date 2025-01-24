@@ -5,6 +5,7 @@
 #include <fpm/api.h>
 #include <fpm/context.h>
 #include <fpm/internal.h>
+#include <iomanip>
 
 //
 // Allocate about this amount of data in total.

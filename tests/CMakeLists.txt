@@ -18,13 +18,10 @@ include(FetchContent)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.12.1
+    GIT_TAG v1.15.2
+    EXCLUDE_FROM_ALL
 )
-FetchContent_GetProperties(googletest)
-if(NOT googletest_POPULATED)
-    FetchContent_Populate(googletest)
-    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
-endif()
+FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 enable_testing()
 
@@ -132,6 +129,18 @@ add_executable(loader2_tests
     ../unix/loader_unix.c
 )
 gtest_discover_tests(loader2_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
+
+#
+# Check Zmodem protocol.
+#
+add_executable(zmodem_tests
+    zmodem_test.cpp
+    console_util.cpp
+)
+target_include_directories(zmodem_tests BEFORE PUBLIC
+    ../apps/rz
+)
+gtest_discover_tests(zmodem_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOUT 120)
 
 # Create -I options for exe build.
 set(EXE_INCLUDES -I${CMAKE_SOURCE_DIR}/../include)
