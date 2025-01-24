@@ -30,9 +30,7 @@
 static char recv_buf[RECV_LEN];
 static char *buf_ptr, *buf_limit;
 
-//
 // Set up the fake receive buffer for use in tests
-//
 uint16_t set_buf(const char *buf, int len)
 {
     buf_ptr = buf_limit = recv_buf;
@@ -47,9 +45,7 @@ uint16_t set_buf(const char *buf, int len)
     }
 }
 
-//
 // recv implementation for use in tests
-//
 ZRESULT zm_recv()
 {
     if (buf_ptr < buf_limit) {
@@ -59,6 +55,13 @@ ZRESULT zm_recv()
     }
 }
 
+// send implementation for use in tests
+ZRESULT zm_send(uint8_t c)
+{
+    return OK;
+}
+
+// Tests of the tests
 TEST(rz, recv_buffer)
 {
     EXPECT_EQ(set_buf("a", 1025), UNSUPPORTED);
@@ -73,50 +76,21 @@ TEST(rz, recv_buffer)
     EXPECT_EQ(zm_recv(), CLOSED);
 }
 
-#if 0
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include "acutest.h"
-
-// send implementation for use in tests
-ZRESULT zm_send(uint8_t c)
-{
-    return OK;
-}
-
-// Tests of the tests
-void test_recv_buffer()
-{
-    EXPECT_EQ(set_buf("a", 1025), UNSUPPORTED);
-
-    set_buf("abc", 3);
-
-    EXPECT_EQ(zm_recv(), 'a');
-    EXPECT_EQ(zm_recv(), 'b');
-    EXPECT_EQ(zm_recv(), 'c');
-
-    EXPECT_EQ(zm_recv(), CLOSED);
-    EXPECT_EQ(zm_recv(), CLOSED);
-}
-
 // The actual tests
-void test_is_error()
+TEST(rz, is_error)
 {
-    EXPECT_EQ(IS_ERROR(0x0000), false);
-    EXPECT_EQ(IS_ERROR(0x0001), false);
-    EXPECT_EQ(IS_ERROR(0x00ff), false);
-    EXPECT_EQ(IS_ERROR(0x0f00), false);
-    EXPECT_EQ(IS_ERROR(0xf000), true);
-    EXPECT_EQ(IS_ERROR(0xff00), true);
+    EXPECT_FALSE(IS_ERROR(0x0000));
+    EXPECT_FALSE(IS_ERROR(0x0001));
+    EXPECT_FALSE(IS_ERROR(0x00ff));
+    EXPECT_FALSE(IS_ERROR(0x0f00));
+    EXPECT_TRUE(IS_ERROR(0xf000));
+    EXPECT_TRUE(IS_ERROR(0xff00));
 
-    EXPECT_EQ(IS_ERROR(OK), false);
-    EXPECT_EQ(IS_ERROR(BAD_DIGIT), true);
+    EXPECT_FALSE(IS_ERROR(OK));
+    EXPECT_TRUE(IS_ERROR(BAD_DIGIT));
 }
 
-void test_get_error_code()
+TEST(rz, get_error_code)
 {
     EXPECT_EQ(ERROR_CODE(0x0000), 0x0000);
     EXPECT_EQ(ERROR_CODE(0x0001), 0x0000);
@@ -128,7 +102,7 @@ void test_get_error_code()
     EXPECT_EQ(ERROR_CODE(0xffc0), 0xf000);
 }
 
-void test_zvalue()
+TEST(rz, zvalue)
 {
     EXPECT_EQ(ZVALUE(0x0000), 0x00);
     EXPECT_EQ(ZVALUE(0x0001), 0x01);
@@ -141,29 +115,29 @@ void test_zvalue()
     EXPECT_EQ(ZVALUE(GOT_CRCW), ZCRCW);
 }
 
-void test_noncontrol()
+TEST(rz, noncontrol)
 {
     for (uint8_t i = 0; i < 0xff; i++) {
         if (i < 32) {
-            EXPECT_EQ(NONCONTROL(i), false);
+            EXPECT_FALSE(NONCONTROL(i));
         } else {
-            EXPECT_EQ(NONCONTROL(i), true);
+            EXPECT_TRUE(NONCONTROL(i));
         }
     }
 }
 
-void test_is_fin()
+TEST(rz, is_fin)
 {
-    EXPECT_EQ(IS_FIN(OK), false);
-    EXPECT_EQ(IS_FIN(BAD_DIGIT), false);
+    EXPECT_FALSE(IS_FIN(OK));
+    EXPECT_FALSE(IS_FIN(BAD_DIGIT));
 
-    EXPECT_EQ(IS_FIN(GOT_CRCE), true);
-    EXPECT_EQ(IS_FIN(GOT_CRCG), true);
-    EXPECT_EQ(IS_FIN(GOT_CRCQ), true);
-    EXPECT_EQ(IS_FIN(GOT_CRCW), true);
+    EXPECT_TRUE(IS_FIN(GOT_CRCE));
+    EXPECT_TRUE(IS_FIN(GOT_CRCG));
+    EXPECT_TRUE(IS_FIN(GOT_CRCQ));
+    EXPECT_TRUE(IS_FIN(GOT_CRCW));
 }
 
-void test_hex_to_nybble()
+TEST(rz, hex_to_nybble)
 {
     EXPECT_EQ(zm_hex_to_nybble('0'), 0x0);
     EXPECT_EQ(ERROR_CODE(zm_hex_to_nybble('0')), 0);
@@ -201,7 +175,7 @@ void test_hex_to_nybble()
     EXPECT_EQ(ERROR_CODE(zm_hex_to_nybble('A')), BAD_DIGIT);
 }
 
-void test_hex_to_byte()
+TEST(rz, hex_to_byte)
 {
     EXPECT_EQ(zm_hex_to_byte('0', '0'), 0x00);
     EXPECT_EQ(ERROR_CODE(zm_hex_to_byte('0', '0')), 0);
@@ -234,7 +208,7 @@ void test_hex_to_byte()
     EXPECT_EQ(ERROR_CODE(zm_hex_to_byte('N', 'O')), BAD_DIGIT);
 }
 
-void test_nybble_to_hex()
+TEST(rz, nybble_to_hex)
 {
     EXPECT_EQ(zm_nybble_to_hex(0x0), '0');
     EXPECT_EQ(zm_nybble_to_hex(0x1), '1');
@@ -257,7 +231,7 @@ void test_nybble_to_hex()
     EXPECT_EQ(IS_ERROR(zm_nybble_to_hex(0xFF)), true);
 }
 
-void test_byte_to_hex()
+TEST(rz, byte_to_hex)
 {
     uint8_t buf[2];
 
@@ -282,7 +256,7 @@ void test_byte_to_hex()
     EXPECT_EQ(buf[1], 'f');
 }
 
-void test_read_hex_header()
+TEST(rz, read_hex_header)
 {
     ZHDR hdr;
 
@@ -337,7 +311,7 @@ void test_read_hex_header()
     EXPECT_EQ(zm_read_hex_header(&hdr), BAD_DIGIT);
 }
 
-void test_calc_hdr_crc()
+TEST(rz, calc_hdr_crc)
 {
     ZHDR hdr = { .type = 0x01, .flags = { .f3 = 0x02, .f2 = 0x03, .f1 = 0x04, .f0 = 0x05 } };
 
@@ -358,19 +332,19 @@ void test_calc_hdr_crc()
     EXPECT_EQ(CRC(real_hdr.crc1, real_hdr.crc2), 0xcd85);
 }
 
-void test_to_hex_header()
+TEST(rz, to_hex_header)
 {
     ZHDR hdr = {
-    .type = 0x01,
-    .flags = {
-      .f3 = 0x02,
-      .f2 = 0x03,
-      .f1 = 0x04,
-      .f0 = 0x05,
-    },
-    .crc1 = 0x0a,
-    .crc2 = 0x0b
-  };
+        .type = 0x01,
+        .flags = {
+          .f3 = 0x02,
+          .f2 = 0x03,
+          .f1 = 0x04,
+          .f0 = 0x05,
+        },
+        .crc1 = 0x0a,
+        .crc2 = 0x0b
+    };
 
     uint8_t buf[0xff];
     memset(buf, 0, 0xff);
@@ -400,7 +374,7 @@ void test_to_hex_header()
     EXPECT_EQ(strcmp("B01020304050a0b\r\x8a", (const char *)buf), 0);
 }
 
-void test_read_escaped()
+TEST(rz, read_escaped)
 {
     // simple non-control characters
     set_buf("ABC", 3);
@@ -423,20 +397,3 @@ void test_read_escaped()
     EXPECT_EQ(zm_read_escaped(), CANCELLED);
     EXPECT_EQ(zm_read_escaped(), 'Z');
 }
-
-TEST_LIST = { { "recv_buffer", test_recv_buffer },
-              { "IS_ERROR", test_is_error },
-              { "GET_ERROR_CODE", test_get_error_code },
-              { "ZVALUE", test_zvalue },
-              { "NONCONTROL", test_noncontrol },
-              { "IS_FIN", test_is_fin },
-              { "hex_to_nybble", test_hex_to_nybble },
-              { "hex_to_byte", test_hex_to_byte },
-              { "nybble_to_hex", test_nybble_to_hex },
-              { "byte_to_hex", test_byte_to_hex },
-              { "read_hex_header", test_read_hex_header },
-              { "calc_hdr_crc", test_calc_hdr_crc },
-              { "to_hex_header", test_to_hex_header },
-              { "test_read_escaped", test_read_escaped },
-              { NULL, NULL } };
-#endif

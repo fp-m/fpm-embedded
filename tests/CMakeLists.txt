@@ -135,6 +135,10 @@ gtest_discover_tests(loader2_tests EXTRA_ARGS --gtest_repeat=1 PROPERTIES TIMEOU
 #
 add_executable(zmodem_tests
     zmodem_test.cpp
+    ../apps/rz/znumbers.c
+    ../apps/rz/zserial.c
+    ../apps/rz/zheaders.c
+    ../apps/rz/crc.c
     console_util.cpp
 )
 target_include_directories(zmodem_tests BEFORE PUBLIC

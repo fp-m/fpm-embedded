@@ -23,8 +23,7 @@
 #include "embedded.h"
 #endif
 
-#include "crc16.h"
-#include "crc32.h"
+#include "crc.h"
 #include "zheaders.h"
 #include "znumbers.h"
 #include "zserial.h"
@@ -415,7 +414,7 @@ ZRESULT zm_read_hex_header(ZHDR *hdr)
 
                     if (i < ZHDR_SIZE - 4) {
                         TRACEF("Will update CRC for byte %d\n", i);
-                        crc = ucrc16(b, crc);
+                        crc = update_crc16_ccitt(b, crc);
                     } else {
                         TRACEF("Won't update CRC for byte %d\n", i);
                     }
@@ -456,7 +455,7 @@ ZRESULT zm_read_binary16_header(ZHDR *hdr)
 
             if (i < ZHDR_SIZE - 4) {
                 TRACEF("Will update CRC for byte %d\n", i);
-                crc = ucrc16(b, crc);
+                crc = update_crc16_ccitt(b, crc);
             } else {
                 TRACEF("Won't update CRC for byte %d\n", i);
             }
@@ -494,7 +493,7 @@ ZRESULT zm_read_binary32_header(ZHDR *hdr)
 
             if (i < ZHDR_SIZE - 4) {
                 TRACEF("Will update CRC for byte %d\n", i);
-                crc = ucrc32(b, crc);
+                crc = update_crc32(b, crc);
             } else {
                 TRACEF("Won't update CRC for byte %d\n", i);
             }
