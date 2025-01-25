@@ -25,8 +25,6 @@
 #include "crc.h"
 #include "zmodem.h"
 
-static uint8_t in_32bit_block = 0;
-
 ZRESULT zm_read_crlf()
 {
     uint16_t c = zm_read_escaped(); // zm_recv();
@@ -223,9 +221,9 @@ static ZRESULT recv_data_block(uint8_t *buf, uint16_t *len)
     return OUT_OF_SPACE;
 }
 
-ZRESULT zm_read_data_block(uint8_t *buf, uint16_t *len)
+ZRESULT zm_read_data_block(zmodem_t *z, uint8_t *buf, uint16_t *len)
 {
-    DEBUGF("  >> READ_BLOCK: Reading %d-bit block\n", in_32bit_block ? 32 : 16);
+    DEBUGF("  >> READ_BLOCK: Reading %d-bit block\n", z->in_32bit_block ? 32 : 16);
     ZRESULT result = recv_data_block(buf, len);
     DEBUGF("  >> READ_BLOCK: Result of data block recv is [0x%04x] (got %d character(s))\n", result,
            *len);
@@ -246,7 +244,7 @@ ZRESULT zm_read_data_block(uint8_t *buf, uint16_t *len)
             DEBUGF("  >> READ_BLOCK: Error while reading crc2: 0x%04x\n", crc2);
         }
 
-        if (in_32bit_block) {
+        if (z->in_32bit_block) {
             ZRESULT crc3 = zm_read_escaped();
             if (IS_ERROR(crc3)) {
                 return crc3;
@@ -326,14 +324,14 @@ ZRESULT zm_await_zdle()
     }
 }
 
-ZRESULT zm_read_hex_header(ZHDR *hdr)
+ZRESULT zm_read_hex_header(zmodem_t *z, ZHDR *hdr)
 {
     uint8_t *ptr = (uint8_t *)hdr;
     memset(hdr, 0xc0, sizeof(ZHDR));
     uint16_t crc = CRC_START_XMODEM;
 
     // Set flag that next block will be CRC16
-    in_32bit_block = 0;
+    z->in_32bit_block = 0;
 
     // TODO maybe don't treat header as a stream of bytes, which would remove
     //      the need to have the all-byte layout in ZHDR struct...
@@ -366,8 +364,7 @@ ZRESULT zm_read_hex_header(ZHDR *hdr)
                     return b;
                 } else {
                     TRACEF("READ_HEX: Byte %d is good: 0x%02x\n", i, b);
-                    TRACEF("Byte %d; hdr at 0x%0llx; ptr at 0x%0llx\n", i, (uint64_t)hdr,
-                           (uint64_t)ptr);
+                    TRACEF("Byte %d; hdr at %p; ptr at %p\n", i, hdr, ptr);
                     *ptr++ = (uint8_t)b;
 
                     if (i < ZHDR_SIZE - 4) {
@@ -391,14 +388,14 @@ ZRESULT zm_read_hex_header(ZHDR *hdr)
     return zm_check_header_crc16(hdr, crc);
 }
 
-ZRESULT zm_read_binary16_header(ZHDR *hdr)
+ZRESULT zm_read_binary16_header(zmodem_t *z, ZHDR *hdr)
 {
     uint8_t *ptr = (uint8_t *)hdr;
     memset(hdr, 0xc0, sizeof(ZHDR));
     uint16_t crc = CRC_START_XMODEM;
 
     // Set flag that next block will be CRC16
-    in_32bit_block = 0;
+    z->in_32bit_block = 0;
 
     for (int i = 0; i < ZHDR_SIZE - 2; i++) {
         uint16_t b = zm_read_escaped();
@@ -408,7 +405,7 @@ ZRESULT zm_read_binary16_header(ZHDR *hdr)
             return b;
         } else {
             DEBUGF("READ_BIN16: Byte %d is good: 0x%02x\n", i, b);
-            TRACEF("Byte %d; hdr at 0x%0llx; ptr at 0x%0llx\n", i, (uint64_t)hdr, (uint64_t)ptr);
+            TRACEF("Byte %d; hdr at %p; ptr at %p\n", i, hdr, ptr);
             *ptr++ = (uint8_t)b;
 
             if (i < ZHDR_SIZE - 4) {
@@ -429,14 +426,14 @@ ZRESULT zm_read_binary16_header(ZHDR *hdr)
     return zm_check_header_crc16(hdr, crc);
 }
 
-ZRESULT zm_read_binary32_header(ZHDR *hdr)
+ZRESULT zm_read_binary32_header(zmodem_t *z, ZHDR *hdr)
 {
     uint8_t *ptr = (uint8_t *)hdr;
     memset(hdr, 0xc0, sizeof(ZHDR));
     uint32_t crc = CRC_START_32;
 
     // Set flag that next block will be CRC32
-    in_32bit_block = 1;
+    z->in_32bit_block = 1;
 
     for (int i = 0; i < ZHDR_SIZE; i++) {
         uint16_t b = zm_read_escaped();
@@ -446,7 +443,7 @@ ZRESULT zm_read_binary32_header(ZHDR *hdr)
             return b;
         } else {
             TRACEF("READ_BIN32: Byte %d is good: 0x%02x\n", i, b);
-            TRACEF("Byte %d; hdr at 0x%0llx; ptr at 0x%0llx\n", i, (uint64_t)hdr, (uint64_t)ptr);
+            TRACEF("Byte %d; hdr at %p; ptr at %p\n", i, hdr, ptr);
             *ptr++ = (uint8_t)b;
 
             if (i < ZHDR_SIZE - 4) {
@@ -471,7 +468,7 @@ ZRESULT zm_read_binary32_header(ZHDR *hdr)
     return zm_check_header_crc32(hdr, crc);
 }
 
-ZRESULT zm_await_header(ZHDR *hdr)
+ZRESULT zm_await_header(zmodem_t *z, ZHDR *hdr)
 {
     uint16_t result;
 
@@ -480,6 +477,9 @@ ZRESULT zm_await_header(ZHDR *hdr)
             DEBUGF("Got ZDLE, awaiting type...\n");
             ZRESULT frame_type = zm_read_escaped();
 
+            if (frame_type == CANCELLED) {
+                return CANCELLED;
+            }
             if (IS_ERROR(frame_type)) {
                 DEBUGF("Got error reading frame type: 0x%04x\n", frame_type);
                 continue;
@@ -488,7 +488,7 @@ ZRESULT zm_await_header(ZHDR *hdr)
             switch (ZVALUE(frame_type)) {
             case ZHEX:
                 DEBUGF("Reading HEX header\n");
-                result = zm_read_hex_header(hdr);
+                result = zm_read_hex_header(z, hdr);
 
                 if (result == OK) {
                     DEBUGF("Got valid header\n");
@@ -499,7 +499,7 @@ ZRESULT zm_await_header(ZHDR *hdr)
                 }
             case ZBIN16:
                 DEBUGF("Reading BIN16 header\n");
-                result = zm_read_binary16_header(hdr);
+                result = zm_read_binary16_header(z, hdr);
 
                 if (result == OK) {
                     DEBUGF("Got valid header\n");
@@ -510,7 +510,7 @@ ZRESULT zm_await_header(ZHDR *hdr)
                 }
             case ZBIN32:
                 DEBUGF("Reading BIN32 header\n");
-                result = zm_read_binary32_header(hdr);
+                result = zm_read_binary32_header(z, hdr);
 
                 if (result == OK) {
                     DEBUGF("Got valid header\n");

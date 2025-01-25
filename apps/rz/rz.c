@@ -64,10 +64,11 @@ void rz()
     ZHDR hdr;
     file_t *fdest = alloca(f_sizeof_file_t());
     fs_result_t fs_status = FR_NO_FILE;
+    zmodem_t z = {};
 
 startframe:
     while (true) {
-        uint16_t result = zm_await_header(&hdr);
+        uint16_t result = zm_await_header(&z, &hdr);
 
         switch (result) {
         case CANCELLED:
@@ -132,7 +133,7 @@ startframe:
                 }
 
                 count = DATA_BUF_LEN;
-                result = zm_read_data_block(data_buf, &count);
+                result = zm_read_data_block(&z, data_buf, &count);
                 // Result of data block read is [0x%04x] (got %d character(s))", result, count
 
                 if (result == CANCELLED) {
@@ -168,7 +169,7 @@ startframe:
 
                 while (true) {
                     count = DATA_BUF_LEN;
-                    result = zm_read_data_block(data_buf, &count);
+                    result = zm_read_data_block(&z, data_buf, &count);
                     // Result of data block read is [0x%04x] (got %d character(s)), result, count
 
                     if (fs_status != FR_OK) {

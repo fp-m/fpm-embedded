@@ -28,6 +28,10 @@
 extern "C" {
 #endif
 
+typedef struct {
+    uint8_t in_32bit_block;
+} zmodem_t;
+
 #define NONCONTROL(c) ((bool)((uint8_t)(c & 0xe0)))
 
 //
@@ -53,17 +57,17 @@ ZRESULT zm_read_hex_byte();
 ZRESULT zm_read_escaped();
 
 ZRESULT zm_await_zdle();
-ZRESULT zm_await_header(ZHDR *hdr);
+ZRESULT zm_await_header(zmodem_t *z, ZHDR *hdr);
 
-ZRESULT zm_read_hex_header(ZHDR *hdr);
-ZRESULT zm_read_binary16_header(ZHDR *hdr);
-ZRESULT zm_read_binary32_header(ZHDR *hdr);
+ZRESULT zm_read_hex_header(zmodem_t *z, ZHDR *hdr);
+ZRESULT zm_read_binary16_header(zmodem_t *z, ZHDR *hdr);
+ZRESULT zm_read_binary32_header(zmodem_t *z, ZHDR *hdr);
 
 //
 // len specifies the maximum length to read on entry,
 // and contains actual length on return.
 //
-ZRESULT zm_read_data_block(uint8_t *buf, uint16_t *len);
+ZRESULT zm_read_data_block(zmodem_t *z, uint8_t *buf, uint16_t *len);
 
 //
 // Send a null-terminated string.

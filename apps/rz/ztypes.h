@@ -184,13 +184,15 @@ typedef struct {
 } ZHDR;
 
 #ifdef ZDEBUG
-#define DEBUGF(...) printf(__VA_ARGS__)
+#include <fpm/api.h>
+#define DEBUGF(...) fpm_printf(__VA_ARGS__)
 #else
 #define DEBUGF(...)
 #endif
 
 #ifdef ZTRACE
-#define TRACEF(...) printf(__VA_ARGS__)
+#include <fpm/api.h>
+#define TRACEF(...) fpm_printf(__VA_ARGS__)
 #else
 #define TRACEF(...)
 #endif
