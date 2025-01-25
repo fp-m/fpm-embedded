@@ -28,12 +28,13 @@ char fpm_getchar()
             break;
         }
     }
-
+#if 0
     // ^C - kill the process.
     if (ch == '\3') {
         fpm_puts("^C\r\n");
         longjmp(fpm_saved_point, 1);
     }
+#endif
     return ch;
 }
 
