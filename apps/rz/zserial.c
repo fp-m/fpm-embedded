@@ -1,32 +1,29 @@
-/*
- *------------------------------------------------------------
- *                                  ___ ___ _
- *  ___ ___ ___ ___ ___       _____|  _| . | |_
- * |  _| . |_ -|  _| . |     |     | . | . | '_|
- * |_| |___|___|___|___|_____|_|_|_|___|___|_,_|
- *                     |_____|       firmware v1
- * ------------------------------------------------------------
- * Copyright (c)2020 Ross Bamford
- * See top-level LICENSE.md for licence information.
- *
- * Generic serial routines for Zmodem
- * ------------------------------------------------------------
- */
-
-#ifdef ZDEBUG
-#include <stdio.h>
-#endif
-
-#ifndef ZEMBEDDED
+//
+// Generic serial routines for Zmodem.
+//
+// Copyright (c) 2020 Ross Bamford
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
 #include <string.h>
-#else
-#include "embedded.h"
-#endif
-
 #include "crc.h"
-#include "zheaders.h"
-#include "znumbers.h"
-#include "zserial.h"
+#include "zmodem.h"
 
 static uint8_t in_32bit_block = 0;
 
@@ -111,55 +108,54 @@ ZRESULT zm_read_escaped()
     }
 
 gotzdle:
-
-    /* Picked up this trick from the original ZM implementation. Took me a few
-     * minutes to figure it out, so here's what's going on.
-     *
-     * At the begining, c is **definitely** ZDLE (a.k.a. CAN, important to note that
-     * they're the same!) so we can say we've already received exactly one CAN before
-     * we enter this section.
-     *
-     * (We know this because the condition for entering this section was that we
-     * received that ZDLE (a.k.a. CAN), and anything other than ZDLE was just
-     * returned, give or take some swallowing of software flow control characters).
-     *
-     * 1. The first 'if' reads the next character, and immediately returns on error.
-     *    If no error, c is set to the next character.
-     *
-     * 2. We check the character read in 1. If it **was** CAN (making two CANs so far):
-     *        * Read the next character into c, immediately return on error.
-     *
-     *    If it **wasn't** CAN, this step does nothing (i.e. nothing is read), and
-     *    (crucially) the rest of these steps will be skipped too, since c never changes.
-     *    **This part is important**.
-     *
-     * 3. We check the character read in 2. If it was CAN (making three CANs so far):
-     *        * Read the next character into c, immediately return on error.
-     *
-     *    This is the clever part - if the character in read in 1 **was not** CAN,
-     *    then no character will have been read in step 2. So we're checking the
-     *    character read in 1 again, and it still cannot be CAN so again we won't read
-     *    another character.
-     *
-     *    Furthermore, if the character read in 1 **was** CAN, but the character read
-     *    in step 2 **was not** CAN, then we won't see CAN in this step, or in any of
-     *    the following steps, and they'll all be skipped.
-     *
-     * 4. We check the character read in 3. If it was CAN (making four CANs so far):
-     *        * Read the next character into c, immediately return on error.
-     *
-     *    Again, if the character we read in any of the preceeding steps **was not** CAN,
-     *    then c still hasn't changed because we haven't read any more characters.
-     *
-     * 5. Now, we enter the switch. At this point, we know the following to be true:
-     *
-     *        * If c is CAN, we have **definitely** seen five CANs, indicating
-     *          the other end wants to cancel the transfer, **or**
-     *
-     *        * c is definitely **not** CAN, but WAS preceeded by exactly one ZDLE,
-     *          so is either protocol control, or an escaped character.
-     *
-     */
+    //
+    // Picked up this trick from the original ZM implementation. Took me a few
+    // minutes to figure it out, so here's what's going on.
+    //
+    // At the begining, c is **definitely** ZDLE (a.k.a. CAN, important to note that
+    // they're the same!) so we can say we've already received exactly one CAN before
+    // we enter this section.
+    //
+    // (We know this because the condition for entering this section was that we
+    // received that ZDLE (a.k.a. CAN), and anything other than ZDLE was just
+    // returned, give or take some swallowing of software flow control characters).
+    //
+    // 1. The first 'if' reads the next character, and immediately returns on error.
+    //    If no error, c is set to the next character.
+    //
+    // 2. We check the character read in 1. If it **was** CAN (making two CANs so far):
+    //        * Read the next character into c, immediately return on error.
+    //
+    //    If it **wasn't** CAN, this step does nothing (i.e. nothing is read), and
+    //    (crucially) the rest of these steps will be skipped too, since c never changes.
+    //    **This part is important**.
+    //
+    // 3. We check the character read in 2. If it was CAN (making three CANs so far):
+    //        * Read the next character into c, immediately return on error.
+    //
+    //    This is the clever part - if the character in read in 1 **was not** CAN,
+    //    then no character will have been read in step 2. So we're checking the
+    //    character read in 1 again, and it still cannot be CAN so again we won't read
+    //    another character.
+    //
+    //    Furthermore, if the character read in 1 **was** CAN, but the character read
+    //    in step 2 **was not** CAN, then we won't see CAN in this step, or in any of
+    //    the following steps, and they'll all be skipped.
+    //
+    // 4. We check the character read in 3. If it was CAN (making four CANs so far):
+    //        * Read the next character into c, immediately return on error.
+    //
+    //    Again, if the character we read in any of the preceeding steps **was not** CAN,
+    //    then c still hasn't changed because we haven't read any more characters.
+    //
+    // 5. Now, we enter the switch. At this point, we know the following to be true:
+    //
+    //        * If c is CAN, we have **definitely** seen five CANs, indicating
+    //          the other end wants to cancel the transfer, **or**
+    //
+    //        * c is definitely **not** CAN, but WAS preceeded by exactly one ZDLE,
+    //          so is either protocol control, or an escaped character.
+    //
     if (IS_ERROR(c = zm_recv()))
         return c;
     if (c == CAN && IS_ERROR(c = zm_recv()))
@@ -202,7 +198,7 @@ gotzdle:
     return BAD_ESCAPE;
 }
 
-/* Just read a data block - no CRC checking is done; see read_data_block */
+// Just read a data block - no CRC checking is done; see read_data_block
 static ZRESULT recv_data_block(uint8_t *buf, uint16_t *len)
 {
     uint16_t max = *len;

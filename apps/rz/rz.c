@@ -117,7 +117,7 @@ startframe:
                     // Got ZFILE.
 
                     switch (hdr.flags.f0) {
-                    case 0: /* no special treatment - default to ZCBIN */
+                    case 0: // no special treatment - default to ZCBIN
                     case ZCBIN:
                         // --> Binary receive.
                         break;
