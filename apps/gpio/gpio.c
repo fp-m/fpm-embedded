@@ -165,11 +165,15 @@ static void configure(const char *arg, int mode)
 
 int main(int argc, char **argv)
 {
+    static const struct fpm_option long_opts[] = {
+        { "help", FPM_NO_ARG, NULL, 'h' },
+        {},
+    };
     struct fpm_opt opt = {};
     unsigned argcount = 0;
     int mode = CMD_GETSET;
 
-    while (fpm_getopt(argc, argv, "h", NULL, &opt) >= 0) {
+    while (fpm_getopt(argc, argv, "h", long_opts, &opt) >= 0) {
         switch (opt.ret) {
         case 1:
             if (strcmp(opt.arg, "info") == 0) {
