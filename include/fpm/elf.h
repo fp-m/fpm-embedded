@@ -815,6 +815,37 @@ typedef struct {
 } Elf_GNU_Hash_Header;
 
 /*
+ * Section flags.
+ */
+
+#define SHF_WRITE            0x1
+#define SHF_ALLOC            0x2
+#define SHF_EXECINSTR        0x4
+#define SHF_MERGE            0x10
+#define SHF_STRINGS          0x20
+#define SHF_INFO_LINK        0x40
+#define SHF_LINK_ORDER       0x80
+#define SHF_OS_NONCONFORMING 0x100
+#define SHF_GROUP            0x200
+#define SHF_TLS              0x400
+#define SHF_COMPRESSED       0x800
+#define SHF_MASKOS           0x0FF00000UL
+#define SHF_AMD64_LARGE      0x10000000UL
+#define SHF_ENTRYSECT        0x10000000UL
+#define SHF_COMDEF           0x80000000UL
+#define SHF_MIPS_GPREL       0x10000000UL
+#define SHF_MIPS_MERGE       0x20000000UL
+#define SHF_MIPS_ADDR        0x40000000UL
+#define SHF_MIPS_STRING      0x80000000UL
+#define SHF_MIPS_NOSTRIP     0x08000000UL
+#define SHF_MIPS_LOCAL       0x04000000UL
+#define SHF_MIPS_NAMES       0x02000000UL
+#define SHF_MIPS_NODUPE      0x01000000UL
+#define SHF_ORDERED          0x40000000UL
+#define SHF_EXCLUDE          0x80000000UL
+#define SHF_MASKPROC         0xF0000000UL
+
+/*
  * Section types.
  */
 

@@ -34,13 +34,14 @@
 //
 // Find section by type.
 //
-static const Native_Shdr *fpm_section_by_type(fpm_context_t *ctx, unsigned type)
+static const Native_Shdr *fpm_section_by_type_flags(fpm_context_t *ctx, unsigned type, unsigned flags)
 {
     const Native_Ehdr *hdr     = ctx->base;
     const Native_Shdr *section = (const Native_Shdr *) (hdr->e_shoff + (char*)ctx->base);
 
     for (unsigned i = 0; i < hdr->e_shnum; i++) {
-        if (section[i].sh_type == type) {
+        if (section[i].sh_type == type &&
+            (section[i].sh_flags & flags) == flags) {
             return &section[i];
         }
     }
@@ -129,9 +130,9 @@ err:    fpm_unload_arch(ctx);
     }
 
     // Find relocation section.
-    const Native_Shdr *rel_section = fpm_section_by_type(ctx, SHT_RELA);
+    const Native_Shdr *rel_section = fpm_section_by_type_flags(ctx, SHT_RELA, SHF_INFO_LINK);
     if (rel_section == NULL) {
-        rel_section = fpm_section_by_type(ctx, SHT_REL);
+        rel_section = fpm_section_by_type_flags(ctx, SHT_REL, SHF_INFO_LINK);
         if (rel_section == NULL) {
             fpm_printf("%s: No relocation section\r\n", filename);
             goto err;
@@ -171,11 +172,11 @@ static const char *fpm_get_name(fpm_context_t *ctx, unsigned reloc_index)
     }
 
     // Get pointer to .dynsym contents.
-    const Native_Shdr *fpm_section = fpm_section_by_index(ctx, rel_section->sh_link);
-    const Native_Sym *symbols      = (const Native_Sym *) (fpm_section->sh_offset + (char*)ctx->base);
+    const Native_Shdr *dyn_section = fpm_section_by_index(ctx, rel_section->sh_link);
+    const Native_Sym *symbols      = (const Native_Sym *) (dyn_section->sh_offset + (char*)ctx->base);
 
     // Get pointer to .dynstr contents.
-    const Native_Shdr *str_section = fpm_section_by_index(ctx, fpm_section->sh_link);
+    const Native_Shdr *str_section = fpm_section_by_index(ctx, dyn_section->sh_link);
     const char *strings            = str_section->sh_offset + (char*)ctx->base;
 
     // Get name from .dynsym section.
