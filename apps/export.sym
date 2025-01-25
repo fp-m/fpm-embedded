@@ -1,0 +1,8 @@
+FPM_0.1 {
+    global:
+        __CTOR_LIST__;
+        __DTOR_LIST__;
+
+    local:
+        *;
+};

@@ -26,7 +26,7 @@ function(fpm_target_options arg)
     )
     set_target_properties(${arg} PROPERTIES SUFFIX ".exe")
     target_compile_options(${arg} PRIVATE -fPIC -fno-asynchronous-unwind-tables -DPICO_RP2040=1)
-    target_link_options(${arg} PRIVATE -shared -fPIC -nostartfiles -e main -B$ENV{HOME}/.local/lib/fpm/arm)
+    target_link_options(${arg} PRIVATE -shared -fPIC -Wl,--version-script=${CMAKE_SOURCE_DIR}/../apps/export.sym -nostartfiles -e main -B$ENV{HOME}/.local/lib/fpm/arm)
 
     #
     # Disassemble
