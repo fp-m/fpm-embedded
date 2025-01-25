@@ -72,6 +72,7 @@ startframe:
 
         switch (result) {
         case CANCELLED:
+            fpm_delay_msec(500);
             fpm_printf("Transfer cancelled by remote; Bailing...\n");
             goto cleanup;
         case OK:
@@ -85,11 +86,13 @@ startframe:
                 result = zm_send_flags_hdr(ZRINIT, CANOVIO | CANFC32, 0, 0, 0);
 
                 if (result == CANCELLED) {
+                    fpm_delay_msec(500);
                     fpm_printf("Transfer cancelled by remote; Bailing...\n");
                     goto cleanup;
                 } else if (result == OK) {
                     // Send ZRINIT was OK.
                 } else if (result == CLOSED) {
+                    fpm_delay_msec(500);
                     fpm_printf("Connection closed prematurely; Bailing...\n");
                     goto cleanup;
                 }
@@ -101,15 +104,18 @@ startframe:
                 result = zm_send_pos_hdr(ZFIN, 0);
 
                 if (result == CANCELLED) {
+                    fpm_delay_msec(500);
                     fpm_printf("Transfer cancelled by remote; Bailing...\n");
                     goto cleanup;
                 } else if (result == OK) {
                     // Send ZFIN was OK.
                 } else if (result == CLOSED) {
+                    fpm_delay_msec(500);
                     fpm_printf("Connection closed prematurely; Bailing...\n");
                     goto cleanup;
                 }
 
+                fpm_delay_msec(500);
                 fpm_printf("Transfer complete; Received %u byte(s)\n", received_data_size);
                 goto cleanup;
 
@@ -137,6 +143,7 @@ startframe:
                 // Result of data block read is [0x%04x] (got %d character(s))", result, count
 
                 if (result == CANCELLED) {
+                    fpm_delay_msec(500);
                     fpm_printf("Transfer cancelled by remote; Bailing...\n");
                     goto cleanup;
                 } else if (!IS_ERROR(result)) {
@@ -144,6 +151,7 @@ startframe:
 
                     fs_status = f_open(fdest, (char*)data_buf, FA_WRITE | FA_CREATE_ALWAYS);
                     if (fs_status != FR_OK) {
+                        fpm_delay_msec(500);
                         fpm_printf("%s: %s\r\n", data_buf, f_strerror(fs_status));
                         goto cleanup;
                     }
@@ -151,11 +159,13 @@ startframe:
                     result = zm_send_pos_hdr(ZRPOS, received_data_size);
 
                     if (result == CANCELLED) {
+                        fpm_delay_msec(500);
                         fpm_printf("Transfer cancelled by remote; Bailing...\n");
                         goto cleanup;
                     } else if (result == OK) {
                         // Send ZRPOS was OK.
                     } else if (result == CLOSED) {
+                        fpm_delay_msec(500);
                         fpm_printf("Connection closed prematurely; Bailing...\n");
                         goto cleanup;
                     }
@@ -173,11 +183,13 @@ startframe:
                     // Result of data block read is [0x%04x] (got %d character(s)), result, count
 
                     if (fs_status != FR_OK) {
+                        fpm_delay_msec(500);
                         fpm_printf("Received data before open file; Bailing...\n");
                         goto cleanup;
                     }
 
                     if (result == CANCELLED) {
+                        fpm_delay_msec(500);
                         fpm_printf("Transfer cancelled by remote; Bailing...\n");
                         goto cleanup;
                     } else if (!IS_ERROR(result)) {
@@ -186,11 +198,13 @@ startframe:
                         unsigned nbytes_written = 0;
                         fs_status = f_write(fdest, data_buf, count - 1, &nbytes_written);
                         if (fs_status != FR_OK) {
+                            fpm_delay_msec(500);
                             fpm_printf("Write error: %s\r\n", f_strerror(fs_status));
                             goto cleanup;
                         }
                         if (nbytes_written != count - 1) {
                             // Out of disk space.
+                            fpm_delay_msec(500);
                             fpm_printf("Not enough space on device\r\n");
                             goto cleanup;
                         }
@@ -212,11 +226,13 @@ startframe:
                             result = zm_send_pos_hdr(ZACK, received_data_size);
 
                             if (result == CANCELLED) {
+                                fpm_delay_msec(500);
                                 fpm_printf("Transfer cancelled by remote; Bailing...\n");
                                 goto cleanup;
                             } else if (result == OK) {
                                 // Send ZACK was OK.
                             } else if (result == CLOSED) {
+                                fpm_delay_msec(500);
                                 fpm_printf("Connection closed prematurely; Bailing...\n");
                                 goto cleanup;
                             }
@@ -229,11 +245,13 @@ startframe:
                             result = zm_send_pos_hdr(ZACK, received_data_size);
 
                             if (result == CANCELLED) {
+                                fpm_delay_msec(500);
                                 fpm_printf("Transfer cancelled by remote; Bailing...\n");
                                 goto cleanup;
                             } else if (result == OK) {
                                 // Send ZACK was OK.
                             } else if (result == CLOSED) {
+                                fpm_delay_msec(500);
                                 fpm_printf("Connection closed prematurely; Bailing...\n");
                                 goto cleanup;
                             }
@@ -247,12 +265,14 @@ startframe:
                         result = zm_send_pos_hdr(ZRPOS, received_data_size);
 
                         if (result == CANCELLED) {
+                            fpm_delay_msec(500);
                             fpm_printf("Transfer cancelled by remote; Bailing...\n");
                             goto cleanup;
                         } else if (result == OK) {
                             // Send ZRPOS was OK.
                             goto startframe;
                         } else if (result == CLOSED) {
+                            fpm_delay_msec(500);
                             fpm_printf("Connection closed prematurely; Bailing...\n");
                             goto cleanup;
                         }
@@ -273,11 +293,13 @@ startframe:
             result = zm_send_pos_hdr(ZNAK, received_data_size);
 
             if (result == CANCELLED) {
+                fpm_delay_msec(500);
                 fpm_printf("Transfer cancelled by remote; Bailing...\n");
                 goto cleanup;
             } else if (result == OK) {
                 // Send ZNACK was OK.
             } else if (result == CLOSED) {
+                fpm_delay_msec(500);
                 fpm_printf("Connection closed prematurely; Bailing...\n");
                 goto cleanup;
             }
@@ -289,11 +311,13 @@ startframe:
             result = zm_send_pos_hdr(ZNAK, received_data_size);
 
             if (result == CANCELLED) {
+                fpm_delay_msec(500);
                 fpm_printf("Transfer cancelled by remote; Bailing...\n");
                 goto cleanup;
             } else if (result == OK) {
                 // Send ZNACK was OK.
             } else if (result == CLOSED) {
+                fpm_delay_msec(500);
                 fpm_printf("Connection closed prematurely; Bailing...\n");
                 goto cleanup;
             }

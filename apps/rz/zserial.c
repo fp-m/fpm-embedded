@@ -82,11 +82,10 @@ ZRESULT zm_read_escaped()
         if (NONCONTROL(c) || IS_ERROR(c)) {
             if (IS_ERROR(c)) {
                 TRACEF("  >> READ_ESCAPED: IS ERROR: [0x%04x]\n", c);
-                return c;
             } else {
                 TRACEF("  >> READ_ESCAPED: Normal  : [0x%02x]\n", ZVALUE(c));
-                return c;
             }
+            return c;
         }
 
         switch (c) {
