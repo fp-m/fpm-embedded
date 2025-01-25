@@ -290,44 +290,6 @@ ZRESULT zm_read_data_block(uint8_t *buf, uint16_t *len)
     }
 }
 
-ZRESULT zm_await(char *str, char *buf, int buf_size)
-{
-    memset(buf, 0, 4);
-    int ptr = 0;
-
-    while (true) {
-        ZRESULT c = zm_read_escaped();
-
-        if (IS_ERROR(c)) {
-            return c;
-        } else {
-            // shift buffer if necessary
-            if (ptr == buf_size - 1) {
-                for (int i = 0; i < buf_size - 2; i++) {
-                    buf[i] = buf[i + 1];
-                }
-                buf[buf_size - 2] = ZVALUE(c);
-            } else {
-                buf[ptr++] = ZVALUE(c);
-            }
-
-#ifdef ZTRACE
-            TRACEF("Buf is [");
-            for (int i = 0; i < buf_size; i++) {
-                TRACEF("%02x ", (buf[i] & 0xFF));
-            }
-            TRACEF("]\n");
-#endif
-
-            // TODO if we don't use strcmp, we don't need buf to be one char longer...
-            if (strcmp(str, buf) == 0) {
-                DEBUGF("AWAIT: Target received; Await completed...\n");
-                return OK;
-            }
-        }
-    }
-}
-
 ZRESULT zm_await_zdle()
 {
     while (true) {
@@ -600,7 +562,7 @@ static ZRESULT just_send_hex_hdr(uint8_t *buf)
 
 ZRESULT zm_send_hex_hdr(ZHDR *hdr)
 {
-    static uint8_t buf[HEX_HDR_STR_LEN];
+    uint8_t buf[HEX_HDR_STR_LEN];
 
     zm_calc_hdr_crc(hdr);
     ZRESULT result = zm_to_hex_header(hdr, buf, HEX_HDR_STR_LEN);
@@ -614,10 +576,10 @@ ZRESULT zm_send_hex_hdr(ZHDR *hdr)
 
 ZRESULT zm_send_pos_hdr(uint8_t type, uint32_t pos)
 {
-    static ZHDR hdr;
+    ZHDR hdr;
 
 #ifdef ZDEBUG
-    static const ZHDR *hdrptr = &hdr;
+    const ZHDR *hdrptr = &hdr;
 #endif
 
     hdr.type = type;
@@ -641,10 +603,10 @@ ZRESULT zm_send_pos_hdr(uint8_t type, uint32_t pos)
 
 ZRESULT zm_send_flags_hdr(uint8_t type, uint8_t f0, uint8_t f1, uint8_t f2, uint8_t f3)
 {
-    static ZHDR hdr;
+    ZHDR hdr;
 
 #ifdef ZDEBUG
-    static const ZHDR *hdrptr = &hdr;
+    const ZHDR *hdrptr = &hdr;
 #endif
 
     hdr.type = type;

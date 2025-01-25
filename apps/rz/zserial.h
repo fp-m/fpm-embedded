@@ -52,11 +52,6 @@ ZRESULT zm_read_hex_byte();
 //
 ZRESULT zm_read_escaped();
 
-//
-// buf must be one character longer than the string...
-// Trashes buf, for obvious reasons.
-//
-ZRESULT zm_await(char *str, char *buf, int buf_size);
 ZRESULT zm_await_zdle();
 ZRESULT zm_await_header(ZHDR *hdr);
 

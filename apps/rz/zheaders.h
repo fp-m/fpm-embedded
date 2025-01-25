@@ -54,7 +54,7 @@ ZRESULT zm_check_header_crc32(ZHDR *hdr, uint32_t crc);
 
 #ifdef ZDEBUG
 // this is wasteful, but only if debugging is on, so, y'know...
-static char *__hdrtypes[]
+static const char *__hdrtypes[]
     __attribute__((unused)) = { "ZRQINIT", "ZRINIT", "ZSINIT",     "ZACK",     "ZFILE",
                                 "ZSKIP",   "ZNAK",   "ZABORT",     "ZFIN",     "ZRPOS",
                                 "ZDATA",   "ZEOF",   "ZERR",       "ZCRC",     "ZCHALLENGE",

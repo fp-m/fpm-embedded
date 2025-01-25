@@ -8,6 +8,7 @@ add_custom_command(OUTPUT flashfs
             hello.exe
             printf.exe
             gpio.exe
+            rz.exe
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/flashfs
@@ -27,6 +28,9 @@ add_custom_command(OUTPUT flashfs
     COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_BINARY_DIR}/apps/gpio/gpio.exe
                 flashfs/bin/gpio.exe
+    COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_BINARY_DIR}/apps/rz/rz.exe
+                flashfs/bin/rz.exe
     COMMAND arm-none-eabi-strip flashfs/bin/*.exe
 )
 

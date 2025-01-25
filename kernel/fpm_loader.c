@@ -156,7 +156,7 @@ void fpm_unload(fpm_context_t *ctx)
 //
 // Get name from .dynsym section.
 //
-static const char *fpm_get_name(fpm_context_t *ctx, unsigned reloc_index)
+static const char *fpm_get_name(fpm_context_t *ctx, unsigned reloc_index, unsigned *value_ptr)
 {
     // Get pointer to REL or RELA section.
     const Native_Shdr *rel_section = (const Native_Shdr *) ctx->rel_section;
@@ -174,6 +174,9 @@ static const char *fpm_get_name(fpm_context_t *ctx, unsigned reloc_index)
     // Get pointer to .dynsym contents.
     const Native_Shdr *dyn_section = fpm_section_by_index(ctx, rel_section->sh_link);
     const Native_Sym *symbols      = (const Native_Sym *) (dyn_section->sh_offset + (char*)ctx->base);
+    if (value_ptr != NULL) {
+        *value_ptr = symbols[dynsym_index].st_value;
+    }
 
     // Get pointer to .dynstr contents.
     const Native_Shdr *str_section = fpm_section_by_index(ctx, dyn_section->sh_link);
@@ -190,7 +193,7 @@ static const char *fpm_get_name(fpm_context_t *ctx, unsigned reloc_index)
 void fpm_get_symbols(fpm_context_t *ctx, const char *result[])
 {
     for (unsigned index = 0; index < ctx->num_links; index++) {
-        result[index] = fpm_get_name(ctx, index);
+        result[index] = fpm_get_name(ctx, index, NULL);
     }
 }
 
@@ -275,9 +278,15 @@ bool fpm_invoke(fpm_context_t *ctx, fpm_binding_t linkmap[], int argc, char *arg
     for (unsigned index = 0; index < ctx->num_links; index++) {
 
         // Find symbol's name and address.
-        const char *name = fpm_get_name(ctx, index);
-        void *address    = find_address_by_name(linkmap, name);
+        unsigned value = 0;
+        const char *name = fpm_get_name(ctx, index, &value);
+        if (value != 0) {
+            // Internally defined symbol.
+            got[index] = value + (char*)ctx->base;
+            continue;
+        }
 
+        void *address = find_address_by_name(linkmap, name);
         if (address == NULL) {
             fpm_printf("%s: Symbol not found\r\n", name);
             fail_count++;
