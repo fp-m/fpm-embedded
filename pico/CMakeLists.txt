@@ -1,17 +1,21 @@
 # Set minimum required version of CMake
 cmake_minimum_required(VERSION 3.12)
 
-# Build for rp2040
-set(PICO_BOARD pico)
-set(PICO_PLATFORM rp2040)
-
-# Build for rp2350 in ARM mode
-#set(PICO_BOARD pico2)
-#set(PICO_PLATFORM rp2350-arm-s)
-
-# Build for rp2350 in RISC-V mode
-#set(PICO_BOARD pico2)
-#set(PICO_PLATFORM rp2350-riscv)
+if(RP2040)
+    # Build for rp2040
+    set(PICO_BOARD pico)
+    set(PICO_PLATFORM rp2040)
+elseif(RP2350_ARM)
+    # Build for rp2350 in ARM mode
+    set(PICO_BOARD pico2)
+    set(PICO_PLATFORM rp2350-arm-s)
+elseif(RP2350_RISCV)
+    # Build for rp2350 in RISC-V mode
+    set(PICO_BOARD pico2)
+    set(PICO_PLATFORM rp2350-riscv)
+else()
+    message(FATAL_ERROR "Please select target: -DRP2040=1 or -DRP2350_ARM=1 or -DRP2350_RISCV=1")
+endif()
 
 # Include build functions from Pico SDK
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)

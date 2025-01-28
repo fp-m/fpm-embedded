@@ -1,4 +1,4 @@
-pico/build
+pico/build-*
 unix/build
 tests/build
 TODO
