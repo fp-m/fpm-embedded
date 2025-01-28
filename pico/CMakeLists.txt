@@ -71,6 +71,7 @@ target_link_libraries(${PROJECT_NAME}
     fpm_kernel
     fpm_fatfs
     pico_stdlib
+    pico_aon_timer
     hardware_dma
     hardware_spi
     hardware_flash
@@ -109,7 +110,7 @@ math(EXPR BUILD_DAY   "${BUILD_DAY} * 1")
 math(EXPR BUILD_HOUR  "${BUILD_HOUR} * 1")
 math(EXPR BUILD_MIN   "${BUILD_MIN} * 1")
 math(EXPR BUILD_SEC   "${BUILD_SEC} * 1")
-set_source_files_properties(main_pico.c PROPERTIES COMPILE_FLAGS
+set_source_files_properties(rtc_pico.c PROPERTIES COMPILE_FLAGS
     "-DBUILD_YEAR=${BUILD_YEAR} \
      -DBUILD_MONTH=${BUILD_MONTH} \
      -DBUILD_DAY=${BUILD_DAY} \
