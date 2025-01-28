@@ -69,7 +69,7 @@ static spi_t spi_ports[] = {
         .baud_rate = 12500 * 1000, // The limitation here is SPI slew rate
         .dma_isr   = spi_isr1,
     },
-    // Waveshare RP2040-PiZero board.
+    // Waveshare RP2040-PiZero or RP2350-GEEK board.
     {
         .hw_inst   = spi0,         // Port SPI0
         .miso_gpio = 20,           // serial data output SDO
@@ -160,6 +160,12 @@ static sd_card_t sd_cards[] = {
 
         .spi              = &spi_ports[5], // Pointer to the SPI port driving this card
         .ss_gpio          = 22,            // The SPI slave select GPIO for this SD card
+    },
+    {
+        .board_name       = "Waveshare RP2350-GEEK",
+
+        .spi              = &spi_ports[2], // Pointer to the SPI port driving this card
+        .ss_gpio          = 23,            // The SPI slave select GPIO for this SD card
     },
     { 0 }, // Terminate by zero.
 };
