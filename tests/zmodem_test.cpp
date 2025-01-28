@@ -23,50 +23,59 @@
 // SOFTWARE.
 //
 #include <gtest/gtest.h>
+#include <fpm/fs.h>
 #include "zmodem.h"
+#include "interact.h"
+#include "util.h"
 
-#define RECV_LEN 1024
-
-static char recv_buf[RECV_LEN];
-static char *buf_ptr, *buf_limit;
+std::istream *zm_input;
+std::ostream *zm_output;
+std::unique_ptr<std::stringstream> zm_input_buffer;
 
 // Set up the fake receive buffer for use in tests
-uint16_t set_buf(const char *buf, int len)
+void set_input(const char *data, int len)
 {
-    buf_ptr = buf_limit = recv_buf;
-
-    if (len > RECV_LEN) {
-        return UNSUPPORTED;
-    } else {
-        for (int i = 0; i < len; i++) {
-            *buf_limit++ = buf[i];
-        }
-        return OK;
-    }
+    zm_input_buffer = std::make_unique<std::stringstream>();
+    zm_input_buffer->write(data, len);
+    zm_input = zm_input_buffer.get();
 }
 
 // recv implementation for use in tests
 ZRESULT zm_recv()
 {
-    if (buf_ptr < buf_limit) {
-        return *buf_ptr++;
-    } else {
+    int ch = zm_input->get();
+    if (ch < 0) {
         return CLOSED;
     }
+    return ch;
 }
 
 // send implementation for use in tests
 ZRESULT zm_send(uint8_t c)
 {
+    if (zm_output != nullptr) {
+        zm_output->put(c);
+    }
     return OK;
 }
+
+extern "C" {
+void fpm_delay_msec(unsigned milliseconds)
+{
+    // Empty.
+}
+
+void fpm_puts(const char *input)
+{
+    fputs(input, stdout);
+    fflush(stdout);
+}
+};
 
 // Tests of the tests
 TEST(rz, recv_buffer)
 {
-    EXPECT_EQ(set_buf("a", 1025), UNSUPPORTED);
-
-    set_buf("abc", 3);
+    set_input("abc", 3);
 
     EXPECT_EQ(zm_recv(), 'a');
     EXPECT_EQ(zm_recv(), 'b');
@@ -258,11 +267,12 @@ TEST(rz, byte_to_hex)
 
 TEST(rz, read_hex_header)
 {
+    zmodem_t z{};
     ZHDR hdr;
 
     // All zeros - CRC is zero
-    set_buf("00000000000000", 14);
-    EXPECT_EQ(zm_read_hex_header(&hdr), OK);
+    set_input("00000000000000", 14);
+    EXPECT_EQ(zm_read_hex_header(&z, &hdr), OK);
 
     EXPECT_EQ(hdr.type, 0);
     EXPECT_EQ(hdr.flags.f0, 0);
@@ -273,8 +283,8 @@ TEST(rz, read_hex_header)
     EXPECT_EQ(hdr.crc2, 0);
 
     // Correct CRC - 01 02 03 04 05 - CRC is 0x8208
-    set_buf("01020304058208", 14);
-    EXPECT_EQ(zm_read_hex_header(&hdr), OK);
+    set_input("01020304058208", 14);
+    EXPECT_EQ(zm_read_hex_header(&z, &hdr), OK);
 
     EXPECT_EQ(hdr.type, 0x01);
     EXPECT_EQ(hdr.position.p0, 0x02);
@@ -290,8 +300,8 @@ TEST(rz, read_hex_header)
 
     // Incorrect CRC - 01 02 03 04 05 - CRC is 0x8208, but expect 0xc0c0
     // Note that header left intact for debugging
-    set_buf("0102030405c0c0", 14);
-    EXPECT_EQ(zm_read_hex_header(&hdr), BAD_CRC);
+    set_input("0102030405c0c0", 14);
+    EXPECT_EQ(zm_read_hex_header(&z, &hdr), BAD_CRC);
 
     EXPECT_EQ(hdr.type, 0x01);
     EXPECT_EQ(hdr.position.p0, 0x02);
@@ -307,8 +317,8 @@ TEST(rz, read_hex_header)
 
     // Invalid data - 01 02 0Z 04 05
     // Note that header is undefined
-    set_buf("01020Z0405c0c0", 14);
-    EXPECT_EQ(zm_read_hex_header(&hdr), BAD_DIGIT);
+    set_input("01020Z0405c0c0", 14);
+    EXPECT_EQ(zm_read_hex_header(&z, &hdr), BAD_DIGIT);
 }
 
 TEST(rz, calc_hdr_crc)
@@ -377,7 +387,7 @@ TEST(rz, to_hex_header)
 TEST(rz, read_escaped)
 {
     // simple non-control characters
-    set_buf("ABC", 3);
+    set_input("ABC", 3);
 
     EXPECT_EQ(zm_read_escaped(), 'A');
     EXPECT_EQ(zm_read_escaped(), 'B');
@@ -387,13 +397,47 @@ TEST(rz, read_escaped)
     EXPECT_EQ(zm_read_escaped(), CLOSED);
 
     // XON/XOFF are skipped
-    set_buf("\x11\x11\x13Z", 4);
+    set_input("\x11\x11\x13Z", 4);
 
     EXPECT_EQ(zm_read_escaped(), 'Z');
     EXPECT_EQ(zm_read_escaped(), CLOSED);
 
     // 5x CAN cancels
-    set_buf("\x18\x18\x18\x18\x18ZYX", 8);
+    set_input("\x18\x18\x18\x18\x18ZYX", 8);
     EXPECT_EQ(zm_read_escaped(), CANCELLED);
     EXPECT_EQ(zm_read_escaped(), 'Z');
+}
+
+//
+// RZ routine with a C++ interface.
+//
+void rz_wrapper(std::istream &input, std::ostream &output)
+{
+    zm_input = &input;
+    zm_output = &output;
+    zm_receive_file();
+    zm_input = nullptr;
+    zm_output = nullptr;
+}
+
+TEST(rz, receive_abc)
+{
+    disk_setup();
+
+    Interact session(rz_wrapper);
+    EXPECT_EQ(session.receive(), "");
+
+    session.send("**\x18""B00000000000000\x0D\x8A\x11");                 // 21 bytes
+    EXPECT_EQ(session.receive(), "**\x18""B0100000023be50\x0D\x8A\x11"); // 21 bytes
+
+    session.send("*\x18""C\x04\x00\x00\x00\x00\xDDQ\xA2""3abc.txt\x004 "
+                 "14745364070 100644 0 1 4\x00\x18k\x8F\x82\x82\xCF\x11"); // 54 bytes
+    EXPECT_EQ(session.receive(), "**\x18""B0900000000a87c\x0D\x8A\x11");   // 21 bytes
+
+    session.send("*\x18""C\x0A\x00\x00\x00\x00\xBC\xEF\x92\x8C""abc\x0A\x18h"
+                 "\xF1\xE2H\x00*\x18""C\x0B\x04\x00\x00\x00[Q\x18\xD0>"); // 35 bytes
+    EXPECT_EQ(session.receive(), "**\x18""B0100000023be50\x0D\x8A\x11");  // 21 bytes
+
+    session.send("**\x18""B0800000000022d\x0D\x8A");                 // 20 bytes
+    EXPECT_EQ(session.receive(), "**\x18""B0800000000022d\x0D\x8A"); // 20 bytes
 }

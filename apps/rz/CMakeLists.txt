@@ -3,6 +3,7 @@ add_executable(rz
     zserial.c
     zheaders.c
     znumbers.c
+    zreceive.c
     crc.c
 )
 fpm_target_options(rz)

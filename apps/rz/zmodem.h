@@ -25,3 +25,13 @@
 #include "znumbers.h"
 #include "zheaders.h"
 #include "zserial.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void zm_receive_file(void);
+
+#ifdef __cplusplus
+}
+#endif

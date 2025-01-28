@@ -25,8 +25,9 @@ function(fpm_target_options arg)
         ${CMAKE_BINARY_DIR}/generated/pico_base
     )
     set_target_properties(${arg} PROPERTIES SUFFIX ".exe")
-    target_compile_options(${arg} PRIVATE -fPIC -fno-asynchronous-unwind-tables -DPICO_RP2040=1)
-    target_link_options(${arg} PRIVATE -shared -fPIC -Wl,--version-script=${CMAKE_SOURCE_DIR}/../apps/export.sym -nostartfiles -e main -B$ENV{HOME}/.local/lib/fpm/arm)
+    target_compile_options(${arg} PRIVATE -fPIC -fno-asynchronous-unwind-tables -fno-exceptions -DPICO_RP2040=1)
+    target_link_options(${arg} PRIVATE -shared -fPIC -Wl,--version-script=${CMAKE_SOURCE_DIR}/../apps/export.sym -nostartfiles -nostdlib -e main -B$ENV{HOME}/.local/lib/fpm/arm)
+    target_link_libraries(${arg} -lgcc)
 
     #
     # Disassemble

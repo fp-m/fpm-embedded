@@ -1,3 +1,5 @@
+extern "C" {
+
 extern const char *input;   // Input stream for the current test, utf-8 encoded
 
 //
@@ -9,6 +11,8 @@ char fpm_getchar();
 // Write Unicode character to output buffer.
 //
 void fpm_putchar(char ch);
+
+void disk_setup(void);
 
 //
 // Create a file with given name and contents.
@@ -29,3 +33,5 @@ void create_directory(const char *dirname);
 // Make sure directory exists.
 //
 void check_directory(const char *dirname);
+
+};
