@@ -3,6 +3,7 @@
 The following is a list of platforms and boards supported in FP/M.
 
   * Raspberry Pi Pico with RP2040
+  * Raspberry Pi Pico 2 with RP2350
   * Unix demo
 
 ## Raspberry Pi Pico with RP2040
@@ -28,13 +29,9 @@ Boards without SD card:
   * [Waveshare Pico Eval Board](https://www.waveshare.com/wiki/Pico-Eval-Board)
   * [YD-RP2040](https://circuitpython.org/board/vcc_gnd_yd_rp2040/) by VCC-GND Studios
 
-## Unix
+Flash memory size:
 
-If you don't have a board available, FP/M has a demo that you can run on Linux or MacOS.
-
-## Flash memory size
-
-Board                        | Flash size | SD card | Display | WiFi
+RP2040 Board                 | Flash size | SD card | Display | WiFi
 -----------------------------|------------|---------|---------|-----
 SparkFun Thing Plus - RP2040 | 16 Mbytes  | yes     | ---     | ---
 Challenger RP2040 SD/RTC     | 8 Mbytes   | yes     | ---     | ---
@@ -51,3 +48,28 @@ Waveshare RP2040-Zero        | 2 Mbytes   | no      | ---     | ---
 Waveshare RP2040-Matrix      | 2 Mbytes   | no      | ---     | ---
 Waveshare Pico Eval Board    | ---        | unusable| 480×320 | ---
 YD-RP2040                    | 2 Mbytes   | no      | ---     | ---
+
+## Raspberry Pi Pico 2 with RP2350
+
+Boards with SD card:
+
+  * [Waveshare RP2350-GEEK](https://www.waveshare.com/wiki/RP2350-GEEK)
+
+Boards without SD card:
+
+  * [Raspberry Pi Pico 2](https://www.raspberrypi.com/products/raspberry-pi-pico-2/)
+  * [Raspberry Pi Pico 2 W](https://www.raspberrypi.com/products/raspberry-pi-pico-2/)
+  * [Waveshare RP2350-Zero](https://www.waveshare.com/wiki/RP2350-Zero)
+
+Flash memory size:
+
+RP2350 Board                 | Flash size | SD card | Display | WiFi
+-----------------------------|------------|---------|---------|-----
+Waveshare RP2040-GEEK        | 16 Mbytes  | yes     | 240x135 | ---
+Raspberry Pi Pico            | 4 Mbytes   | no      | ---     | ---
+Raspberry Pi Pico W          | 4 Mbytes   | no      | ---     | CYW43439
+Waveshare RP2040-Zero        | 2 Mbytes   | no      | ---     | ---
+
+## Unix
+
+If you don't have a board available, FP/M has a demo that you can run on Linux or MacOS.
