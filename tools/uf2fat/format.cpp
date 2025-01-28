@@ -187,6 +187,9 @@ static void get_location_and_family(const std::string &input_filename, unsigned 
         if (block.flags & UF2_FLAG_NOFLASH) {
             continue;
         }
+        if (block.flags & UF2_FLAG_EXTENSION_TAGS) {
+            continue;
+        }
         scan_block(block, flash_start, prog_end, family_id);
         if (block.blockNo + 1 == block.numBlocks) {
             // The last block.
