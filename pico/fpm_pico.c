@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/watchdog.h"
+#include "hardware/clocks.h"
 
 //
 // Wait for console input.
@@ -111,10 +112,11 @@ void fpm_print_version()
     fpm_puts("Git commit "GIT_COMMIT", built on "__DATE__" at "__TIME__"\r\n");
     fpm_puts("Pico SDK version "PICO_SDK_VERSION_STRING"\r\n");
 #if PICO_RP2040
-    fpm_printf("RP2040 chip revision B%d, ROM version %d\r\n", rp2040_chip_version(), rp2040_rom_version());
+    fpm_printf("RP2040 revision B%u ", rp2040_chip_version());
 #elif PICO_RP2350
-    fpm_printf("RP2350 chip revision B%d, ROM version %d\r\n", rp2350_chip_version(), rp2040_rom_version());
+    fpm_printf("RP2350 revision A%u ", rp2350_chip_version());
 #endif
+    fpm_printf("at %u MHz, ROM version %d\r\n", clock_get_hz(clk_sys) / 1000000, rp2040_rom_version());
     fpm_printf("Free memory %u kbytes, stack %u kbytes\r\n", fpm_heap_available() / 1024, fpm_stack_available() / 1024);
 }
 

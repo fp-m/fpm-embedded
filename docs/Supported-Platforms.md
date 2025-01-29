@@ -59,16 +59,18 @@ Boards without SD card:
 
   * [Raspberry Pi Pico 2](https://www.raspberrypi.com/products/raspberry-pi-pico-2/)
   * [Raspberry Pi Pico 2 W](https://www.raspberrypi.com/products/raspberry-pi-pico-2/)
+  * [Waveshare RP2350-Plus](https://www.waveshare.com/wiki/RP2350-Plus)
   * [Waveshare RP2350-Zero](https://www.waveshare.com/wiki/RP2350-Zero)
 
 Flash memory size:
 
 RP2350 Board                 | Flash size | SD card | Display | WiFi
 -----------------------------|------------|---------|---------|-----
-Waveshare RP2040-GEEK        | 16 Mbytes  | yes     | 240x135 | ---
+Waveshare RP2350-GEEK        | 16 Mbytes  | yes     | 240x135 | ---
 Raspberry Pi Pico            | 4 Mbytes   | no      | ---     | ---
 Raspberry Pi Pico W          | 4 Mbytes   | no      | ---     | CYW43439
-Waveshare RP2040-Zero        | 2 Mbytes   | no      | ---     | ---
+Waveshare RP2350-Plus        | 16 Mbytes  | no      | ---     | ---
+Waveshare RP2350-Zero        | 2 Mbytes   | no      | ---     | ---
 
 ## Unix
 
