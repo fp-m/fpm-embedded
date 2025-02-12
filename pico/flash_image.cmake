@@ -44,6 +44,11 @@ add_custom_command(OUTPUT ${PROJECT_NAME}-2mb.uf2
     DEPENDS ${PROJECT_NAME} flashfs
     COMMAND ${UF2FAT} format ${PROJECT_NAME}.uf2 2m flashfs -o ${PROJECT_NAME}-2mb.uf2
 )
+add_custom_command(OUTPUT ${PROJECT_NAME}-4mb.uf2
+    COMMENT "Build 4-Mb Flash image"
+    DEPENDS ${PROJECT_NAME} flashfs
+    COMMAND ${UF2FAT} format ${PROJECT_NAME}.uf2 4m flashfs -o ${PROJECT_NAME}-4mb.uf2
+)
 add_custom_command(OUTPUT ${PROJECT_NAME}-8mb.uf2
     COMMENT "Build 8-Mb Flash image"
     DEPENDS ${PROJECT_NAME} flashfs
@@ -56,6 +61,7 @@ add_custom_command(OUTPUT ${PROJECT_NAME}-16mb.uf2
 )
 add_custom_target(images ALL DEPENDS
     ${PROJECT_NAME}-2mb.uf2
+    ${PROJECT_NAME}-4mb.uf2
     ${PROJECT_NAME}-8mb.uf2
     ${PROJECT_NAME}-16mb.uf2
 )

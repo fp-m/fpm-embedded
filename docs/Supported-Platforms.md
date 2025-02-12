@@ -67,8 +67,8 @@ Flash memory size:
 RP2350 Board                 | Flash size | SD card | Display | WiFi
 -----------------------------|------------|---------|---------|-----
 Waveshare RP2350-GEEK        | 16 Mbytes  | yes     | 240x135 | ---
-Raspberry Pi Pico            | 4 Mbytes   | no      | ---     | ---
-Raspberry Pi Pico W          | 4 Mbytes   | no      | ---     | CYW43439
+Raspberry Pi Pico 2          | 4 Mbytes   | no      | ---     | ---
+Raspberry Pi Pico 2 W        | 4 Mbytes   | no      | ---     | CYW43439
 Waveshare RP2350-Plus        | 16 Mbytes  | no      | ---     | ---
 Waveshare RP2350-Zero        | 2 Mbytes   | no      | ---     | ---
 
