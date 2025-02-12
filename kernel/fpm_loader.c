@@ -230,6 +230,10 @@ static inline void set_got_pointer(void *addr)
     // at address 0x2000 0010. This vector is unused by hardware.
     *(volatile void**) 0x20000010 = addr;
 
+#elif __ARM_ARCH_8M_MAIN__
+    // For RP2350: the same.
+    *(volatile void**) 0x20000010 = addr;
+
 #elif (__x86_64__ || __i386__) && __unix__
     // For x86-64 or i386 Linux: use %gs register.
     syscall(SYS_arch_prctl, ARCH_SET_GS, addr);
@@ -252,7 +256,16 @@ static inline void set_got_pointer(void *addr)
 static inline void *get_got_pointer()
 {
     void *addr = NULL;
-#if __ARM_ARCH_ISA_A64
+#if __ARM_ARCH_6M__
+    // For RP2040: use slot #4 of the interrupt vector table,
+    // at address 0x2000 0010. This vector is unused by hardware.
+    addr = *(void**) 0x20000010;
+
+#elif __ARM_ARCH_8M_MAIN__
+    // For RP2350: the same.
+    addr = *(void**) 0x20000010;
+
+#elif __ARM_ARCH_ISA_A64
     // For arm64 Linux or MacOS: use TPIDR_EL0 register.
     asm volatile("mrs %0, tpidr_el0" : "=r" (addr) : : "memory");
 #endif
