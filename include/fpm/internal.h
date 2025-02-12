@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define FPM_VERSION "0.1"
+#define FPM_VERSION "0.2"
 
 //
 // Resume on ^C.
