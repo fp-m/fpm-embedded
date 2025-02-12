@@ -1,5 +1,11 @@
-add_executable(micropython
-    main.c
+cmake_minimum_required(VERSION 3.12)
+
+project(micropython VERSION 0.1 DESCRIPTION "Micro Python Embedded")
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+add_compile_options(-Wall -Werror -Wshadow)
+
+add_library(micropython
     port/embed_util.c
     port/mphalport.c
     py/argcheck.c
@@ -133,4 +139,6 @@ add_executable(micropython
     shared/runtime/gchelper_generic.c
 )
 target_include_directories(micropython AFTER PUBLIC .)
-fpm_target_options(micropython)
+
+add_executable(embed main.c)
+target_link_libraries(embed micropython)
