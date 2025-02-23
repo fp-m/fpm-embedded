@@ -25,7 +25,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <poll.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -34,8 +33,11 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <termios.h>
 #include <unistd.h>
+
+#ifdef TERMIOS
+#include <termios.h>
+#endif
 
 #define BB_VER "version 2.62"
 #define BB_BT "brent@mbari.org"
@@ -286,7 +288,13 @@ struct globals {
 #if ENABLE_FEATURE_VI_USE_SIGNALS
     sigjmp_buf restart; // catch_sig()
 #endif
+#ifdef TERMIOS
     struct termios term_orig, term_vi; // remember what the cooked mode was
+#else
+    struct sgttyb term_orig, term_vi; // remember what the cooked mode was
+    struct tchars tchars_orig, tchars_vi;
+    struct ltchars ltc_orig, ltc_vi;
+#endif
     unsigned ticsPerChar;              // # of 100hz tics per character received
 #if ENABLE_FEATURE_VI_COLON
     char *initial_cmds[3]; // currently 2 entries, NULL terminated
@@ -359,8 +367,12 @@ struct globals {
 #define context_end (G.context_end)
 #define restart (G.restart)
 #define term_orig (G.term_orig)
+#define tchars_orig (G.tchars_orig)
+#define ltc_orig (G.ltc_orig)
 #define ticsPerChar (G.ticsPerChar)
 #define term_vi (G.term_vi)
+#define tchars_vi (G.tchars_vi)
+#define ltc_vi (G.ltc_vi)
 #define initial_cmds (G.initial_cmds)
 #define readbuffer (G.readbuffer)
 #define scr_out_buf (G.scr_out_buf)
@@ -535,7 +547,7 @@ char *xstrndup(const char *old, size_t n)
     return ptr;
 }
 
-void *memrchr(const void *s, int c, size_t n)
+static void *memrchr(const void *s, int c, size_t n)
 {
     if (s == NULL || n == 0) {
         return NULL;
@@ -567,6 +579,60 @@ static char *strchrnul(const char *s, int c)
     return (char *)p;
 }
 
+size_t strnlen(const char *s, size_t maxlen)
+{
+    if (s == NULL) {
+        return 0;
+    }
+
+    const char *p = s;
+    size_t i = 0;
+    while (i < maxlen && *p != '\0') {
+        p++;
+        i++;
+    }
+    return i;
+}
+
+//
+// Check for space and horizontal tab.
+//
+static int isblank(int c)
+{
+    return (c == ' ' || c == '\t');
+}
+
+static const int strncasecmp(const char *s1, const char *s2, size_t n)
+{
+    if (s1 == NULL || s2 == NULL) {
+        return 0;
+    }
+    if (n == 0) {
+        return 0; // Empty strings are always equal
+    }
+    for (size_t i = 0; i < n; i++) {
+        // Cast to unsigned char for tolower
+        unsigned char c1 = (unsigned char)s1[i];
+        unsigned char c2 = (unsigned char)s2[i];
+
+        if (c1 == '\0' || c2 == '\0') {
+            if (c1 == c2)
+                return 0;
+            if (c1 == '\0')
+                return -1;
+            return 1;
+        }
+
+        c1 = tolower(c1);
+        c2 = tolower(c2);
+        if (c1 != c2) {
+            // Return difference of lowercase chars
+            return c1 - c2;
+        }
+    }
+    return 0;
+}
+
 /* Find out if the last character of a string matches the one given.
  * Don't underrun the buffer if the string length is 0.
  */
@@ -584,30 +650,6 @@ char *last_char_is(const char *s, int c)
 int bb_putchar(int ch)
 {
     return putc(ch, stdout);
-}
-
-/* Wrapper which restarts poll on EINTR or ENOMEM.
- * On other errors does perror("poll") and returns.
- * Warning! May take longer than timeout_ms to return! */
-int safe_poll(struct pollfd *ufds, nfds_t nfds, int timeout)
-{
-    while (1) {
-        int n = poll(ufds, nfds, timeout);
-        if (n >= 0)
-            return n;
-        /* Make sure we inch towards completion */
-        if (timeout > 0)
-            timeout--;
-        /* E.g. strace causes poll to return this */
-        if (errno == EINTR)
-            continue;
-        /* Kernel is very low on memory. Retry. */
-        /* I doubt many callers would handle this correctly! */
-        if (errno == ENOMEM)
-            continue;
-        bb_perror_msg("poll");
-        return n;
-    }
 }
 
 ssize_t safe_read(int fd, void *buf, size_t count)
@@ -699,13 +741,13 @@ static const char *snchr(const char *s, int c, size_t n)
     return NULL;
 }
 
-static ssize_t readResponse(char *buf, size_t bufSize, int endByte)
 // read response from STDIN into buf until timeout or endByte received
+static ssize_t readResponse(char *buf, size_t bufSize, int endByte)
 {
     size_t cursor = 0;
     while (cursor < bufSize) {
         if (!awaitInput(ticsPerChar + 9))
-            return -ETIME;
+            return -ETIMEDOUT;
         int r = safe_read(STDIN_FILENO, buf + cursor, bufSize - cursor);
         if (r <= 0)
             return r < 0 ? r : -EIO;
@@ -2495,6 +2537,7 @@ static char *swap_context(char *p) // goto new context for '' command make this 
 //----- Set terminal attributes --------------------------------
 static int rawmode(void)
 {
+#ifdef TERMIOS
     int err = tcgetattr(0, &term_orig);
     if (err)
         return err;
@@ -2506,6 +2549,30 @@ static int rawmode(void)
     term_vi.c_cc[VTIME] = 0;
     erase_char = term_vi.c_cc[VERASE];
     tcsetattr(0, TCSANOW, &term_vi);
+#else
+    ioctl(0, TIOCGETP, &term_orig);
+    term_vi = term_orig;
+    term_vi.sg_flags &= ~(ECHO | CRMOD | XTABS | RAW);
+    term_vi.sg_flags |= CBREAK;
+    ioctl(0, TIOCSETP, &term_vi);
+
+    ioctl(0, TIOCGETC, &tchars_orig);
+    tchars_vi = tchars_orig;
+    tchars_vi.t_eofc = -1;          /* end-of-file */
+    tchars_vi.t_quitc = -1;         /* quit */
+    tchars_vi.t_intrc = -1;         /* interrupt */
+    ioctl(0, TIOCSETC, &tchars_vi);
+
+    ioctl(0, TIOCGLTC, &ltc_orig);
+    ltc_vi = ltc_orig;
+    ltc_vi.t_suspc = -1;            /* stop process */
+    ltc_vi.t_dsuspc = -1;           /* delayed stop process */
+    ltc_vi.t_rprntc = -1;           /* reprint line */
+    ltc_vi.t_flushc = -1;           /* flush output */
+    ltc_vi.t_werasc = -1;           /* word erase */
+    ltc_vi.t_lnextc = -1;           /* literal next character */
+    ioctl(0, TIOCSLTC, &ltc_vi);
+#endif
 
     unsigned tics = 1;
     ticsPerChar = tics;
@@ -2514,7 +2581,13 @@ static int rawmode(void)
 
 static void cookmode(void)
 {
+#ifdef TERMIOS
     tcsetattr(0, TCSANOW, &term_orig);
+#else
+    ioctl(0, TIOCSETP, &term_orig);
+    ioctl(0, TIOCSETC, &tchars_orig);
+    ioctl(0, TIOCSLTC, &ltc_orig);
+#endif
 }
 
 //----- Come here when we get a window resize signal ---------
@@ -2564,16 +2637,40 @@ static void catch_sig(int sig)
 }
 #endif /* FEATURE_VI_USE_SIGNALS */
 
-static int awaitInput(int tics)
+//
 // returns true if input is becomes available within tics/100 seconds
+//
+static int awaitInput(int tics)
 {
     fflush(stdout);
+#ifdef TERMIOS
     tcdrain(STDOUT_FILENO);
+#endif
+#if 0
     struct pollfd pfd[1];
-
     pfd[0].fd = 0;
     pfd[0].events = POLLIN;
     return safe_poll(pfd, 1, tics * 10) > 0;
+#else
+    fd_set rfds;
+    FD_ZERO(&rfds);
+    FD_SET(0, &rfds);
+
+    struct timeval tv;
+    tv.tv_sec = tics / 100;
+    tv.tv_usec = tics % 100 * 10000;
+
+    int retval = select(1, &rfds, NULL, NULL, &tv);
+    if (retval < -1) {
+        perror("select");
+    } else if (retval == 0) {
+        // Timeout occurred
+    } else if (FD_ISSET(0, &rfds)) {
+        // Data is available
+        return 1;
+    }
+#endif
+    return 0;
 }
 
 //----- IO Routines --------------------------------------------
