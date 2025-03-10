@@ -31,7 +31,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if __unix__
 #include <sys/ioctl.h>
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -592,45 +594,6 @@ size_t strnlen(const char *s, size_t maxlen)
         i++;
     }
     return i;
-}
-
-//
-// Check for space and horizontal tab.
-//
-static int isblank(int c)
-{
-    return (c == ' ' || c == '\t');
-}
-
-static const int strncasecmp(const char *s1, const char *s2, size_t n)
-{
-    if (s1 == NULL || s2 == NULL) {
-        return 0;
-    }
-    if (n == 0) {
-        return 0; // Empty strings are always equal
-    }
-    for (size_t i = 0; i < n; i++) {
-        // Cast to unsigned char for tolower
-        unsigned char c1 = (unsigned char)s1[i];
-        unsigned char c2 = (unsigned char)s2[i];
-
-        if (c1 == '\0' || c2 == '\0') {
-            if (c1 == c2)
-                return 0;
-            if (c1 == '\0')
-                return -1;
-            return 1;
-        }
-
-        c1 = tolower(c1);
-        c2 = tolower(c2);
-        if (c1 != c2) {
-            // Return difference of lowercase chars
-            return c1 - c2;
-        }
-    }
-    return 0;
 }
 
 /* Find out if the last character of a string matches the one given.
